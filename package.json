@@ -50,7 +50,9 @@
     "@tarojs/runtime": "4.0.4",
     "@tarojs/shared": "4.0.4",
     "@tarojs/taro": "4.0.4",
-    "solid-js": "^1.8.16"
+    "blob-polyfill": "^9.0.20240710",
+    "solid-js": "^1.8.16",
+    "web-streams-polyfill": "^4.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.4",
