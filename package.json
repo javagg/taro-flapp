@@ -50,9 +50,7 @@
     "@tarojs/runtime": "4.0.4",
     "@tarojs/shared": "4.0.4",
     "@tarojs/taro": "4.0.4",
-    "blob-polyfill": "^9.0.20240710",
-    "solid-js": "^1.8.16",
-    "web-streams-polyfill": "^4.0.0"
+    "solid-js": "^1.8.16"
   },
   "devDependencies": {
     "@babel/core": "^7.24.4",
@@ -70,6 +68,9 @@
     "stylelint": "^16.4.0",
     "tsconfig-paths-webpack-plugin": "^4.1.0",
     "typescript": "^5.4.5",
-    "webpack": "5.91.0"
+    "webpack": "5.91.0",
+    "web-streams-polyfill": "^4.0.0",
+    "blob-polyfill": "^9.0.20240710",
+    "resize-observer-polyfill": "^1.5.1"
   }
 }
