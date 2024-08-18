@@ -1,3 +1,4 @@
+import { before } from 'node:test';
 import './poly'
 
 declare global {
@@ -11,7 +12,8 @@ declare global {
 export interface FlutterConfiguration {
     assetBase?: string;
     canvasKitBaseUrl?: string;
-    // hostElement: HtmlElement?;
+    renderer?: "auto" | "html" | "canvaskit" | "skwasm";
+    hostElement?: HTMLElement;
     fontFallbackBaseUrl?: string;
     entrypointUrl: string;
 }
@@ -41,6 +43,7 @@ export class FlutterEntrypointLoader {
         onEntrypointLoaded?: OnEntrypointLoadedCallback
     ) {
         this._onEntrypointLoaded = onEntrypointLoaded;
+        console.log("Load main.dart.js")
         await import("@/main");
     }
     didCreateEngineInitializer(engineInitializer) {

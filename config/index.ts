@@ -57,6 +57,10 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
           }
         }
       },
+      fontUrlLoaderOption: {
+        limit: false,
+        generator: (content) => content.toString(),
+      },
       webpackChain(chain) {
         chain.resolve.plugin('tsconfig-paths').use(TsconfigPathsPlugin)
       }

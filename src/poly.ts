@@ -6,6 +6,7 @@ import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from './mutation-observer';
 
 import fontManifest from '@/flapp/assets/FontManifest.json'
+import fontData from '@/flapp/assets/fonts/MaterialIcons-Regular.otf'
 
 class TaroCanvasElement extends TaroElement {
     backend?: any
@@ -14,7 +15,6 @@ class TaroCanvasElement extends TaroElement {
         this.tagName = "CANVAS"
         this.nodeName = "canvas"
     }
-
     getContext(type, attrs?) {
         this.backend ??= Taro.createOffscreenCanvas({
             type: "2d",
@@ -39,6 +39,8 @@ if (process.env.TARO_ENV === 'weapp') {
     console.log(self.window) // taro window
     console.log(self.window.document) // taro document
 
+    console.log(self.window.navigator.vendor)
+
     const oldCreateElement = self.window.document.createElement
     self.window.document.createElement = function (type: string) {
         const nodeName = type.toLowerCase()
@@ -58,7 +60,10 @@ if (process.env.TARO_ENV === 'weapp') {
     self.window.FileReader ??= FileReader;
     self.window.devicePixelRatio ??= Taro.getSystemInfoSync().pixelRatio;
     self.window.innerWidth ??= () => Taro.getSystemInfoSync().windowWidth;
-    self.window.matchMedia ??= function () { return { matches: false, addListener: () => { } }; };
+    self.window.matchMedia ??= function(query) {
+        // const _highContrastMediaQueryString = '(forced-colors: active)'
+        return { matches: false, addListener: () => {}, removeListener: () =>{} };
+    };
     // self.window.MutationObserver ??= MutationObserver
     self.document.currentScript ??= { src: "/", getAttribute: function () { }, };
     self.document.querySelector ??= function () { }
@@ -66,6 +71,8 @@ if (process.env.TARO_ENV === 'weapp') {
 
     self.document.fonts ??= globalThis.document.fonts
     self.document.head ??= globalThis.document.head
+
+    self.document.execCommand ??= (commandId) => console.log(`TODO: implement this: ${commandId}`)
 
     TaroEvent.prototype.initEvent ??= function() {}
     TaroElement.prototype.append ??= function (param1) { this.appendChild(param1) }
@@ -84,13 +91,18 @@ if (process.env.TARO_ENV === 'weapp') {
             bottom: 100,
         };
     };
-    self.window.PointerEvent = {};
+    self.window.TouchEvent ??= {};
+    self.window.PointerEvent ??= {};
     self.window.dispatchEvent = () => true;
 
     console.log("Replace window.FontFace.prototype.load...")
+    const oldLoad = self.window.FontFace.prototype.load
     self.window.FontFace.prototype.load = async function () {
         console.log("FontFace load nothing")
-        return {}
+        console.log(fontData);
+        const myFont = new self.window.FontFace(this.family, Uint8Array.from(atob(fontData), (m) => m.codePointAt(0)), );
+        oldLoad.apply(myFont)
+        return myFont;
     }
 
     self.window.fetch ??= async function (url, headers) {
