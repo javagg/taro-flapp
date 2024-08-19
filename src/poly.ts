@@ -59,7 +59,7 @@ if (process.env.TARO_ENV === 'weapp') {
     self.window.ReadableStream ??= ReadableStream;
     self.window.FileReader ??= FileReader;
     self.window.devicePixelRatio ??= Taro.getSystemInfoSync().pixelRatio;
-    self.window.innerWidth ??= () => Taro.getSystemInfoSync().windowWidth;
+    self.window.innerWidth ??= Taro.getSystemInfoSync().windowWidth;
     self.window.matchMedia ??= function(query) {
         // const _highContrastMediaQueryString = '(forced-colors: active)'
         return { matches: false, addListener: () => {}, removeListener: () =>{} };
@@ -79,18 +79,18 @@ if (process.env.TARO_ENV === 'weapp') {
     TaroElement.prototype.prepend ??= function (param1) { this.insertBefore(param1, this.firstChild) }
     TaroElement.prototype.querySelectorAll ??= () => [];
     TaroElement.prototype.attachShadow ??= (options) => new TaroElement();
-    TaroElement.prototype.getBoundingClientRect = () => {
-        return {
-            x: 0,
-            y: 0,
-            width: 100,
-            height: 100,
-            left: 0,
-            top: 0,
-            right: 100,
-            bottom: 100,
-        };
-    };
+    // TaroElement.prototype.getBoundingClientRect = () => {
+    //     return {
+    //         x: 0,
+    //         y: 0,
+    //         width: 100,
+    //         height: 100,
+    //         left: 0,
+    //         top: 0,
+    //         right: 100,
+    //         bottom: 100,
+    //     };
+    // };
     self.window.TouchEvent ??= {};
     self.window.PointerEvent ??= {};
     self.window.dispatchEvent = () => true;

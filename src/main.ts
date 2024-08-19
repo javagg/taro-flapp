@@ -1,2 +1,2 @@
 
-import "../flapp/build/web/main.dart";
+import "@/flapp/main.dart";
