@@ -6,8 +6,8 @@ import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from './mutation-observer';
 
 import fontManifest from '@/flapp/assets/FontManifest.json'
-import fontData from '@/flapp/assets/fonts/MaterialIcons-Regular.otf'
-
+// import fontData from '@/flapp/assets/fonts/MaterialIcons-Regular.otf'
+const fontData = ""
 class TaroCanvasElement extends TaroElement {
     backend?: any
     constructor() {

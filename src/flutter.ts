@@ -1,4 +1,3 @@
-import { before } from 'node:test';
 import './poly'
 
 declare global {

@@ -1,9 +1,7 @@
 import { useLoad, } from '@tarojs/taro'
-import { View, Text } from '@tarojs/components'
 import './index.scss'
-import { FlutterLoader } from '@/flutter'
-import Taro from '@tarojs/taro'
 import { $ } from '@tarojs/extend'
+import { FlutterLoader } from '@/flutter'
 
 export default function Index() {
   useLoad(() => {
@@ -11,8 +9,7 @@ export default function Index() {
     (window._flutter ??= {}).loader ??= new FlutterLoader();
     window._flutter.loader.load({
       onEntrypointLoaded: async (init) => {
-        const host = $('#host')[0]
-        console.log(host.tagName)
+        const host = $('#host').get(0)
         const runner = await init.initializeEngine({
           assetBase: '/',
           renderer: 'html',
