@@ -7,7 +7,9 @@ import { MutationObserver } from './mutation-observer';
 
 import fontManifest from '@/flapp/assets/FontManifest.json'
 // import fontData from '@/flapp/assets/fonts/MaterialIcons-Regular.otf'
+
 const fontData = ""
+
 class TaroCanvasElement extends TaroElement {
     backend?: any
     constructor() {
@@ -26,6 +28,7 @@ class TaroCanvasElement extends TaroElement {
 }
 
 if (process.env.TARO_ENV === 'weapp') {
+    const WebAssembly = WXWebAssembly;
     const orginalWindow = globalThis
     const orginalDocument = globalThis.document
     console.log("original window: %o", orginalWindow) // window

@@ -24,6 +24,8 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
     copy: {
       patterns: [
         { from: 'flapp/build/web/assets', to: 'dist/assets' },
+        { from: 'assets/fonts', to: 'dist/assets/fonts/roboto/v20' },
+        { from: 'assets/canvaskit', to: 'dist/canvaskit/pages' },
       ],
       options: {
       }
@@ -32,6 +34,7 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       '@/flutter': path.resolve(__dirname, '..', 'src', 'flutter'),
       '@/main': path.resolve(__dirname, '..', 'src', 'main'),
       '@/flapp': path.resolve(__dirname, '..', 'flapp', 'build', 'web'),
+      '@/canvaskit': path.resolve(__dirname, '..', 'src', 'canvaskit'),
     },
     framework: 'solid',
     compiler: {
@@ -50,12 +53,16 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       optimizeMainPackage: {
         enable: true,
       },
+      compile: {
+        exclude: [ 
+          // "src/assets/*.js", "src/canvaskit/*.js",
+          // "assets/**/*.js"
+        ],
+      },
       postcss: {
         pxtransform: {
           enable: true,
-          config: {
-
-          }
+          config: {}
         },
         cssModules: {
           enable: false, // 默认为 false，如需使用 css modules 功能，则设为 true
@@ -65,10 +72,10 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
           }
         }
       },
-      fontUrlLoaderOption: {
-        limit: false,
-        generator: (content) => content.toString(),
-      },
+      // fontUrlLoaderOption: {
+      //   limit: false,
+      //   generator: (content) => content.toString(),
+      // },
       webpackChain(chain) {
         chain.resolve.plugin('tsconfig-paths').use(TsconfigPathsPlugin)
       }
@@ -98,7 +105,6 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
           }
         }
       },
-
       webpackChain(chain) {
         chain.resolve.plugin('tsconfig-paths').use(TsconfigPathsPlugin)
         chain.merge({
