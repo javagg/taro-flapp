@@ -52,6 +52,7 @@
     "@tarojs/runtime": "4.0.4",
     "@tarojs/shared": "4.0.4",
     "@tarojs/taro": "4.0.4",
+    "canvaskit-wasm": "^0.39.1",
     "solid-js": "^1.8.16"
   },
   "devDependencies": {

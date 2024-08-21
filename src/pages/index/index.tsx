@@ -14,6 +14,8 @@ export default function Index() {
     window._flutter.loader.load({
       onEntrypointLoaded: async (init) => {
         const host = $('#host').get(0)
+        host.append($('<div>item</div>'))
+        console.log("Aaa")
         const runner = await init.initializeEngine({
           assetBase: '/',
           fontFallbackBaseUrl: '/assets/fonts/',

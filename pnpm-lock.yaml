@@ -13,7 +13,7 @@ importers:
         version: 7.25.0
       '@tarojs/components':
         specifier: 4.0.4
-        version: 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(react@18.3.1)(webpack@5.91.0)
+        version: 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/extend':
         specifier: ^4.0.4
         version: 4.0.4
@@ -22,7 +22,7 @@ importers:
         version: 4.0.4
       '@tarojs/plugin-framework-solid':
         specifier: 4.0.4
-        version: 4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(solid-js@1.8.19)(webpack@5.91.0)
+        version: 4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(solid-js@1.8.19)(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/plugin-html':
         specifier: 4.0.4
         version: 4.0.4(@tarojs/helper@4.0.4)(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)
@@ -31,16 +31,16 @@ importers:
         version: 4.0.4(@tarojs/service@4.0.4)(@tarojs/shared@4.0.4)
       '@tarojs/plugin-platform-h5':
         specifier: 4.0.4
-        version: 4.0.4(@tarojs/taro@4.0.4)(postcss@8.4.40)(react@18.3.1)(solid-js@1.8.19)(webpack@5.91.0)
+        version: 4.0.4(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(solid-js@1.8.19)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/plugin-platform-harmony-hybrid':
         specifier: 4.0.4
-        version: 4.0.4(@babel/core@7.25.2)(@tarojs/taro@4.0.4)(postcss@8.4.40)(react@18.3.1)(solid-js@1.8.19)(webpack@5.91.0)
+        version: 4.0.4(@babel/core@7.25.2)(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(solid-js@1.8.19)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/plugin-platform-jd':
         specifier: 4.0.4
         version: 4.0.4(@tarojs/service@4.0.4)(@tarojs/shared@4.0.4)
       '@tarojs/plugin-platform-qq':
         specifier: 4.0.4
-        version: 4.0.4(@tarojs/plugin-platform-weapp@4.0.4)(@tarojs/shared@4.0.4)
+        version: 4.0.4(@tarojs/plugin-platform-weapp@4.0.4(@tarojs/service@4.0.4)(@tarojs/shared@4.0.4))(@tarojs/shared@4.0.4)
       '@tarojs/plugin-platform-swan':
         specifier: 4.0.4
         version: 4.0.4(@tarojs/service@4.0.4)(@tarojs/shared@4.0.4)
@@ -58,7 +58,10 @@ importers:
         version: 4.0.4
       '@tarojs/taro':
         specifier: 4.0.4
-        version: 4.0.4(@tarojs/components@4.0.4)(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(webpack@5.91.0)
+        version: 4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
+      canvaskit-wasm:
+        specifier: ^0.39.1
+        version: 0.39.1
       solid-js:
         specifier: ^1.8.16
         version: 1.8.19
@@ -74,10 +77,10 @@ importers:
         version: 4.0.4
       '@tarojs/taro-loader':
         specifier: 4.0.4
-        version: 4.0.4(webpack@5.91.0)
+        version: 4.0.4(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/webpack5-runner':
         specifier: 4.0.4
-        version: 4.0.4(@babel/core@7.25.2)(@swc/core@1.3.96)(@tarojs/runtime@4.0.4)(less@4.2.0)(postcss@8.4.40)(sass@1.77.8)(stylus@0.63.0)(typescript@5.5.4)(webpack@5.91.0)
+        version: 4.0.4(@babel/core@7.25.2)(@swc/core@1.3.96)(@tarojs/runtime@4.0.4)(less@4.2.0)(postcss@8.4.40)(sass@1.77.8)(stylus@0.63.0)(typescript@5.5.4)(webpack@5.91.0(@swc/core@1.3.96))
       '@types/node':
         specifier: ^18
         version: 18.19.43
@@ -86,7 +89,7 @@ importers:
         version: 1.18.5
       babel-preset-taro:
         specifier: 4.0.4
-        version: 4.0.4(@babel/core@7.25.2)
+        version: 4.0.4(@babel/core@7.25.2)(@babel/plugin-transform-typescript@7.25.2(@babel/core@7.25.2))
       blob-polyfill:
         specifier: ^9.0.20240710
         version: 9.0.20240710
@@ -1730,6 +1733,9 @@ packages:
   '@webassemblyjs/wast-printer@1.12.1':
     resolution: {integrity: sha512-+X4WAlOisVWQMikjbcvY2e0rwPsKQ9F688lksZhBcPycBBuii3O7m8FACbDMWDojpAqvjIncrG8J0XHKyQfVeA==}
 
+  '@webgpu/types@0.1.21':
+    resolution: {integrity: sha512-pUrWq3V5PiSGFLeLxoGqReTZmiiXwY3jRkIG5sLLKjyqNxrwm/04b4nw7LSmGWJcKk59XOM/YRTUwOzo4MMlow==}
+
   '@xtuc/ieee754@1.2.0':
     resolution: {integrity: sha512-DX8nKgqcGwsc0eJSqYt5lwP4DH5FlHnmuWWBRy7X0NcaGR0ZtuyeESgMwTYVEtxmsNGY+qit4QYT/MIYTOTPeA==}
 
@@ -2084,6 +2090,9 @@ packages:
 
   caniuse-lite@1.0.30001646:
     resolution: {integrity: sha512-dRg00gudiBDDTmUhClSdv3hqRfpbOnU28IpI1T6PBTLWa+kOj0681C8uML3PifYfREuBrVjDGhL3adYpBT6spw==}
+
+  canvaskit-wasm@0.39.1:
+    resolution: {integrity: sha512-Gy3lCmhUdKq+8bvDrs9t8+qf7RvcjuQn+we7vTVVyqgOVO1UVfHpsnBxkTZw+R4ApEJ3D5fKySl9TU11hmjl/A==}
 
   capital-case@1.0.4:
     resolution: {integrity: sha512-ds37W8CytHgwnhGGTi88pcPyR15qoNkOpYwmMMfnWqqWgESapLqvDx6huFjQ5vqWSn2Z06173XNA7LtMOeUh1A==}
@@ -6497,7 +6506,7 @@ snapshots:
 
   '@csstools/css-tokenizer@2.4.1': {}
 
-  '@csstools/media-query-list-parser@2.1.13(@csstools/css-parser-algorithms@2.7.1)(@csstools/css-tokenizer@2.4.1)':
+  '@csstools/media-query-list-parser@2.1.13(@csstools/css-parser-algorithms@2.7.1(@csstools/css-tokenizer@2.4.1))(@csstools/css-tokenizer@2.4.1)':
     dependencies:
       '@csstools/css-parser-algorithms': 2.7.1(@csstools/css-tokenizer@2.4.1)
       '@csstools/css-tokenizer': 2.4.1
@@ -6700,12 +6709,14 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@rnx-kit/babel-preset-metro-react-native@1.1.8(@babel/core@7.25.2)(@babel/runtime@7.25.0)':
+  '@rnx-kit/babel-preset-metro-react-native@1.1.8(@babel/core@7.25.2)(@babel/plugin-transform-typescript@7.25.2(@babel/core@7.25.2))(@babel/runtime@7.25.0)':
     dependencies:
       '@babel/core': 7.25.2
       '@babel/runtime': 7.25.0
       '@rnx-kit/console': 1.1.0
       babel-plugin-const-enum: 1.2.0(@babel/core@7.25.2)
+    optionalDependencies:
+      '@babel/plugin-transform-typescript': 7.25.2(@babel/core@7.25.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -6841,17 +6852,18 @@ snapshots:
       - debug
       - supports-color
 
-  '@tarojs/components-advanced@4.0.4(@tarojs/helper@4.0.4)(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(@tarojs/taro@4.0.4)(postcss@8.4.40)(react@18.3.1)(webpack@5.91.0)':
+  '@tarojs/components-advanced@4.0.4(@tarojs/helper@4.0.4)(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))':
     dependencies:
-      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(react@18.3.1)(webpack@5.91.0)
+      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/runtime': 4.0.4
       '@tarojs/shared': 4.0.4
-      '@tarojs/taro': 4.0.4(@tarojs/components@4.0.4)(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(webpack@5.91.0)
+      '@tarojs/taro': 4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       classnames: 2.5.1
       csstype: 3.1.3
       memoize-one: 6.0.0
-      react: 18.3.1
       tslib: 2.6.3
+    optionalDependencies:
+      react: 18.3.1
     transitivePeerDependencies:
       - '@tarojs/helper'
       - '@types/react'
@@ -6862,12 +6874,12 @@ snapshots:
       - webpack-chain
       - webpack-dev-server
 
-  '@tarojs/components-react@4.0.4(@tarojs/helper@4.0.4)(postcss@8.4.40)(react@18.3.1)(solid-js@1.8.19)(webpack@5.91.0)':
+  '@tarojs/components-react@4.0.4(@tarojs/helper@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(solid-js@1.8.19)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))':
     dependencies:
       '@babel/runtime': 7.25.0
-      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(react@18.3.1)(webpack@5.91.0)
+      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/shared': 4.0.4
-      '@tarojs/taro': 4.0.4(@tarojs/components@4.0.4)(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(webpack@5.91.0)
+      '@tarojs/taro': 4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       classnames: 2.5.1
       react: 18.3.1
       solid-js: 1.8.19
@@ -6884,12 +6896,12 @@ snapshots:
       - webpack-chain
       - webpack-dev-server
 
-  '@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(react@18.3.1)(webpack@5.91.0)':
+  '@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))':
     dependencies:
       '@stencil/core': 2.22.3
-      '@tarojs/components-advanced': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(@tarojs/taro@4.0.4)(postcss@8.4.40)(react@18.3.1)(webpack@5.91.0)
+      '@tarojs/components-advanced': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/runtime': 4.0.4
-      '@tarojs/taro': 4.0.4(@tarojs/components@4.0.4)(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(webpack@5.91.0)
+      '@tarojs/taro': 4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       classnames: 2.5.1
       hammerjs: 2.0.8
       hls.js: 1.5.13
@@ -6984,7 +6996,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tarojs/plugin-framework-solid@4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(solid-js@1.8.19)(webpack@5.91.0)':
+  '@tarojs/plugin-framework-solid@4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(solid-js@1.8.19)(webpack@5.91.0(@swc/core@1.3.96))':
     dependencies:
       '@tarojs/helper': 4.0.4
       '@tarojs/runtime': 4.0.4
@@ -6993,6 +7005,7 @@ snapshots:
       acorn: 8.12.1
       acorn-walk: 8.3.3
       lodash: 4.17.21
+    optionalDependencies:
       solid-js: 1.8.19
       webpack: 5.91.0(@swc/core@1.3.96)
     transitivePeerDependencies:
@@ -7010,16 +7023,16 @@ snapshots:
       '@tarojs/service': 4.0.4
       '@tarojs/shared': 4.0.4
 
-  '@tarojs/plugin-platform-h5@4.0.4(@tarojs/taro@4.0.4)(postcss@8.4.40)(react@18.3.1)(solid-js@1.8.19)(webpack@5.91.0)':
+  '@tarojs/plugin-platform-h5@4.0.4(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(solid-js@1.8.19)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))':
     dependencies:
       '@babel/core': 7.25.2
-      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(react@18.3.1)(webpack@5.91.0)
-      '@tarojs/components-react': 4.0.4(@tarojs/helper@4.0.4)(postcss@8.4.40)(react@18.3.1)(solid-js@1.8.19)(webpack@5.91.0)
+      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
+      '@tarojs/components-react': 4.0.4(@tarojs/helper@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(solid-js@1.8.19)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/helper': 4.0.4
       '@tarojs/runtime': 4.0.4
       '@tarojs/service': 4.0.4
       '@tarojs/shared': 4.0.4
-      '@tarojs/taro-h5': 4.0.4(@tarojs/components@4.0.4)(@tarojs/taro@4.0.4)
+      '@tarojs/taro-h5': 4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))
       babel-plugin-transform-taroapi: 4.0.4(@babel/core@7.25.2)
       change-case: 4.1.2
       lodash-es: 4.17.21
@@ -7039,18 +7052,18 @@ snapshots:
       - webpack-chain
       - webpack-dev-server
 
-  '@tarojs/plugin-platform-harmony-hybrid@4.0.4(@babel/core@7.25.2)(@tarojs/taro@4.0.4)(postcss@8.4.40)(react@18.3.1)(solid-js@1.8.19)(webpack@5.91.0)':
+  '@tarojs/plugin-platform-harmony-hybrid@4.0.4(@babel/core@7.25.2)(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(solid-js@1.8.19)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))':
     dependencies:
       '@tarojs/api': 4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)
-      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(react@18.3.1)(webpack@5.91.0)
-      '@tarojs/components-react': 4.0.4(@tarojs/helper@4.0.4)(postcss@8.4.40)(react@18.3.1)(solid-js@1.8.19)(webpack@5.91.0)
+      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
+      '@tarojs/components-react': 4.0.4(@tarojs/helper@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(solid-js@1.8.19)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/helper': 4.0.4
-      '@tarojs/plugin-platform-h5': 4.0.4(@tarojs/taro@4.0.4)(postcss@8.4.40)(react@18.3.1)(solid-js@1.8.19)(webpack@5.91.0)
-      '@tarojs/router': 4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(@tarojs/taro@4.0.4)
+      '@tarojs/plugin-platform-h5': 4.0.4(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(solid-js@1.8.19)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
+      '@tarojs/router': 4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))
       '@tarojs/runtime': 4.0.4
       '@tarojs/service': 4.0.4
       '@tarojs/shared': 4.0.4
-      '@tarojs/taro-h5': 4.0.4(@tarojs/components@4.0.4)(@tarojs/taro@4.0.4)
+      '@tarojs/taro-h5': 4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))
       axios: 1.7.3
       babel-plugin-transform-taroapi: 4.0.4(@babel/core@7.25.2)
       base64-js: 1.5.1
@@ -7081,7 +7094,7 @@ snapshots:
       '@tarojs/service': 4.0.4
       '@tarojs/shared': 4.0.4
 
-  '@tarojs/plugin-platform-qq@4.0.4(@tarojs/plugin-platform-weapp@4.0.4)(@tarojs/shared@4.0.4)':
+  '@tarojs/plugin-platform-qq@4.0.4(@tarojs/plugin-platform-weapp@4.0.4(@tarojs/service@4.0.4)(@tarojs/shared@4.0.4))(@tarojs/shared@4.0.4)':
     dependencies:
       '@tarojs/plugin-platform-weapp': 4.0.4(@tarojs/service@4.0.4)(@tarojs/shared@4.0.4)
       '@tarojs/shared': 4.0.4
@@ -7101,11 +7114,11 @@ snapshots:
       '@tarojs/service': 4.0.4
       '@tarojs/shared': 4.0.4
 
-  '@tarojs/router@4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(@tarojs/taro@4.0.4)':
+  '@tarojs/router@4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))':
     dependencies:
       '@tarojs/runtime': 4.0.4
       '@tarojs/shared': 4.0.4
-      '@tarojs/taro': 4.0.4(@tarojs/components@4.0.4)(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(webpack@5.91.0)
+      '@tarojs/taro': 4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       dingtalk-jsapi: 2.15.4
       history: 5.3.0
       mobile-detect: 1.4.5
@@ -7144,11 +7157,11 @@ snapshots:
 
   '@tarojs/shared@4.0.4': {}
 
-  '@tarojs/taro-h5@4.0.4(@tarojs/components@4.0.4)(@tarojs/taro@4.0.4)':
+  '@tarojs/taro-h5@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))':
     dependencies:
       '@tarojs/api': 4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)
-      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(react@18.3.1)(webpack@5.91.0)
-      '@tarojs/router': 4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(@tarojs/taro@4.0.4)
+      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
+      '@tarojs/router': 4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)(@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))
       '@tarojs/runtime': 4.0.4
       '@tarojs/shared': 4.0.4
       abortcontroller-polyfill: 1.7.5
@@ -7164,7 +7177,7 @@ snapshots:
     transitivePeerDependencies:
       - '@tarojs/taro'
 
-  '@tarojs/taro-loader@4.0.4(webpack@5.91.0)':
+  '@tarojs/taro-loader@4.0.4(webpack@5.91.0(@swc/core@1.3.96))':
     dependencies:
       '@tarojs/helper': 4.0.4
       webpack: 5.91.0(@swc/core@1.3.96)
@@ -7172,18 +7185,23 @@ snapshots:
       - '@swc/helpers'
       - supports-color
 
-  '@tarojs/taro@4.0.4(@tarojs/components@4.0.4)(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(webpack@5.91.0)':
+  '@tarojs/taro@4.0.4(@tarojs/components@4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96)))(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))':
     dependencies:
       '@tarojs/api': 4.0.4(@tarojs/runtime@4.0.4)(@tarojs/shared@4.0.4)
-      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(postcss@8.4.40)(react@18.3.1)(webpack@5.91.0)
+      '@tarojs/components': 4.0.4(@tarojs/helper@4.0.4)(@tarojs/shared@4.0.4)(html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)))(postcss@8.4.40)(react@18.3.1)(rollup@3.29.4)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)))(webpack@5.91.0(@swc/core@1.3.96))
       '@tarojs/helper': 4.0.4
       '@tarojs/runtime': 4.0.4
       '@tarojs/shared': 4.0.4
       '@types/postcss-url': 10.0.4
       postcss: 8.4.40
+    optionalDependencies:
+      html-webpack-plugin: 5.6.0(webpack@5.91.0(@swc/core@1.3.96))
+      rollup: 3.29.4
       webpack: 5.91.0(@swc/core@1.3.96)
+      webpack-chain: 6.5.1
+      webpack-dev-server: 4.15.2(webpack@5.91.0(@swc/core@1.3.96))
 
-  '@tarojs/webpack5-prebundle@4.0.4(webpack@5.91.0)':
+  '@tarojs/webpack5-prebundle@4.0.4(webpack@5.91.0(@swc/core@1.3.96))':
     dependencies:
       '@tarojs/helper': 4.0.4
       '@tarojs/shared': 4.0.4
@@ -7196,61 +7214,62 @@ snapshots:
       - '@swc/helpers'
       - supports-color
 
-  '@tarojs/webpack5-runner@4.0.4(@babel/core@7.25.2)(@swc/core@1.3.96)(@tarojs/runtime@4.0.4)(less@4.2.0)(postcss@8.4.40)(sass@1.77.8)(stylus@0.63.0)(typescript@5.5.4)(webpack@5.91.0)':
+  '@tarojs/webpack5-runner@4.0.4(@babel/core@7.25.2)(@swc/core@1.3.96)(@tarojs/runtime@4.0.4)(less@4.2.0)(postcss@8.4.40)(sass@1.77.8)(stylus@0.63.0)(typescript@5.5.4)(webpack@5.91.0(@swc/core@1.3.96))':
     dependencies:
       '@babel/core': 7.25.2
       '@tarojs/helper': 4.0.4
       '@tarojs/runner-utils': 4.0.4
       '@tarojs/runtime': 4.0.4
       '@tarojs/shared': 4.0.4
-      '@tarojs/taro-loader': 4.0.4(webpack@5.91.0)
-      '@tarojs/webpack5-prebundle': 4.0.4(webpack@5.91.0)
+      '@tarojs/taro-loader': 4.0.4(webpack@5.91.0(@swc/core@1.3.96))
+      '@tarojs/webpack5-prebundle': 4.0.4(webpack@5.91.0(@swc/core@1.3.96))
       acorn: 8.12.1
       acorn-walk: 8.3.3
       autoprefixer: 10.4.19(postcss@8.4.40)
-      babel-loader: 8.2.1(@babel/core@7.25.2)(webpack@5.91.0)
-      copy-webpack-plugin: 12.0.2(webpack@5.91.0)
-      css-loader: 7.1.2(webpack@5.91.0)
-      css-minimizer-webpack-plugin: 6.0.0(esbuild@0.21.5)(lightningcss@1.25.1)(webpack@5.91.0)
+      babel-loader: 8.2.1(@babel/core@7.25.2)(webpack@5.91.0(@swc/core@1.3.96))
+      copy-webpack-plugin: 12.0.2(webpack@5.91.0(@swc/core@1.3.96))
+      css-loader: 7.1.2(webpack@5.91.0(@swc/core@1.3.96))
+      css-minimizer-webpack-plugin: 6.0.0(esbuild@0.21.5)(lightningcss@1.25.1)(webpack@5.91.0(@swc/core@1.3.96))
       detect-port: 1.6.1
       esbuild: 0.21.5
-      esbuild-loader: 4.2.2(webpack@5.91.0)
+      esbuild-loader: 4.2.2(webpack@5.91.0(@swc/core@1.3.96))
       html-minifier: 4.0.0
-      html-webpack-plugin: 5.6.0(webpack@5.91.0)
+      html-webpack-plugin: 5.6.0(webpack@5.91.0(@swc/core@1.3.96))
       jsdom: 24.1.1
-      less: 4.2.0
-      less-loader: 12.2.0(less@4.2.0)(webpack@5.91.0)
+      less-loader: 12.2.0(less@4.2.0)(webpack@5.91.0(@swc/core@1.3.96))
       lightningcss: 1.25.1
       loader-utils: 3.3.1
       lodash: 4.17.21
       md5: 2.3.0
-      mini-css-extract-plugin: 2.9.0(webpack@5.91.0)
+      mini-css-extract-plugin: 2.9.0(webpack@5.91.0(@swc/core@1.3.96))
       miniprogram-simulate: 1.6.1
       ora: 5.4.1
       picomatch: 4.0.2
       postcss: 8.4.40
       postcss-html-transform: 4.0.4(postcss@8.4.40)
       postcss-import: 16.1.0(postcss@8.4.40)
-      postcss-loader: 8.1.1(postcss@8.4.40)(typescript@5.5.4)(webpack@5.91.0)
+      postcss-loader: 8.1.1(postcss@8.4.40)(typescript@5.5.4)(webpack@5.91.0(@swc/core@1.3.96))
       postcss-plugin-constparse: 4.0.4(postcss@8.4.40)
       postcss-pxtransform: 4.0.4(postcss@8.4.40)
       postcss-url: 10.1.3(postcss@8.4.40)
       regenerator-runtime: 0.11.1
       resolve-url-loader: 5.0.0
-      sass: 1.77.8
-      sass-loader: 14.2.1(sass@1.77.8)(webpack@5.91.0)
+      sass-loader: 14.2.1(sass@1.77.8)(webpack@5.91.0(@swc/core@1.3.96))
       sax: 1.2.4
-      style-loader: 3.3.4(webpack@5.91.0)
-      stylus: 0.63.0
-      stylus-loader: 8.1.0(stylus@0.63.0)(webpack@5.91.0)
-      terser-webpack-plugin: 5.3.10(@swc/core@1.3.96)(esbuild@0.21.5)(webpack@5.91.0)
+      style-loader: 3.3.4(webpack@5.91.0(@swc/core@1.3.96))
+      stylus-loader: 8.1.0(stylus@0.63.0)(webpack@5.91.0(@swc/core@1.3.96))
+      terser-webpack-plugin: 5.3.10(@swc/core@1.3.96)(esbuild@0.21.5)(webpack@5.91.0(@swc/core@1.3.96))
       vm2: 3.9.19
       webpack: 5.91.0(@swc/core@1.3.96)
       webpack-chain: 6.5.1
-      webpack-dev-server: 4.15.2(webpack@5.91.0)
+      webpack-dev-server: 4.15.2(webpack@5.91.0(@swc/core@1.3.96))
       webpack-format-messages: 3.0.1
       webpack-virtual-modules: 0.6.2
-      webpackbar: 5.0.2(webpack@5.91.0)
+      webpackbar: 5.0.2(webpack@5.91.0(@swc/core@1.3.96))
+    optionalDependencies:
+      less: 4.2.0
+      sass: 1.77.8
+      stylus: 0.63.0
     transitivePeerDependencies:
       - '@parcel/css'
       - '@rspack/core'
@@ -7433,7 +7452,7 @@ snapshots:
     dependencies:
       '@types/yargs-parser': 21.0.3
 
-  '@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.57.0)(typescript@5.5.4)':
+  '@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)':
     dependencies:
       '@eslint-community/regexpp': 4.11.0
       '@typescript-eslint/parser': 6.21.0(eslint@8.57.0)(typescript@5.5.4)
@@ -7448,6 +7467,7 @@ snapshots:
       natural-compare: 1.4.0
       semver: 7.6.3
       ts-api-utils: 1.3.0(typescript@5.5.4)
+    optionalDependencies:
       typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
@@ -7460,6 +7480,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 6.21.0
       debug: 4.3.6
       eslint: 8.57.0
+    optionalDependencies:
       typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
@@ -7476,6 +7497,7 @@ snapshots:
       debug: 4.3.6
       eslint: 8.57.0
       ts-api-utils: 1.3.0(typescript@5.5.4)
+    optionalDependencies:
       typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
@@ -7492,6 +7514,7 @@ snapshots:
       minimatch: 9.0.3
       semver: 7.6.3
       ts-api-utils: 1.3.0(typescript@5.5.4)
+    optionalDependencies:
       typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
@@ -7593,6 +7616,8 @@ snapshots:
       '@webassemblyjs/ast': 1.12.1
       '@xtuc/long': 4.2.2
 
+  '@webgpu/types@0.1.21': {}
+
   '@xtuc/ieee754@1.2.0': {}
 
   '@xtuc/long@4.2.2': {}
@@ -7634,7 +7659,7 @@ snapshots:
       - supports-color
 
   ajv-formats@2.1.1(ajv@8.17.1):
-    dependencies:
+    optionalDependencies:
       ajv: 8.17.1
 
   ajv-keywords@3.5.2(ajv@6.12.6):
@@ -7779,7 +7804,7 @@ snapshots:
 
   babel-helper-remove-or-void@0.4.3: {}
 
-  babel-loader@8.2.1(@babel/core@7.25.2)(webpack@5.91.0):
+  babel-loader@8.2.1(@babel/core@7.25.2)(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       '@babel/core': 7.25.2
       find-cache-dir: 2.1.0
@@ -7851,7 +7876,7 @@ snapshots:
       '@babel/core': 7.25.2
       lodash: 4.17.21
 
-  babel-preset-taro@4.0.4(@babel/core@7.25.2):
+  babel-preset-taro@4.0.4(@babel/core@7.25.2)(@babel/plugin-transform-typescript@7.25.2(@babel/core@7.25.2)):
     dependencies:
       '@babel/core': 7.25.2
       '@babel/plugin-proposal-decorators': 7.24.7(@babel/core@7.25.2)
@@ -7861,7 +7886,7 @@ snapshots:
       '@babel/preset-typescript': 7.24.7(@babel/core@7.25.2)
       '@babel/runtime': 7.25.0
       '@babel/runtime-corejs3': 7.25.0
-      '@rnx-kit/babel-preset-metro-react-native': 1.1.8(@babel/core@7.25.2)(@babel/runtime@7.25.0)
+      '@rnx-kit/babel-preset-metro-react-native': 1.1.8(@babel/core@7.25.2)(@babel/plugin-transform-typescript@7.25.2(@babel/core@7.25.2))(@babel/runtime@7.25.0)
       '@tarojs/helper': 4.0.4
       babel-plugin-dynamic-import-node: 2.3.3
       babel-plugin-minify-dead-code-elimination: 0.5.2
@@ -8014,6 +8039,10 @@ snapshots:
       lodash.uniq: 4.5.0
 
   caniuse-lite@1.0.30001646: {}
+
+  canvaskit-wasm@0.39.1:
+    dependencies:
+      '@webgpu/types': 0.1.21
 
   capital-case@1.0.4:
     dependencies:
@@ -8209,7 +8238,7 @@ snapshots:
     dependencies:
       is-what: 3.14.1
 
-  copy-webpack-plugin@12.0.2(webpack@5.91.0):
+  copy-webpack-plugin@12.0.2(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       fast-glob: 3.3.2
       glob-parent: 6.0.2
@@ -8235,6 +8264,7 @@ snapshots:
       import-fresh: 3.3.0
       js-yaml: 4.1.0
       parse-json: 5.2.0
+    optionalDependencies:
       typescript: 5.5.4
 
   cross-spawn@7.0.3:
@@ -8251,7 +8281,7 @@ snapshots:
 
   css-functions-list@3.2.2: {}
 
-  css-loader@7.1.2(webpack@5.91.0):
+  css-loader@7.1.2(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       icss-utils: 5.1.0(postcss@8.4.40)
       postcss: 8.4.40
@@ -8261,19 +8291,21 @@ snapshots:
       postcss-modules-values: 4.0.0(postcss@8.4.40)
       postcss-value-parser: 4.2.0
       semver: 7.6.3
+    optionalDependencies:
       webpack: 5.91.0(@swc/core@1.3.96)
 
-  css-minimizer-webpack-plugin@6.0.0(esbuild@0.21.5)(lightningcss@1.25.1)(webpack@5.91.0):
+  css-minimizer-webpack-plugin@6.0.0(esbuild@0.21.5)(lightningcss@1.25.1)(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
       cssnano: 6.1.2(postcss@8.4.40)
-      esbuild: 0.21.5
       jest-worker: 29.7.0
-      lightningcss: 1.25.1
       postcss: 8.4.40
       schema-utils: 4.2.0
       serialize-javascript: 6.0.2
       webpack: 5.91.0(@swc/core@1.3.96)
+    optionalDependencies:
+      esbuild: 0.21.5
+      lightningcss: 1.25.1
 
   css-select@4.3.0:
     dependencies:
@@ -8717,7 +8749,7 @@ snapshots:
       is-date-object: 1.0.5
       is-symbol: 1.0.4
 
-  esbuild-loader@4.2.2(webpack@5.91.0):
+  esbuild-loader@4.2.2(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       esbuild: 0.21.5
       get-tsconfig: 4.7.6
@@ -8762,10 +8794,10 @@ snapshots:
   eslint-config-taro@4.0.4(@babel/core@7.25.2)(eslint@8.57.0)(typescript@5.5.4):
     dependencies:
       '@babel/eslint-parser': 7.25.1(@babel/core@7.25.2)(eslint@8.57.0)
-      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.57.0)(typescript@5.5.4)
+      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/parser': 6.21.0(eslint@8.57.0)(typescript@5.5.4)
       eslint: 8.57.0
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@6.21.0)(eslint@8.57.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)
     transitivePeerDependencies:
       - '@babel/core'
       - eslint-import-resolver-typescript
@@ -8781,18 +8813,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@6.21.0)(eslint-import-resolver-node@0.3.9)(eslint@8.57.0):
+  eslint-module-utils@2.8.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint@8.57.0):
     dependencies:
-      '@typescript-eslint/parser': 6.21.0(eslint@8.57.0)(typescript@5.5.4)
       debug: 3.2.7
+    optionalDependencies:
+      '@typescript-eslint/parser': 6.21.0(eslint@8.57.0)(typescript@5.5.4)
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.29.1(@typescript-eslint/parser@6.21.0)(eslint@8.57.0):
+  eslint-plugin-import@2.29.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0):
     dependencies:
-      '@typescript-eslint/parser': 6.21.0(eslint@8.57.0)(typescript@5.5.4)
       array-includes: 3.1.8
       array.prototype.findlastindex: 1.2.5
       array.prototype.flat: 1.3.2
@@ -8801,7 +8833,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.21.0)(eslint-import-resolver-node@0.3.9)(eslint@8.57.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint@8.57.0)
       hasown: 2.0.2
       is-core-module: 2.15.0
       is-glob: 4.0.3
@@ -8811,6 +8843,8 @@ snapshots:
       object.values: 1.2.0
       semver: 6.3.1
       tsconfig-paths: 3.15.0
+    optionalDependencies:
+      '@typescript-eslint/parser': 6.21.0(eslint@8.57.0)(typescript@5.5.4)
     transitivePeerDependencies:
       - eslint-import-resolver-typescript
       - eslint-import-resolver-webpack
@@ -9427,13 +9461,14 @@ snapshots:
 
   html-tags@3.3.1: {}
 
-  html-webpack-plugin@5.6.0(webpack@5.91.0):
+  html-webpack-plugin@5.6.0(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       '@types/html-minifier-terser': 6.1.0
       html-minifier-terser: 6.1.0
       lodash: 4.17.21
       pretty-error: 4.0.0
       tapable: 2.2.1
+    optionalDependencies:
       webpack: 5.91.0(@swc/core@1.3.96)
 
   htmlparser2@6.1.0:
@@ -9475,12 +9510,13 @@ snapshots:
 
   http-proxy-middleware@2.0.6(@types/express@4.17.21):
     dependencies:
-      '@types/express': 4.17.21
       '@types/http-proxy': 1.17.14
       http-proxy: 1.18.1
       is-glob: 4.0.3
       is-plain-obj: 3.0.0
       micromatch: 4.0.7
+    optionalDependencies:
+      '@types/express': 4.17.21
     transitivePeerDependencies:
       - debug
 
@@ -9852,9 +9888,10 @@ snapshots:
       picocolors: 1.0.1
       shell-quote: 1.8.1
 
-  less-loader@12.2.0(less@4.2.0)(webpack@5.91.0):
+  less-loader@12.2.0(less@4.2.0)(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       less: 4.2.0
+    optionalDependencies:
       webpack: 5.91.0(@swc/core@1.3.96)
 
   less@3.13.1:
@@ -10072,7 +10109,7 @@ snapshots:
 
   mimic-response@1.0.1: {}
 
-  mini-css-extract-plugin@2.9.0(webpack@5.91.0):
+  mini-css-extract-plugin@2.9.0(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       schema-utils: 4.2.0
       tapable: 2.2.1
@@ -10467,12 +10504,13 @@ snapshots:
       read-cache: 1.0.0
       resolve: 1.22.8
 
-  postcss-loader@8.1.1(postcss@8.4.40)(typescript@5.5.4)(webpack@5.91.0):
+  postcss-loader@8.1.1(postcss@8.4.40)(typescript@5.5.4)(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       cosmiconfig: 9.0.0(typescript@5.5.4)
       jiti: 1.21.6
       postcss: 8.4.40
       semver: 7.6.3
+    optionalDependencies:
       webpack: 5.91.0(@swc/core@1.3.96)
     transitivePeerDependencies:
       - typescript
@@ -10906,9 +10944,10 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  sass-loader@14.2.1(sass@1.77.8)(webpack@5.91.0):
+  sass-loader@14.2.1(sass@1.77.8)(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       neo-async: 2.6.2
+    optionalDependencies:
       sass: 1.77.8
       webpack: 5.91.0(@swc/core@1.3.96)
 
@@ -11236,7 +11275,7 @@ snapshots:
     dependencies:
       escape-string-regexp: 1.0.5
 
-  style-loader@3.3.4(webpack@5.91.0):
+  style-loader@3.3.4(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       webpack: 5.91.0(@swc/core@1.3.96)
 
@@ -11250,7 +11289,7 @@ snapshots:
     dependencies:
       '@csstools/css-parser-algorithms': 2.7.1(@csstools/css-tokenizer@2.4.1)
       '@csstools/css-tokenizer': 2.4.1
-      '@csstools/media-query-list-parser': 2.1.13(@csstools/css-parser-algorithms@2.7.1)(@csstools/css-tokenizer@2.4.1)
+      '@csstools/media-query-list-parser': 2.1.13(@csstools/css-parser-algorithms@2.7.1(@csstools/css-tokenizer@2.4.1))(@csstools/css-tokenizer@2.4.1)
       '@csstools/selector-specificity': 3.1.1(postcss-selector-parser@6.1.1)
       '@dual-bundle/import-meta-resolve': 4.1.0
       balanced-match: 2.0.0
@@ -11291,11 +11330,12 @@ snapshots:
       - supports-color
       - typescript
 
-  stylus-loader@8.1.0(stylus@0.63.0)(webpack@5.91.0):
+  stylus-loader@8.1.0(stylus@0.63.0)(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       fast-glob: 3.3.2
       normalize-path: 3.0.0
       stylus: 0.63.0
+    optionalDependencies:
       webpack: 5.91.0(@swc/core@1.3.96)
 
   stylus@0.63.0:
@@ -11366,16 +11406,17 @@ snapshots:
       to-buffer: 1.1.1
       xtend: 4.0.2
 
-  terser-webpack-plugin@5.3.10(@swc/core@1.3.96)(esbuild@0.21.5)(webpack@5.91.0):
+  terser-webpack-plugin@5.3.10(@swc/core@1.3.96)(esbuild@0.21.5)(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
-      '@swc/core': 1.3.96
-      esbuild: 0.21.5
       jest-worker: 27.5.1
       schema-utils: 3.3.0
       serialize-javascript: 6.0.2
       terser: 5.31.3
       webpack: 5.91.0(@swc/core@1.3.96)
+    optionalDependencies:
+      '@swc/core': 1.3.96
+      esbuild: 0.21.5
 
   terser@5.31.3:
     dependencies:
@@ -11636,7 +11677,7 @@ snapshots:
       deepmerge: 1.5.2
       javascript-stringify: 2.1.0
 
-  webpack-dev-middleware@5.3.4(webpack@5.91.0):
+  webpack-dev-middleware@5.3.4(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       colorette: 2.0.20
       memfs: 3.5.3
@@ -11645,7 +11686,7 @@ snapshots:
       schema-utils: 4.2.0
       webpack: 5.91.0(@swc/core@1.3.96)
 
-  webpack-dev-server@4.15.2(webpack@5.91.0):
+  webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       '@types/bonjour': 3.5.13
       '@types/connect-history-api-fallback': 1.5.4
@@ -11675,9 +11716,10 @@ snapshots:
       serve-index: 1.9.1
       sockjs: 0.3.24
       spdy: 4.0.2
-      webpack: 5.91.0(@swc/core@1.3.96)
-      webpack-dev-middleware: 5.3.4(webpack@5.91.0)
+      webpack-dev-middleware: 5.3.4(webpack@5.91.0(@swc/core@1.3.96))
       ws: 8.18.0
+    optionalDependencies:
+      webpack: 5.91.0(@swc/core@1.3.96)
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -11726,7 +11768,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 3.3.0
       tapable: 2.2.1
-      terser-webpack-plugin: 5.3.10(@swc/core@1.3.96)(esbuild@0.21.5)(webpack@5.91.0)
+      terser-webpack-plugin: 5.3.10(@swc/core@1.3.96)(esbuild@0.21.5)(webpack@5.91.0(@swc/core@1.3.96))
       watchpack: 2.4.1
       webpack-sources: 3.2.3
     transitivePeerDependencies:
@@ -11734,7 +11776,7 @@ snapshots:
       - esbuild
       - uglify-js
 
-  webpackbar@5.0.2(webpack@5.91.0):
+  webpackbar@5.0.2(webpack@5.91.0(@swc/core@1.3.96)):
     dependencies:
       chalk: 4.1.2
       consola: 2.15.3

@@ -25,6 +25,7 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       patterns: [
         { from: 'flapp/build/web/assets', to: 'dist/assets' },
         { from: 'assets/fonts', to: 'dist/assets/fonts/roboto/v20' },
+        { from: 'node_modules/canvaskit-wasm/bin/canvaskit.wasm', to: 'dist/assets' },
         { from: 'assets/canvaskit', to: 'dist/canvaskit/pages' },
       ],
       options: {
