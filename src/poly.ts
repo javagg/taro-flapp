@@ -28,7 +28,6 @@ class TaroCanvasElement extends TaroElement {
 }
 
 if (process.env.TARO_ENV === 'weapp') {
-    const WebAssembly = WXWebAssembly;
     const orginalWindow = globalThis
     const orginalDocument = globalThis.document
     console.log("original window: %o", orginalWindow) // window
@@ -107,9 +106,8 @@ if (process.env.TARO_ENV === 'weapp') {
         oldLoad.apply(myFont)
         return myFont;
     }
-
     self.window.fetch ??= async function (url, headers) {
-        console.log(`Fetch from: ${url}`)
+        console.log(`Fetch from: ${url} with headers ${JSON.stringify(headers)}`)
         if (url.startsWith("/assets/FontManifest.json")) {
             return {
                 ok: true,
@@ -120,6 +118,12 @@ if (process.env.TARO_ENV === 'weapp') {
                         controller.close()
                     }
                 }),
+            };
+        } else if (url.startsWith("/assets/canvaskit.wasm")) {
+            return {
+                ok: true,
+                status: 200,
+                arrayBuffer: async () => new TextEncoder().encode("/canvaskit/pages/canvaskit.wasm.br").buffer,
             };
         }
     }

@@ -55,7 +55,7 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
         enable: true,
       },
       compile: {
-        exclude: [ 
+        exclude: [
           // "src/assets/*.js", "src/canvaskit/*.js",
           // "assets/**/*.js"
         ],
@@ -79,6 +79,18 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       // },
       webpackChain(chain) {
         chain.resolve.plugin('tsconfig-paths').use(TsconfigPathsPlugin)
+        chain.module
+          .rule("/canvaskit\.js$/")
+          // .before("taro-loader")
+          .use("replace")
+          .loader("webpack-replace-loader")
+          .options({
+            arr: [
+              { search: 'typeof fetch', replace: 'typeof window.fetch', attr: 'g' },
+              { search: 'fetch(', replace: 'window.fetch(', attr: 'g' },
+              // { search: '$Title', replace: '百度一下，你就知道', attr: 'g' }
+            ]
+          })
       }
     },
     h5: {

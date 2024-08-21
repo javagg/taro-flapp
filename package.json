@@ -74,6 +74,7 @@
     "tsconfig-paths-webpack-plugin": "^4.1.0",
     "typescript": "^5.4.5",
     "web-streams-polyfill": "^4.0.0",
-    "webpack": "5.91.0"
+    "webpack": "5.91.0",
+    "webpack-replace-loader": "^5.0.1"
   }
 }
