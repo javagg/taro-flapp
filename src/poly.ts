@@ -1,9 +1,9 @@
-import { window, document, TaroElement, TaroEvent } from '@tarojs/runtime';
+import { window, TaroElement, TaroEvent } from '@tarojs/runtime';
 import Taro from '@tarojs/taro';
 import { ReadableStream } from "web-streams-polyfill";
 import { Blob, FileReader } from 'blob-polyfill';
 // import ResizeObserver from 'resize-observer-polyfill';
-import { MutationObserver } from './mutation-observer';
+// import { MutationObserver } from './mutation-observer';
 
 import fontManifest from '@/flapp/assets/FontManifest.json'
 import assets from '@/assets/assets.json'
@@ -79,18 +79,6 @@ if (process.env.TARO_ENV === 'weapp') {
     TaroElement.prototype.prepend ??= function (param1) { this.insertBefore(param1, this.firstChild) }
     TaroElement.prototype.querySelectorAll ??= () => [];
     TaroElement.prototype.attachShadow ??= (options) => new TaroElement();
-    // TaroElement.prototype.getBoundingClientRect = () => {
-    //     return {
-    //         x: 0,
-    //         y: 0,
-    //         width: 100,
-    //         height: 100,
-    //         left: 0,
-    //         top: 0,
-    //         right: 100,
-    //         bottom: 100,
-    //     };
-    // };
     self.window.TouchEvent ??= {};
     self.window.PointerEvent ??= {};
     self.window.dispatchEvent = () => true;
@@ -105,7 +93,6 @@ if (process.env.TARO_ENV === 'weapp') {
         return myFont;
     }
     self.window.fetch ??= async function (url, headers) {
-        console.log(fontData1);
         console.log(`Fetch from: ${url} with headers ${JSON.stringify(headers)}`)
         if (url.startsWith("/assets/FontManifest.json")) {
             return {
@@ -125,26 +112,29 @@ if (process.env.TARO_ENV === 'weapp') {
                 arrayBuffer: async () => new TextEncoder().encode("/canvaskit/pages/canvaskit.wasm.br").buffer,
             };
         } else if (url.startsWith("/assets/fonts/MaterialIcons-Regular.otf")) {
+            let data = assets["MaterialIcons-Regular.otf"]
+            data = Uint8Array.from(atob(data), c => c.charCodeAt(0))
             return {
                 ok: true,
                 status: 200,
+                arrayBuffer: async () => data.buffer,
                 body: new ReadableStream({
                     start(controller) {
-                        const data = assets["MaterialIcons-Regular.otf"]
-                        // const data = Uint8Array.from(atob(data), c => c.charCodeAt(0))
-                        controller.enqueue(Uint8Array.from(atob(data), c => c.charCodeAt(0)))
+                        controller.enqueue(data)
                         controller.close()
                     }
                 }),
             };
         } else if (url.startsWith("/assets/fonts/roboto/v20/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf")) {
+            let data = assets["KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf"]
+            data = Uint8Array.from(atob(data), c => c.charCodeAt(0))
             return {
                 ok: true,
                 status: 200,
+                arrayBuffer: async () => data.buffer,
                 body: new ReadableStream({
                     start(controller) {
-                        const data = assets["KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf"]
-                        controller.enqueue(Uint8Array.from(atob(data), c => c.charCodeAt(0)))
+                        controller.enqueue(data)
                         controller.close()
                     }
                 }),
