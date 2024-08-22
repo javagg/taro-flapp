@@ -36,6 +36,7 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       '@/main': path.resolve(__dirname, '..', 'src', 'main'),
       '@/flapp': path.resolve(__dirname, '..', 'flapp', 'build', 'web'),
       '@/canvaskit': path.resolve(__dirname, '..', 'src', 'canvaskit'),
+      '@/assets': path.resolve(__dirname, '..', 'assets'),
     },
     framework: 'solid',
     compiler: {
@@ -54,12 +55,6 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       optimizeMainPackage: {
         enable: true,
       },
-      compile: {
-        exclude: [
-          // "src/assets/*.js", "src/canvaskit/*.js",
-          // "assets/**/*.js"
-        ],
-      },
       postcss: {
         pxtransform: {
           enable: true,
@@ -73,24 +68,27 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
           }
         }
       },
-      // fontUrlLoaderOption: {
-      //   limit: false,
-      //   generator: (content) => content.toString(),
-      // },
+      fontUrlLoaderOption: {
+        limit: false,
+        // generator: (content) => content.toString(),
+      },
       webpackChain(chain) {
         chain.resolve.plugin('tsconfig-paths').use(TsconfigPathsPlugin)
         chain.module
           .rule("/canvaskit\.js$/")
-          // .before("taro-loader")
           .use("replace")
           .loader("webpack-replace-loader")
           .options({
             arr: [
               { search: 'typeof fetch', replace: 'typeof window.fetch', attr: 'g' },
               { search: 'fetch(', replace: 'window.fetch(', attr: 'g' },
-              // { search: '$Title', replace: '百度一下，你就知道', attr: 'g' }
             ]
           })
+        // chain.module
+        //   .rule("/\.otf$/")
+        //   .use("url")
+        //   .loader("url-loader")
+        //   .options({ limit: false})
       }
     },
     h5: {

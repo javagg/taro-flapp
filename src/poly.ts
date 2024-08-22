@@ -6,9 +6,7 @@ import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from './mutation-observer';
 
 import fontManifest from '@/flapp/assets/FontManifest.json'
-// import fontData from '@/flapp/assets/fonts/MaterialIcons-Regular.otf'
-
-const fontData = ""
+import assets from '@/assets/assets.json'
 
 class TaroCanvasElement extends TaroElement {
     backend?: any
@@ -107,6 +105,7 @@ if (process.env.TARO_ENV === 'weapp') {
         return myFont;
     }
     self.window.fetch ??= async function (url, headers) {
+        console.log(fontData1);
         console.log(`Fetch from: ${url} with headers ${JSON.stringify(headers)}`)
         if (url.startsWith("/assets/FontManifest.json")) {
             return {
@@ -125,6 +124,33 @@ if (process.env.TARO_ENV === 'weapp') {
                 status: 200,
                 arrayBuffer: async () => new TextEncoder().encode("/canvaskit/pages/canvaskit.wasm.br").buffer,
             };
+        } else if (url.startsWith("/assets/fonts/MaterialIcons-Regular.otf")) {
+            return {
+                ok: true,
+                status: 200,
+                body: new ReadableStream({
+                    start(controller) {
+                        const data = assets["MaterialIcons-Regular.otf"]
+                        // const data = Uint8Array.from(atob(data), c => c.charCodeAt(0))
+                        controller.enqueue(Uint8Array.from(atob(data), c => c.charCodeAt(0)))
+                        controller.close()
+                    }
+                }),
+            };
+        } else if (url.startsWith("/assets/fonts/roboto/v20/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf")) {
+            return {
+                ok: true,
+                status: 200,
+                body: new ReadableStream({
+                    start(controller) {
+                        const data = assets["KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf"]
+                        controller.enqueue(Uint8Array.from(atob(data), c => c.charCodeAt(0)))
+                        controller.close()
+                    }
+                }),
+            };
+        } else {
+            throw new Error("can't fetch")
         }
     }
 }
