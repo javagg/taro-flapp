@@ -65,6 +65,8 @@
     "@types/webpack-env": "^1.13.6",
     "babel-preset-taro": "4.0.4",
     "blob-polyfill": "^9.0.20240710",
+    "brotli-wasm": "^3.0.1",
+    "canvaskit-wasm": "^0.39.1",
     "eslint": "^8.57.0",
     "eslint-config-taro": "4.0.4",
     "postcss": "^8.4.38",
@@ -75,7 +77,6 @@
     "typescript": "^5.4.5",
     "web-streams-polyfill": "^4.0.0",
     "webpack": "5.91.0",
-    "webpack-replace-loader": "^5.0.1",
-    "canvaskit-wasm": "^0.39.1"
+    "webpack-replace-loader": "^5.0.1"
   }
 }

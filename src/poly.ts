@@ -2,8 +2,6 @@ import { window, TaroElement, TaroEvent } from '@tarojs/runtime';
 import Taro from '@tarojs/taro';
 import { ReadableStream } from "web-streams-polyfill";
 import { Blob, FileReader } from 'blob-polyfill';
-// import ResizeObserver from 'resize-observer-polyfill';
-// import { MutationObserver } from './mutation-observer';
 
 import fontManifest from '@/flapp/assets/FontManifest.json'
 import assets from '@/assets/assets.json'
@@ -60,9 +58,9 @@ if (process.env.TARO_ENV === 'weapp') {
     self.window.FileReader ??= FileReader;
     self.window.devicePixelRatio ??= Taro.getSystemInfoSync().pixelRatio;
     self.window.innerWidth ??= Taro.getSystemInfoSync().windowWidth;
-    self.window.matchMedia ??= function(query) {
+    self.window.matchMedia ??= function (query) {
         // const _highContrastMediaQueryString = '(forced-colors: active)'
-        return { matches: false, addListener: () => {}, removeListener: () =>{} };
+        return { matches: false, addListener: () => { }, removeListener: () => { } };
     };
     // self.window.MutationObserver ??= MutationObserver
     self.document.currentScript ??= { src: "/", getAttribute: function () { }, };
@@ -74,11 +72,81 @@ if (process.env.TARO_ENV === 'weapp') {
 
     self.document.execCommand ??= (commandId) => console.log(`TODO: implement this: ${commandId}`)
 
-    TaroEvent.prototype.initEvent ??= function() {}
+    TaroEvent.prototype.initEvent ??= function () { }
     TaroElement.prototype.append ??= function (param1) { this.appendChild(param1) }
     TaroElement.prototype.prepend ??= function (param1) { this.insertBefore(param1, this.firstChild) }
     TaroElement.prototype.querySelectorAll ??= () => [];
     TaroElement.prototype.attachShadow ??= (options) => new TaroElement();
+
+    const originalAddEventListener = TaroElement.prototype.addEventListener
+    TaroElement.prototype.addEventListener = function (type: any, handler: any, options: any): void {
+        console.log(`${this.tagName} addEventListener ${type}`)
+        if (this.tagName === "flutter-view") {
+            if (type === "touchstart" || type === "pointerdown") {
+                //   FlutterHostView.shared.ontouchstart = callback;
+            } else if (type === "touchmove" || type === "pointermove") {
+                //   FlutterHostView.shared.ontouchmove = callback;
+            } else if (type === "touchend" || type === "pointercancel") {
+                //   FlutterHostView.shared.ontouchend = callback;
+            } else if (type === "touchcancel") {
+                //   FlutterHostView.shared.ontouchcancel = callback;
+            }
+        } else if (this.tagName === "canvas") {
+            if (type === "webglcontextlost") {
+                //   if (!this.isOffscreenCanvas) {
+                //     FlutterHostView.shared.onwebglcontextlost = () => {
+                //       const event = new Event();
+                //       event.target = this;
+                //       callback(event);
+                //     };
+                //   }
+                //   this.onwebglcontextlost = () => {
+                //     const event = new Event();
+                //     event.target = this;
+                //     callback(event);
+                //   }
+            } else if (type === "webglcontextrestored") {
+                //   if (!this.isOffscreenCanvas) {
+                //     FlutterHostView.shared.onwebglcontextrestored = () => {
+                //       const event = new Event();
+                //       event.target = this;
+                //       callback(event);
+                //     };
+                //   }
+                //   this.onwebglcontextrestored = () => {
+                //     const event = new Event();
+                //     event.target = this;
+                //     callback(event);
+                //   }
+            }
+        }
+        originalAddEventListener.call(this, type, handler, options)
+    }
+    TaroElement.prototype.getBoundingClientRect ??= function () {
+        // throw new Error("not implemented")
+        return {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 100,
+            left: 0,
+            top: 0,
+            right: 100,
+            bottom: 100,
+        };
+    }
+    TaroElement.prototype.sheet = {
+        cssRules: [],
+        insertRule: () => {
+            return 0.0;
+        },
+    };
+
+    const originalremoveEventListener = TaroElement.prototype.removeEventListener
+    TaroElement.prototype.removeEventListener = function (type: any, handler: any, sideEffect?: boolean): void {
+        originalremoveEventListener.call(this, type, handler, sideEffect)
+    }
+
     self.window.TouchEvent ??= {};
     self.window.PointerEvent ??= {};
     self.window.dispatchEvent = () => true;
@@ -88,7 +156,7 @@ if (process.env.TARO_ENV === 'weapp') {
     self.window.FontFace.prototype.load = async function () {
         console.log("FontFace load nothing")
         console.log(fontData);
-        const myFont = new self.window.FontFace(this.family, Uint8Array.from(atob(fontData), (m) => m.codePointAt(0)), );
+        const myFont = new self.window.FontFace(this.family, Uint8Array.from(atob(fontData), (m) => m.codePointAt(0)),);
         oldLoad.apply(myFont)
         return myFont;
     }
