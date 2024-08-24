@@ -19,6 +19,7 @@ export default function Index() {
     window._flutter.loader.load({
       onEntrypointLoaded: async (init) => {
         const host = $('#host').get(0)
+        console.log(host)
         const runner = await init.initializeEngine({
           assetBase: '/',
           fontFallbackBaseUrl: '/assets/fonts/',
@@ -48,28 +49,34 @@ export default function Index() {
     console.log(res)
   })
 
-  return (
-    <body>
-      <div>
-        <span>Count: {count()}</span>{" "}
-        <button type="button" onClick={increment}>
-          Increment
-        </button>
-        <div
-          onTouchStart={() => console.log('onTouchStart')}
-          onTouchMove={() => console.log('onTouchMove')}
-          onTouchEnd={() => console.log('onTouchEnd')}
-          onPointerUp={() => console.log('onPointerUp')}
-          onPointerDown={() => console.log('onPointerDown')}
-          onPointerOut={() => console.log('onPointerOut')}
-          onPointerMove={() => console.log('onPointerMove')}
-          onPointerOver={() => console.log('onPointerOver')}
-          onKeyUp={() => console.log('onKeyUp')}
-          onKeyDown={() => console.log('onKeyDown')}
-          onFocusIn={() => console.log('onFocusIn')}
-          onFocusOut={() => console.log('onFocusOut')}
-        >hahhhhh</div>
-      </div>
-    </body>
-  )
+  if (process.env.TARO_ENV === 'h5') {
+    return (
+      <div id="host"></div>
+    )
+  } else {
+    return (
+      <body>
+        <div id="host">
+          <span>Count: {count()}</span>{" "}
+          <button type="button" onClick={increment}>
+            Increment
+          </button>
+          <div
+            onTouchStart={() => console.log('onTouchStart')}
+            onTouchMove={() => console.log('onTouchMove')}
+            onTouchEnd={() => console.log('onTouchEnd')}
+            onPointerUp={() => console.log('onPointerUp')}
+            onPointerDown={() => console.log('onPointerDown')}
+            onPointerOut={() => console.log('onPointerOut')}
+            onPointerMove={() => console.log('onPointerMove')}
+            onPointerOver={() => console.log('onPointerOver')}
+            onKeyUp={() => console.log('onKeyUp')}
+            onKeyDown={() => console.log('onKeyDown')}
+            onFocusIn={() => console.log('onFocusIn')}
+            onFocusOut={() => console.log('onFocusOut')}
+          >hahhhhh</div>
+        </div>
+      </body>
+    )
+  }
 }

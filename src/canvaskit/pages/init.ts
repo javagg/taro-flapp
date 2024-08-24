@@ -11,9 +11,16 @@ export default async function() {
         }
     } else {
     }
-    const m = await import('canvaskit-wasm/bin/canvaskit')
+    let m: any
+    if (process.env.TARO_ENV === 'h5') {
+        m = await import('@/flapp/canvaskit/canvaskit')
+    } else  {
+        m = await import('@/canvaskit/canvaskit')
+    }
     CanvasKitInit = m.default
     const kit = await CanvasKitInit({ locateFile: (file: string) => `/assets/${file}` });
-    (window._flutter ??= {}).flutterCanvasKit = kit
-    window._flutter.flutterCanvasKitLoaded = await Promise.resolve(kit)
+    const mintex = await import('../../mitex')
+    mintex.install(kit);
+    window.flutterCanvasKit = kit
+    window.flutterCanvasKitLoaded = await Promise.resolve(kit)
 }

@@ -1,5 +1,6 @@
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
 import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin'
+import CompressionPlugin from "compression-webpack-plugin"
 import devConfig from './dev'
 import prodConfig from './prod'
 import path from 'path'
@@ -25,8 +26,10 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       patterns: [
         { from: 'flapp/build/web/assets', to: 'dist/assets' },
         { from: 'assets/fonts', to: 'dist/assets/fonts/roboto/v20' },
-        { from: 'node_modules/canvaskit-wasm/bin/canvaskit.wasm', to: 'dist/assets' },
-        { from: 'assets/canvaskit', to: 'dist/canvaskit/pages' },
+        // { from: 'node_modules/canvaskit-wasm/bin/canvaskit.wasm', to: 'dist/assets' },
+        // { from: 'assets/canvaskit', to: 'dist/canvaskit/pages' },
+        { from: 'flapp/build/web/canvaskit/canvaskit.wasm', to: 'dist/assets' },
+        { from: 'assets/canvaskit-nofont', to: 'dist/canvaskit/pages' },
       ],
       options: {
       }
@@ -35,7 +38,8 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       '@/flutter': path.resolve(__dirname, '..', 'src', 'flutter'),
       '@/main': path.resolve(__dirname, '..', 'src', 'main'),
       '@/flapp': path.resolve(__dirname, '..', 'flapp', 'build', 'web'),
-      '@/canvaskit': path.resolve(__dirname, '..', 'src', 'canvaskit'),
+      '@/canvaskit': path.resolve(__dirname, '..', 'assets', 'canvaskit-nofont'),
+      // '@/canvaskit': path.resolve(__dirname, '..', 'src', 'canvaskit-nofont'),
       '@/assets': path.resolve(__dirname, '..', 'assets'),
     },
     framework: 'solid',
@@ -74,6 +78,13 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       },
       webpackChain(chain) {
         chain.resolve.plugin('tsconfig-paths').use(TsconfigPathsPlugin)
+        chain.plugin('compression-webpack-plugin').use(CompressionPlugin, [{
+          // include: "../flapp/build/web/assets",
+          filename: "[path][base].br",
+          algorithm: "brotliCompress",
+          test: /\.(wasm|ttf|otf)$/,
+          deleteOriginalAssets: true,
+        }])
         chain.module
           .rule("/canvaskit\.js$/")
           .use("replace")
@@ -84,11 +95,6 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
               { search: 'fetch(', replace: 'window.fetch(', attr: 'g' },
             ]
           })
-        // chain.module
-        //   .rule("/\.otf$/")
-        //   .use("url")
-        //   .loader("url-loader")
-        //   .options({ limit: false})
       }
     },
     h5: {

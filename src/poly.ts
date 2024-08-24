@@ -2,9 +2,8 @@ import { window, TaroElement, TaroEvent } from '@tarojs/runtime';
 import Taro from '@tarojs/taro';
 import { ReadableStream } from "web-streams-polyfill";
 import { Blob, FileReader } from 'blob-polyfill';
-
+import { MutationObserver } from './mutation-observer';
 import fontManifest from '@/flapp/assets/FontManifest.json'
-import assets from '@/assets/assets.json'
 
 class TaroCanvasElement extends TaroElement {
     backend?: any
@@ -24,6 +23,11 @@ class TaroCanvasElement extends TaroElement {
 }
 
 if (process.env.TARO_ENV === 'weapp') {
+    const ASSETS = [
+        "/assets/fonts/MaterialIcons-Regular.otf",
+        "/assets/fonts/roboto/v20/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf",
+        "/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf"
+    ]
     const orginalWindow = globalThis
     const orginalDocument = globalThis.document
     console.log("original window: %o", orginalWindow) // window
@@ -160,55 +164,51 @@ if (process.env.TARO_ENV === 'weapp') {
         oldLoad.apply(myFont)
         return myFont;
     }
-    self.window.fetch ??= async function (url, headers) {
+    self.window.fetch ??= async function (url: string, headers) {
         console.log(`Fetch from: ${url} with headers ${JSON.stringify(headers)}`)
-        if (url.startsWith("/assets/FontManifest.json")) {
-            return {
-                ok: true,
-                status: 200,
-                body: new ReadableStream({
-                    start(controller) {
-                        controller.enqueue(new TextEncoder().encode(JSON.stringify(fontManifest)))
-                        controller.close()
-                    }
-                }),
-            };
-        } else if (url.startsWith("/assets/canvaskit.wasm")) {
-            return {
-                ok: true,
-                status: 200,
-                arrayBuffer: async () => new TextEncoder().encode("/canvaskit/pages/canvaskit.wasm.br").buffer,
-            };
-        } else if (url.startsWith("/assets/fonts/MaterialIcons-Regular.otf")) {
-            let data = assets["MaterialIcons-Regular.otf"]
-            data = Uint8Array.from(atob(data), c => c.charCodeAt(0))
-            return {
-                ok: true,
-                status: 200,
-                arrayBuffer: async () => data.buffer,
-                body: new ReadableStream({
-                    start(controller) {
-                        controller.enqueue(data)
-                        controller.close()
-                    }
-                }),
-            };
-        } else if (url.startsWith("/assets/fonts/roboto/v20/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf")) {
-            let data = assets["KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf"]
-            data = Uint8Array.from(atob(data), c => c.charCodeAt(0))
-            return {
-                ok: true,
-                status: 200,
-                arrayBuffer: async () => data.buffer,
-                body: new ReadableStream({
-                    start(controller) {
-                        controller.enqueue(data)
-                        controller.close()
-                    }
-                }),
-            };
-        } else {
-            throw new Error("can't fetch")
+        try {
+            if (url.startsWith("/assets/FontManifest.json")) {
+                const str = JSON.stringify(fontManifest)
+                const data = new TextEncoder().encode(str)
+                // return {}
+                return {
+                    ok: true,
+                    status: 200,
+                    arrayBuffer: () => data.buffer,
+                    text: async () => str,
+                    body: new ReadableStream({
+                        start(controller) {
+                            controller.enqueue(data)
+                            controller.close()
+                        }
+                    }),
+                };
+            } else if (url.startsWith("/assets/canvaskit.wasm")) {
+                return {
+                    ok: true,
+                    status: 200,
+                    arrayBuffer: async () => new TextEncoder().encode("/canvaskit/pages/canvaskit.wasm.br").buffer,
+                };
+            } else if (ASSETS.includes(url)) {
+                const fs = Taro.getFileSystemManager();
+                const data = fs.readCompressedFileSync({ filePath: `${url}.br`, compressionAlgorithm: "br" })
+                return {
+                    ok: true,
+                    status: 200,
+                    arrayBuffer: async () => data,
+                    body: new ReadableStream({
+                        start(controller) {
+                            controller.enqueue(new Uint8Array(data))
+                            controller.close()
+                        }
+                    }),
+                };
+            } else {
+                throw new Error("can't fetch")
+            }
+        } catch(e) {
+            console.error(e)
+            throw new Error(`my fetch error: ${e}`)
         }
     }
 }
