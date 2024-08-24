@@ -7,14 +7,52 @@ import { $ } from '@tarojs/extend'
 import { FlutterLoader } from '@/flutter'
 import { createSignal } from 'solid-js'
 
+// import CanvasKitInit from '@/assets/canvaskit/canvaskit'
+
+// import CanvasKitInit from 'node_modules/canvaskit-wasm/bin/canvaskit';
+
 export default function Index() {
   const [count, setCount] = createSignal(0);
   const increment = () => setCount((prev) => prev + 1);
 
   useLoad(async () => {
     console.log('Page loaded.');
-    const m = await import("@/canvaskit/pages/init");
-    await m.default();
+
+    if (process.env.TARO_ENV === 'h5') {
+    } else if (process.env.TARO_ENV === 'weapp') {
+      globalThis.WebAssembly = globalThis.WXWebAssembly;
+      const orignalInstantiate = globalThis.WXWebAssembly.instantiate
+      globalThis.WXWebAssembly.instantiate = function (bufferSource, importObject) {
+        const path = new TextDecoder().decode(bufferSource)
+        console.log(`use wasm from path: ${path}`)
+        return orignalInstantiate(path, importObject)
+      }
+    } else {
+    }
+
+    // let m = process.env.TARO_ENV === 'h5' ? await import('@/flapp/canvaskit/canvaskit') : await import('@/canvaskit/canvaskit')
+
+    let m: any
+    let CanvasKitInit: any
+    // if (process.env.TARO_APP_NOFONT === "true") {
+    m = await import('@/assets/canvaskit-nofont/canvaskit')
+    CanvasKitInit = m.default
+    // } else {
+    // m = await import('node_modules/canvaskit-wasm/bin/canvaskit');
+    // CanvasKitInit = m.default
+    // }
+    // let wasm_dir = process.env.TARO_APP_NOFONT === "true" ? "/assets/canvaskit-nofont" : "/assets/canvaskit"
+    let wasm_dir = "/assets/canvaskit-nofont"
+    // CanvasKitInit = m.default
+    const kit = await CanvasKitInit({ locateFile: (file: string) => `${wasm_dir}/${file}` });
+    // const mintex = await import('../../mitex')
+    // mintex.install(kit);
+    window.flutterCanvasKit = kit
+    window.flutterCanvasKitLoaded = await Promise.resolve(kit);
+
+    // const m = await import("@/canvaskit/pages/init");
+    // const m = await import("../../canvaskit_init");
+    // await m.default();
     (window._flutter ??= {}).loader ??= new FlutterLoader();
     window._flutter.loader.load({
       onEntrypointLoaded: async (init) => {
@@ -40,10 +78,6 @@ export default function Index() {
   useShareTimeline(() => { return {} })
 
   useAddToFavorites((payload) => { return {} })
-
-  Taro.onKeyboardHeightChange(res => {
-    console.log(res.height)
-  })
 
   Taro.onWindowResize(res => {
     console.log(res)

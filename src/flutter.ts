@@ -43,7 +43,7 @@ export class FlutterEntrypointLoader {
     ) {
         this._onEntrypointLoaded = onEntrypointLoaded;
         console.log("Load main.dart.js")
-        await import("@/main");
+        await import("@/flapp/main.dart");
     }
     didCreateEngineInitializer(engineInitializer) {
         if (typeof this._didCreateEngineInitializerResolve === "function") {

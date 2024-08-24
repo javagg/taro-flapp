@@ -26,10 +26,14 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       patterns: [
         { from: 'flapp/build/web/assets', to: 'dist/assets' },
         { from: 'assets/fonts', to: 'dist/assets/fonts/roboto/v20' },
-        // { from: 'node_modules/canvaskit-wasm/bin/canvaskit.wasm', to: 'dist/assets' },
-        // { from: 'assets/canvaskit', to: 'dist/canvaskit/pages' },
-        { from: 'flapp/build/web/canvaskit/canvaskit.wasm', to: 'dist/assets' },
-        { from: 'assets/canvaskit-nofont', to: 'dist/canvaskit/pages' },
+        // h5
+        { from: 'node_modules/canvaskit-wasm/bin/canvaskit.wasm', to: 'dist/assets/canvaskit' },
+        // { from: 'assets/canvaskit/canvaskit.wasm', to: 'dist/assets/canvaskit' },
+        { from: 'assets/canvaskit-nofont/canvaskit.wasm', to: 'dist/assets/canvaskit-nofont' },
+        // weapp
+        { from: 'node_modules/canvaskit-wasm/bin/canvaskit.wasm', to: 'dist/canvaskit/pages' },
+        // { from: 'assets/canvaskit/canvaskit.wasm', to: 'dist/canvaskit/pages' },
+        { from: 'assets/canvaskit-nofont/canvaskit.wasm', to: 'dist/canvaskit-nofont/pages' },
       ],
       options: {
       }
@@ -38,8 +42,6 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       '@/flutter': path.resolve(__dirname, '..', 'src', 'flutter'),
       '@/main': path.resolve(__dirname, '..', 'src', 'main'),
       '@/flapp': path.resolve(__dirname, '..', 'flapp', 'build', 'web'),
-      '@/canvaskit': path.resolve(__dirname, '..', 'assets', 'canvaskit-nofont'),
-      // '@/canvaskit': path.resolve(__dirname, '..', 'src', 'canvaskit-nofont'),
       '@/assets': path.resolve(__dirname, '..', 'assets'),
     },
     framework: 'solid',

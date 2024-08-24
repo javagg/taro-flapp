@@ -10,6 +10,12 @@ export default defineAppConfig({
       ]
     },
     {
+      "root": "canvaskit-nofont",
+      "pages": [
+        "pages/index",
+      ]
+    },
+    {
       "root": "assets",
       "pages": [
         "pages/index",

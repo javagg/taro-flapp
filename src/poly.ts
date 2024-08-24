@@ -183,11 +183,11 @@ if (process.env.TARO_ENV === 'weapp') {
                         }
                     }),
                 };
-            } else if (url.startsWith("/assets/canvaskit.wasm")) {
+            } else if (url.startsWith("/assets/canvaskit/canvaskit.wasm") || url.startsWith("/assets/canvaskit-nofont/canvaskit.wasm")) {
                 return {
                     ok: true,
                     status: 200,
-                    arrayBuffer: async () => new TextEncoder().encode("/canvaskit/pages/canvaskit.wasm.br").buffer,
+                    arrayBuffer: async () => new TextEncoder().encode(`${url}.br`).buffer,
                 };
             } else if (ASSETS.includes(url)) {
                 const fs = Taro.getFileSystemManager();

@@ -548,11 +548,7 @@ export function install(canvasKit: CanvasKit, pixelRatio: number,) {
     canvasKit.TextStyle = (properties: any) => {
         return new _TextStyle(properties);
     };
-    // if (typeof(canvasKit.Picture.prototype.cullRect) === "undefined") {
-    //     canvasKit.Picture.prototype.cullRect = (p: any) => {
-    //         console.log("cullRect")
-    //    };
-    // }
+
 
     // Paragraph Enums
     // canvasKit.TextAlign = new TextAlignEnumValues  ();
