@@ -1,3 +1,5 @@
+import { $ } from '@tarojs/extend'
+
 declare global {
     interface Window {
         _flutter: any;
@@ -6,7 +8,7 @@ declare global {
     }
 }
 
-export interface FlutterConfiguration {
+interface FlutterConfiguration {
     assetBase?: string;
     canvasKitBaseUrl?: string;
     renderer?: "auto" | "html" | "canvaskit" | "skwasm";
@@ -15,21 +17,21 @@ export interface FlutterConfiguration {
     entrypointUrl: string;
 }
 
-export interface ServiceWorkerSettings {
+interface ServiceWorkerSettings {
     serviceWorkerVersion: string;
     serviceWorkerUrl?: string;
     timeoutMillis?: number;
 }
 
-export interface AppRunner {
+interface AppRunner {
     runApp: () => void;
 }
 
-export interface EngineInitializer {
+interface EngineInitializer {
     initializeEngine: () => Promise<AppRunner>;
 }
 
-export type OnEntrypointLoadedCallback =
+type OnEntrypointLoadedCallback =
     (initializer: EngineInitializer) => void;
 export class FlutterEntrypointLoader {
     _didCreateEngineInitializerResolve: any
@@ -41,7 +43,11 @@ export class FlutterEntrypointLoader {
     ) {
         this._onEntrypointLoaded = onEntrypointLoaded;
         console.log("Load main.dart.js")
-        await import("@/flapp/main.dart");
+        if (process.env.TARO_ENV === 'weapp') {
+            await import('imports-loader?additionalCode=var%20self=window;!@/flapp/main.dart');
+        } else {
+            await import("@/flapp/main.dart");
+        }
     }
     didCreateEngineInitializer(engineInitializer) {
         if (typeof this._didCreateEngineInitializerResolve === "function") {
@@ -57,7 +63,7 @@ export class FlutterEntrypointLoader {
     }
 }
 
-export class FlutterLoader {
+class FlutterLoader {
     didCreateEngineInitializer?: OnEntrypointLoadedCallback
 
     async load(options: {
@@ -65,15 +71,27 @@ export class FlutterLoader {
         onEntrypointLoaded?: OnEntrypointLoadedCallback,
         config: FlutterConfiguration
     }) {
-        let { config, serviceWorkerSettings, onEntrypointLoaded } = options;     
+        let { config, serviceWorkerSettings, onEntrypointLoaded } = options;
         const loader = new FlutterEntrypointLoader();
         this.didCreateEngineInitializer = loader.didCreateEngineInitializer.bind(loader);
         return loader.load(config, onEntrypointLoaded);
     }
 }
 
-// export class FlutterHostView {
-//     static shared = new FlutterHostView();
-// }
-
-// globalThis.FlutterHostView = FlutterHostView;
+export async function flutter() {
+    (window._flutter ??= {}).loader ??= new FlutterLoader();
+    window._flutter.loader.load({
+        onEntrypointLoaded: async (init) => {
+            const host = $('#host').get(0)
+            console.log("host", host)
+            const runner = await init.initializeEngine({
+                assetBase: '/',
+                fontFallbackBaseUrl: '/assets/fonts/',
+                // renderer: 'html',
+                // hostElement: host,
+            });
+            console.log("runapp")
+            runner.runApp();
+        }
+    });
+}

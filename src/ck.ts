@@ -1,8 +1,7 @@
-
 export async function ckload() {
     let m = await (
       process.env.TARO_APP_NOFONT === 'true'
-        ? import('@/assets/canvaskit-nofont/canvaskit')
+        ? import('@/assets/canvaskit-nofont/canvaskit') 
         : import('../node_modules/canvaskit-wasm/bin/canvaskit')
     )
   

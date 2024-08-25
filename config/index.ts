@@ -27,12 +27,12 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
         { from: 'flapp/build/web/assets', to: 'dist/assets' },
         { from: 'assets/fonts', to: 'dist/assets/fonts/roboto/v20' },
         // h5
+        // { from: 'flapp/build/web/canvaskit/canvaskit.wasm', to: 'dist/assets/canvaskit' },
         { from: 'node_modules/canvaskit-wasm/bin/canvaskit.wasm', to: 'dist/assets/canvaskit' },
-        // { from: 'assets/canvaskit/canvaskit.wasm', to: 'dist/assets/canvaskit' },
         { from: 'assets/canvaskit-nofont/canvaskit.wasm', to: 'dist/assets/canvaskit-nofont' },
         // weapp
+        // { from: 'flapp/build/web/canvaskit/canvaskit.wasm', to: 'dist/canvaskit/pages' },
         { from: 'node_modules/canvaskit-wasm/bin/canvaskit.wasm', to: 'dist/canvaskit/pages' },
-        // { from: 'assets/canvaskit/canvaskit.wasm', to: 'dist/canvaskit/pages' },
         { from: 'assets/canvaskit-nofont/canvaskit.wasm', to: 'dist/canvaskit-nofont/pages' },
       ],
       options: {

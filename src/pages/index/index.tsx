@@ -2,11 +2,11 @@ import {
   useAddToFavorites, useLoad, useResize, useShareAppMessage, useShareTimeline,
 } from '@tarojs/taro'
 import Taro from '@tarojs/taro'
-import { $ } from '@tarojs/extend'
 import './index.scss'
-import { FlutterLoader } from '@/src/flutter'
+
 import { createSignal } from 'solid-js'
 import { ckload } from '@/src/ck'
+import { flutter } from '@/src/flutter'
 
 export default function Index() {
   const [count, setCount] = createSignal(0);
@@ -15,21 +15,7 @@ export default function Index() {
   useLoad(async () => {
     console.log('Page loaded.');
     await ckload();
-
-    (window._flutter ??= {}).loader ??= new FlutterLoader();
-    window._flutter.loader.load({
-      onEntrypointLoaded: async (init) => {
-        const host = $('#host').get(0)
-        console.log(host)
-        const runner = await init.initializeEngine({
-          assetBase: '/',
-          fontFallbackBaseUrl: '/assets/fonts/',
-          // renderer: 'html',
-          // hostElement: host,
-        });
-        runner.runApp();
-      }
-    });
+    await flutter();
   })
 
   useResize(async (payload) => {

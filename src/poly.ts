@@ -14,6 +14,7 @@ class TaroCanvasElement extends TaroElement {
         this.tagName = "CANVAS"
         this.nodeName = "canvas"
     }
+
     getContext(type, attrs?) {
         // this.backend ??= Taro.createCanvasContext(this.id);
         // console.log(this.backend)
@@ -31,6 +32,31 @@ class TaroCanvasElement extends TaroElement {
         if (qualifiedName === 'aria-hidden') {
 
         }
+    }
+}
+
+class TaroTextAreaElement extends TaroElement {
+    constructor() {
+        super()
+        this.tagName = "TEXTAREA"
+        this.nodeName = "textarea"
+    }
+
+}
+
+class TaroInputElement extends TaroElement {
+    constructor() {
+        super()
+        this.tagName = "INPUT"
+        this.nodeName = "input"
+    }
+}
+
+class TaroFormElement extends TaroElement {
+    constructor() {
+        super()
+        this.tagName = "FORM"
+        this.nodeName = "form"
     }
 }
 
@@ -179,15 +205,15 @@ export async function polyfill() {
         self.window.PointerEvent ??= {};
         self.window.dispatchEvent = () => true;
 
-        console.log("Replace window.FontFace.prototype.load...")
-        const oldLoad = self.window.FontFace.prototype.load
-        self.window.FontFace.prototype.load = async function () {
-            console.log("FontFace load nothing")
-            console.log(fontData);
-            const myFont = new self.window.FontFace(this.family, Uint8Array.from(atob(fontData), (m) => m.codePointAt(0)),);
-            oldLoad.apply(myFont)
-            return myFont;
-        }
+        // console.log("Replace window.FontFace.prototype.load...")
+        // const oldLoad = self.window.FontFace.prototype.load
+        // self.window.FontFace.prototype.load = async function () {
+        //     console.log("FontFace load nothing")
+        //     console.log(fontData);
+        //     const myFont = new self.window.FontFace(this.family, Uint8Array.from(atob(fontData), (m) => m.codePointAt(0)),);
+        //     oldLoad.apply(myFont)
+        //     return myFont;
+        // }
         self.window.fetch ??= async function (url: string, headers) {
             console.log(`Fetch from: ${url} with headers ${JSON.stringify(headers)}`)
             try {
