@@ -1,5 +1,3 @@
-import { $ } from '@tarojs/extend'
-
 declare global {
     interface Window {
         _flutter: any;
@@ -78,19 +76,11 @@ class FlutterLoader {
     }
 }
 
-export async function flutter() {
+export async function flutter(config: FlutterConfiguration) {
     (window._flutter ??= {}).loader ??= new FlutterLoader();
     window._flutter.loader.load({
         onEntrypointLoaded: async (init) => {
-            const host = $('#host').get(0)
-            console.log("host", host)
-            const runner = await init.initializeEngine({
-                assetBase: '/',
-                fontFallbackBaseUrl: '/assets/fonts/',
-                // renderer: 'html',
-                // hostElement: host,
-            });
-            console.log("runapp")
+            const runner = await init.initializeEngine(config)
             runner.runApp();
         }
     });

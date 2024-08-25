@@ -1,4 +1,4 @@
-import { window, TaroElement, TaroEvent } from '@tarojs/runtime';
+import { window, TaroElement, TaroEvent, TaroNode } from '@tarojs/runtime';
 import Taro from '@tarojs/taro';
 import { ReadableStream } from "web-streams-polyfill";
 import { Blob, FileReader } from 'blob-polyfill';
@@ -41,7 +41,6 @@ class TaroTextAreaElement extends TaroElement {
         this.tagName = "TEXTAREA"
         this.nodeName = "textarea"
     }
-
 }
 
 class TaroInputElement extends TaroElement {
@@ -58,6 +57,19 @@ class TaroFormElement extends TaroElement {
         this.tagName = "FORM"
         this.nodeName = "form"
     }
+}
+
+class MediaQueryList extends TaroNode {
+    matches = false
+    constructor() {  super() }
+    addListener() { }
+    removeListener() { }
+}
+
+class ResizeObserver {
+    observe(target: any, options?: any) {}
+    unobserve(target: any) {}
+    disconnect() {}
 }
 
 async function polyWasm() {
@@ -100,6 +112,7 @@ export async function polyfill() {
             let element: TaroElement
             switch (true) {
                 case nodeName === "canvas":
+                    console.log("create TaroCanvasElement")
                     return new TaroCanvasElement()
                 default:
                     return oldCreateElement.call(this, ...arguments)
@@ -114,7 +127,9 @@ export async function polyfill() {
         self.window.innerWidth ??= Taro.getSystemInfoSync().windowWidth;
         self.window.matchMedia ??= function (query) {
             // const _highContrastMediaQueryString = '(forced-colors: active)'
-            return { matches: false, addListener: () => { }, removeListener: () => { } };
+            return new MediaQueryList();
+            
+            // { matches: false, addListener: () => { }, removeListener: () => { } };
         };
         // self.window.MutationObserver ??= MutationObserver
         self.document.currentScript ??= { src: "/", getAttribute: function () { }, };
@@ -204,7 +219,8 @@ export async function polyfill() {
         self.window.TouchEvent ??= {};
         self.window.PointerEvent ??= {};
         self.window.dispatchEvent = () => true;
-
+        self.window.ResizeObserver ??= ResizeObserver;
+        
         // console.log("Replace window.FontFace.prototype.load...")
         // const oldLoad = self.window.FontFace.prototype.load
         // self.window.FontFace.prototype.load = async function () {
