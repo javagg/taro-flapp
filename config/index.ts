@@ -39,8 +39,7 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       }
     },
     alias: {
-      '@/flutter': path.resolve(__dirname, '..', 'src', 'flutter'),
-      '@/main': path.resolve(__dirname, '..', 'src', 'main'),
+      '@/src': path.resolve(__dirname, '..', 'src'),
       '@/flapp': path.resolve(__dirname, '..', 'flapp', 'build', 'web'),
       '@/assets': path.resolve(__dirname, '..', 'assets'),
     },

@@ -1,5 +1,3 @@
-import './poly'
-
 declare global {
     interface Window {
         _flutter: any;
@@ -74,8 +72,8 @@ export class FlutterLoader {
     }
 }
 
-export class FlutterHostView {
-    static shared = new FlutterHostView();
-}
+// export class FlutterHostView {
+//     static shared = new FlutterHostView();
+// }
 
-globalThis.FlutterHostView = FlutterHostView;
+// globalThis.FlutterHostView = FlutterHostView;
