@@ -57,6 +57,11 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       quiet: false, stats: true,
     },
     mini: {
+      runtime: {
+        enableCloneNode: true,
+        enableMutationObserver: true,
+        enableSizeAPIs: true,
+      },
       optimizeMainPackage: {
         enable: true,
       },

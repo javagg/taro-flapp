@@ -1,9 +1,39 @@
-import { window, TaroElement, TaroEvent, TaroNode } from '@tarojs/runtime';
+import { window, TaroElement, TaroEvent, TaroNode, PROPS, OBJECT, DATASET, STYLE } from '@tarojs/runtime';
 import Taro from '@tarojs/taro';
 import { ReadableStream } from "web-streams-polyfill";
 import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from './mutation-observer';
 import fontManifest from '@/flapp/assets/FontManifest.json'
+
+export function cloneNode (this: TaroNode, isDeep = false) {
+    const document = this.ownerDocument
+    let newNode
+  
+    if (this.nodeType === 1 /*NodeType.ELEMENT_NODE*/ ) {
+      newNode = document.createElement(this.nodeName)
+    } else if (this.nodeType === 3  /*NodeType.TEXT_NODE*/) {
+      newNode = document.createTextNode('')
+    }
+  
+    for (const key in this) {
+      const value: any = this[key]
+      // eslint-disable-next-line valid-typeof
+      if ([PROPS, DATASET].includes(key) && typeof value === OBJECT) {
+        newNode[key] = { ...value }
+      } else if (key === '_value') {
+        newNode[key] = value
+      } else if (key === STYLE) {
+        newNode.style._value = { ...value._value }
+        newNode.style._usedStyleProp = new Set(Array.from(value._usedStyleProp))
+      }
+    }
+  
+    if (isDeep) {
+      newNode.childNodes = this.childNodes.map(node => (node as any).cloneNode(true))
+    }
+  
+    return newNode
+  }
 
 class TaroCanvasElement extends TaroElement {
     backend?: any
@@ -16,17 +46,17 @@ class TaroCanvasElement extends TaroElement {
     }
 
     getContext(type, attrs?) {
-        // this.backend ??= Taro.createCanvasContext(this.id);
-        // console.log(this.backend)
+        if (type === '2d') 
+            throw new Error('not supported')
         if (type === "webgl2") {
             type = "webgl"
+            console.warn("webgl2 not supported in weapp")
         }
-        this.backend ??= Taro.createOffscreenCanvas({ type: type });
-        console.log(this.backend)
-
-        return this.backend?.getContext(type, attrs)
+        this.ctx ??= Taro.createOffscreenCanvas({ type: type, ...attrs });
+        let c = this.ctx?.getContext(type)
+        c.__proto__ = WebGLRenderingContext.prototype
+        return c
     }
-
     setAttribute(qualifiedName: string, value: any): void {
         super.setAttribute(qualifiedName, value)
         if (qualifiedName === 'aria-hidden') {
@@ -142,6 +172,12 @@ export async function polyfill() {
         self.document.execCommand ??= (commandId) => console.log(`TODO: implement this: ${commandId}`)
 
         TaroEvent.prototype.initEvent ??= function () { }
+        TaroNode.extend('cloneNode', cloneNode)
+
+        // TaroNode.prototype.cloneNode ??= function (deep: boolean) {
+        //     // return cloneNodeDeep(this)
+        //     // return  structuredClone(this);
+        // }
         TaroElement.prototype.append ??= function (param1) { this.appendChild(param1) }
         TaroElement.prototype.prepend ??= function (param1) { this.insertBefore(param1, this.firstChild) }
         TaroElement.prototype.querySelectorAll ??= () => [];

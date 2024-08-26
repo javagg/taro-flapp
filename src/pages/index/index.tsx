@@ -18,7 +18,6 @@ export default function Index() {
   useReady(async () => {
     console.log('Page loaded.');
     await ckload();
-
     // const host = $('#host').get(0)
     // await flutter({
     //   assetBase: '/',
@@ -30,27 +29,46 @@ export default function Index() {
     console.log(kit)
 
     const host = $('#host').get(0)
-    // console.log("host", host)
+    console.log("host", host)
     let div = document.createElement("canvas");
-    div.setAttribute("width", "300");
-    div.setAttribute("height", "300");
-    div.setAttribute("id", "cav");
-    // const newtext = document.createTextNode("一些文本");
-    // newDiv.append(newtext);
+    div.id = "cav"
+    div.setAttribute("canvas-id", "cav");
+    div.style.width = "300px"
+    div.style.height = "300px"
     host.appendChild(div)
 
     const surface = kit.MakeCanvasSurface("cav");
-    const paint = new kit.Paint();
-    paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
-    paint.setStyle(kit.PaintStyle.Fill);
-    paint.setAntiAlias(true);
-    const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
+    // const paint = new kit.Paint();
+    // paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
+    // paint.setStyle(kit.PaintStyle.Fill);
+    // paint.setAntiAlias(true);
+    // const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
 
-    function draw(canvas) {
-      canvas.clear(kit.WHITE);
-      canvas.drawRRect(rr, paint);
-    }
-    surface.drawOnce(draw);
+    // function draw(canvas) {
+    //   canvas.clear(kit.WHITE);
+    //   canvas.drawRRect(rr, paint);
+    // }
+    // surface.drawOnce(draw);
+
+    // const context = Taro.createCanvasContext("cav")
+    // console.log(context._context)
+    // console.log(context)
+    // context.setStrokeStyle("#00ff00")
+    // context.setLineWidth(5)
+    // context.rect(0, 0, 200, 200)
+    // context.stroke()
+    // context.setStrokeStyle("#ff0000")
+    // context.setLineWidth(2)
+    // context.moveTo(160, 100)
+    // context.arc(100, 100, 60, 0, 2 * Math.PI, true)
+    // context.moveTo(140, 100)
+    // context.arc(100, 100, 40, 0, Math.PI, false)
+    // context.moveTo(85, 80)
+    // context.arc(80, 80, 5, 0, 2 * Math.PI, true)
+    // context.moveTo(125, 80)
+    // context.arc(120, 80, 5, 0, 2 * Math.PI, true)
+    // context.stroke()
+    // context.draw()
   })
 
   useResize(async (payload) => {
@@ -74,7 +92,7 @@ export default function Index() {
   } else {
     return (
       <body>
-        <div id="host" style="width: 100%; height: 100%;"
+        <div id="host"
           onTouchStart={() => console.log('onTouchStart')}
           onTouchMove={() => console.log('onTouchMove')}
           onTouchEnd={() => console.log('onTouchEnd')}
