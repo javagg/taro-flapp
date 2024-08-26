@@ -99,6 +99,8 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
             arr: [
               { search: 'typeof fetch', replace: 'typeof window.fetch', attr: 'g' },
               { search: 'fetch(', replace: 'window.fetch(', attr: 'g' },
+              { search: 'typeof HTMLCanvasElement' , replace: 'typeof window.HTMLCanvasElement', attr: 'g' },
+              { search: 'instanceof HTMLCanvasElement' , replace: 'instanceof window.HTMLCanvasElement', attr: 'g' },
             ]
           })
       }

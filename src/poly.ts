@@ -35,7 +35,7 @@ export function cloneNode (this: TaroNode, isDeep = false) {
     return newNode
   }
 
-class TaroCanvasElement extends TaroElement {
+class HTMLCanvasElement extends TaroElement {
     backend?: any
     // ctx?: any
 
@@ -52,7 +52,9 @@ class TaroCanvasElement extends TaroElement {
             type = "webgl"
             console.warn("webgl2 not supported in weapp")
         }
-        this.ctx ??= Taro.createOffscreenCanvas({ type: type, ...attrs });
+        this.ctx ??= Taro.createOffscreenCanvas({
+             type: type, width: this.style.width, height: this.style.height,
+              ...attrs });
         let c = this.ctx?.getContext(type)
         c.__proto__ = WebGLRenderingContext.prototype
         return c
@@ -143,7 +145,7 @@ export async function polyfill() {
             switch (true) {
                 case nodeName === "canvas":
                     console.log("create TaroCanvasElement")
-                    return new TaroCanvasElement()
+                    return new HTMLCanvasElement()
                 default:
                     return oldCreateElement.call(this, ...arguments)
             }
@@ -173,11 +175,6 @@ export async function polyfill() {
 
         TaroEvent.prototype.initEvent ??= function () { }
         TaroNode.extend('cloneNode', cloneNode)
-
-        // TaroNode.prototype.cloneNode ??= function (deep: boolean) {
-        //     // return cloneNodeDeep(this)
-        //     // return  structuredClone(this);
-        // }
         TaroElement.prototype.append ??= function (param1) { this.appendChild(param1) }
         TaroElement.prototype.prepend ??= function (param1) { this.insertBefore(param1, this.firstChild) }
         TaroElement.prototype.querySelectorAll ??= () => [];
@@ -256,6 +253,8 @@ export async function polyfill() {
         self.window.PointerEvent ??= {};
         self.window.dispatchEvent = () => true;
         self.window.ResizeObserver ??= ResizeObserver;
+        
+        self.window.HTMLCanvasElement = HTMLCanvasElement;
         
         // console.log("Replace window.FontFace.prototype.load...")
         // const oldLoad = self.window.FontFace.prototype.load
