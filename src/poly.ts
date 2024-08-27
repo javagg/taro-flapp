@@ -5,35 +5,35 @@ import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from './mutation-observer';
 import fontManifest from '@/flapp/assets/FontManifest.json'
 
-export function cloneNode (this: TaroNode, isDeep = false) {
+export function cloneNode(this: TaroNode, isDeep = false) {
     const document = this.ownerDocument
     let newNode
-  
-    if (this.nodeType === 1 /*NodeType.ELEMENT_NODE*/ ) {
-      newNode = document.createElement(this.nodeName)
+
+    if (this.nodeType === 1 /*NodeType.ELEMENT_NODE*/) {
+        newNode = document.createElement(this.nodeName)
     } else if (this.nodeType === 3  /*NodeType.TEXT_NODE*/) {
-      newNode = document.createTextNode('')
+        newNode = document.createTextNode('')
     }
-  
+
     for (const key in this) {
-      const value: any = this[key]
-      // eslint-disable-next-line valid-typeof
-      if ([PROPS, DATASET].includes(key) && typeof value === OBJECT) {
-        newNode[key] = { ...value }
-      } else if (key === '_value') {
-        newNode[key] = value
-      } else if (key === STYLE) {
-        newNode.style._value = { ...value._value }
-        newNode.style._usedStyleProp = new Set(Array.from(value._usedStyleProp))
-      }
+        const value: any = this[key]
+        // eslint-disable-next-line valid-typeof
+        if ([PROPS, DATASET].includes(key) && typeof value === OBJECT) {
+            newNode[key] = { ...value }
+        } else if (key === '_value') {
+            newNode[key] = value
+        } else if (key === STYLE) {
+            newNode.style._value = { ...value._value }
+            newNode.style._usedStyleProp = new Set(Array.from(value._usedStyleProp))
+        }
     }
-  
+
     if (isDeep) {
-      newNode.childNodes = this.childNodes.map(node => (node as any).cloneNode(true))
+        newNode.childNodes = this.childNodes.map(node => (node as any).cloneNode(true))
     }
-  
+
     return newNode
-  }
+}
 
 class HTMLCanvasElement extends TaroElement {
     backend?: any
@@ -46,15 +46,16 @@ class HTMLCanvasElement extends TaroElement {
     }
 
     getContext(type, attrs?) {
-        if (type === '2d') 
+        if (type === '2d')
             throw new Error('not supported')
         if (type === "webgl2") {
             type = "webgl"
             console.warn("webgl2 not supported in weapp")
         }
         this.ctx ??= Taro.createOffscreenCanvas({
-             type: type, width: this.style.width, height: this.style.height,
-              ...attrs });
+            type: type, width: this.style.width, height: this.style.height,
+            ...attrs
+        });
         let c = this.ctx?.getContext(type)
         c.__proto__ = WebGLRenderingContext.prototype
         return c
@@ -93,15 +94,27 @@ class TaroFormElement extends TaroElement {
 
 class MediaQueryList extends TaroNode {
     matches = false
-    constructor() {  super() }
+    constructor() { super() }
     addListener() { }
     removeListener() { }
 }
 
 class ResizeObserver {
-    observe(target: any, options?: any) {}
-    unobserve(target: any) {}
-    disconnect() {}
+    observe(target: any, options?: any) { }
+    unobserve(target: any) { }
+    disconnect() { }
+}
+
+
+export async function readAsText(path: string) {
+    const TMPFILE = "taro_temp.txt"
+    const fs = Taro.getFileSystemManager()
+    const tmp = Taro.env.USER_DATA_PATH + "/" + TMPFILE
+    const ab = fs.readCompressedFileSync({ filePath: path, compressionAlgorithm: "br" })
+    fs.writeFileSync(tmp, ab);
+    const txt = fs.readFileSync(tmp, "utf8");
+    fs.removeSavedFile({ filePath: tmp });
+    return txt;
 }
 
 async function polyWasm() {
@@ -135,16 +148,13 @@ export async function polyfill() {
         self.window = window
         console.log(self.window) // taro window
         console.log(self.window.document) // taro document
-
         console.log(self.window.navigator.vendor)
-
         const oldCreateElement = self.window.document.createElement
         self.window.document.createElement = function (type: string) {
             const nodeName = type.toLowerCase()
             let element: TaroElement
             switch (true) {
                 case nodeName === "canvas":
-                    console.log("create TaroCanvasElement")
                     return new HTMLCanvasElement()
                 default:
                     return oldCreateElement.call(this, ...arguments)
@@ -160,25 +170,25 @@ export async function polyfill() {
         self.window.matchMedia ??= function (query) {
             // const _highContrastMediaQueryString = '(forced-colors: active)'
             return new MediaQueryList();
-            
-            // { matches: false, addListener: () => { }, removeListener: () => { } };
         };
         // self.window.MutationObserver ??= MutationObserver
         self.document.currentScript ??= { src: "/", getAttribute: function () { }, };
         self.document.querySelector ??= function () { }
         // self.document.querySelectorAll ??= function () { }
-
         self.document.fonts ??= globalThis.document.fonts
         self.document.head ??= globalThis.document.head
-
         self.document.execCommand ??= (commandId) => console.log(`TODO: implement this: ${commandId}`)
 
         TaroEvent.prototype.initEvent ??= function () { }
         TaroNode.extend('cloneNode', cloneNode)
-        TaroElement.prototype.append ??= function (param1) { this.appendChild(param1) }
-        TaroElement.prototype.prepend ??= function (param1) { this.insertBefore(param1, this.firstChild) }
-        TaroElement.prototype.querySelectorAll ??= () => [];
-        TaroElement.prototype.attachShadow ??= (options) => new TaroElement();
+        TaroElement.extend("append", function (param1) { this.appendChild(param1) })
+        TaroElement.extend("prepend",  function (param1) { this.insertBefore(param1, this.firstChild) })
+        TaroElement.extend("querySelectorAll",  () => [])
+        TaroElement.extend("attachShadow",  (options) => new TaroElement())
+        // TaroElement.prototype.append ??= function (param1) { this.appendChild(param1) }
+        // TaroElement.prototype.prepend ??= function (param1) { this.insertBefore(param1, this.firstChild) }
+        // TaroElement.prototype.querySelectorAll ??= () => [];
+        // TaroElement.prototype.attachShadow ??= (options) => new TaroElement();
 
         const originalAddEventListener = TaroElement.prototype.addEventListener
         TaroElement.prototype.addEventListener = function (type: any, handler: any, options: any): void {
@@ -224,7 +234,10 @@ export async function polyfill() {
             }
             originalAddEventListener.call(this, type, handler, options)
         }
-        TaroElement.prototype.getBoundingClientRect ??= function () {
+
+        // TaroElement.prototype.getBoundingClientRect ??= function () {
+        TaroElement.extend("getBoundingClientRect", function () {
+
             // throw new Error("not implemented")
             return {
                 x: 0,
@@ -236,7 +249,7 @@ export async function polyfill() {
                 right: 100,
                 bottom: 100,
             };
-        }
+        })
         TaroElement.prototype.sheet = {
             cssRules: [],
             insertRule: () => {
@@ -253,9 +266,8 @@ export async function polyfill() {
         self.window.PointerEvent ??= {};
         self.window.dispatchEvent = () => true;
         self.window.ResizeObserver ??= ResizeObserver;
-        
         self.window.HTMLCanvasElement = HTMLCanvasElement;
-        
+
         // console.log("Replace window.FontFace.prototype.load...")
         // const oldLoad = self.window.FontFace.prototype.load
         // self.window.FontFace.prototype.load = async function () {
@@ -265,13 +277,23 @@ export async function polyfill() {
         //     oldLoad.apply(myFont)
         //     return myFont;
         // }
+        async function fileExist(path: string) {
+            const fs = Taro.getFileSystemManager();
+            return await new Promise((resolve) => {
+                fs.getFileInfo({
+                    filePath: path,
+                    success: () => resolve(true),
+                    fail: () => resolve(false),
+                })
+            })
+        };
+
         self.window.fetch ??= async function (url: string, headers) {
             console.log(`Fetch from: ${url} with headers ${JSON.stringify(headers)}`)
             try {
                 if (url.startsWith("/assets/FontManifest.json")) {
                     const str = JSON.stringify(fontManifest)
                     const data = new TextEncoder().encode(str)
-                    // return {}
                     return {
                         ok: true,
                         status: 200,

@@ -71,6 +71,8 @@
     "eslint": "^8.57.0",
     "eslint-config-taro": "4.0.4",
     "imports-loader": "^5.0.0",
+    "opentype.js": "^1.3.4",
+    "@cprecioso/canvas-text-layout": "^2.0.0",
     "postcss": "^8.4.38",
     "resize-observer-polyfill": "^1.5.1",
     "sass": "^1.75.0",

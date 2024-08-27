@@ -7,10 +7,8 @@ export async function ckload() {
 
   let wasm_dir = process.env.TARO_APP_NOFONT === 'true' ? "/assets/canvaskit-nofont" : "/assets/canvaskit"
   const CanvasKitInit = m.default
-
-  const kit = await CanvasKitInit({ locateFile: (file: string) => `${wasm_dir}/${file}` });
-  // const mintex = await import('../../mitex')
-  // mintex.install(kit);
+  const kit = await CanvasKitInit({ locateFile: (file: string) => `${wasm_dir}/${file}` })
+  if (process.env.TARO_APP_MINTEX === 'true') { (await import('@/src/mitex')).install(kit) }
   window.flutterCanvasKit = kit
-  window.flutterCanvasKitLoaded = await Promise.resolve(kit);
+  window.flutterCanvasKitLoaded = await Promise.resolve(kit)
 }

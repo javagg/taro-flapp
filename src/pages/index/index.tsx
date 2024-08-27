@@ -1,5 +1,6 @@
 import {
   useAddToFavorites, useLoad, useReady, useResize, useShareAppMessage, useShareTimeline,
+  useUnload,
 } from '@tarojs/taro'
 import Taro from '@tarojs/taro'
 import './index.scss'
@@ -83,6 +84,22 @@ export default function Index() {
 
   Taro.onWindowResize(res => {
     console.log(res)
+  })
+
+  useLoad(async (param) => {
+    let res = await Taro.getSystemInfo();
+    console.log( res.windowHeight)
+   
+    Taro.onKeyboardHeightChange(res => {
+      
+      console.log(res)
+    })
+  })
+
+  useUnload(async () => {
+    Taro.offKeyboardHeightChange(res => {
+      console.log(res)
+    })
   })
 
   if (process.env.TARO_ENV === 'h5') {
