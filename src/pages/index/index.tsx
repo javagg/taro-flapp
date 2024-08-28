@@ -1,6 +1,6 @@
 import {
   useAddToFavorites, useLoad, useReady, useResize, useShareAppMessage, useShareTimeline,
-  useUnload,
+  useUnload, SelectorQuery
 } from '@tarojs/taro'
 import Taro from '@tarojs/taro'
 import './index.scss'
@@ -10,7 +10,36 @@ import { ckload } from '@/src/ck'
 import { flutter } from '@/src/flutter'
 
 import { $ } from '@tarojs/extend'
-import { window, TaroEvent, createEvent  } from '@tarojs/runtime'
+import { window, TaroEvent, createEvent } from '@tarojs/runtime'
+
+function wait2(milliseconds: number, cb) {
+
+  cb()
+  const start = new Date().getTime();
+  while (true) {
+    if (new Date().getTime() - start >= milliseconds) {
+      // console.log("Good, looped for 2 seconds");
+      break;
+    }
+  }
+}
+
+// let result:any
+// function execSync(q: SelectorQuery, timeout: number = 1000): any {
+//   result= null
+//   const start = new Date().getTime();
+//   q.exec((res) =>{ 
+//     result = res
+//     console.log("res:",result)
+//     console.log(`used: ${new Date().getTime() - start} ms`)
+//   })
+//   while (true) {
+//     // console.log("waiting...")
+//     if (new Date().getTime() - start >= timeout) break;
+//     if (result) break
+//   }
+//   return result
+// }
 
 export default function Index() {
   // const [count, setCount] = createSignal(0);
@@ -26,33 +55,41 @@ export default function Index() {
     //   hostElement: host,
     // });
 
-    const kit = window.flutterCanvasKit
-    console.log(kit)
-
     const host = $('#host').get(0)
     console.log("host", host)
     let div = document.createElement("canvas");
     div.id = "cav"
-    div.setAttribute("canvas-id", "cav");
     div.style.width = "300px"
     div.style.height = "300px"
     host.appendChild(div)
 
-    const surface = kit.MakeCanvasSurface("cav");
-    const paint = new kit.Paint();
-    paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
-    paint.setStyle(kit.PaintStyle.Fill);
-    paint.setAntiAlias(true);
-    const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
+    const kit = window.flutterCanvasKit
+    Taro.createSelectorQuery()
+      .select("#cav")
+      .fields({
+        node: true,
+        size: true
+      }).exec(async (res) => {
+        let canvas = res[0].node;
+        const surface = kit.MakeCanvasSurface(canvas, null, { majorVersion: 1 });
+        console.log(surface)
+        const paint = new kit.Paint();
+        paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
+        paint.setStyle(kit.PaintStyle.Fill);
+        paint.setAntiAlias(true);
+        const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
+        function draw(canvas) {
+          canvas.clear(kit.WHITE);
+          canvas.drawRRect(rr, paint);
+        }
+        surface.drawOnce(draw);
+      });
 
-    function draw(canvas) {
-      canvas.clear(kit.WHITE);
-      canvas.drawRRect(rr, paint);
-    }
-    surface.drawOnce(draw);
 
     // const context = Taro.createCanvasContext("cav")
-    // console.log(context._context)
+    // const a = context._context
+    // console.log(a)
+    // // console.log(context._context)
     // console.log(context)
     // context.setStrokeStyle("#00ff00")
     // context.setLineWidth(5)
@@ -85,13 +122,13 @@ export default function Index() {
   Taro.onWindowResize(res => {
     const { size } = res;
     console.log(res)
-    window.trigger("resize", createEvent("resize")) 
+    window.trigger("resize", createEvent("resize"))
   })
 
   useLoad(async (param) => {
     let res = await Taro.getSystemInfo();
-    console.log( res.windowHeight)
-   
+    console.log(res.windowHeight)
+
     Taro.onKeyboardHeightChange(res => {
       console.log(res)
     })

@@ -5,7 +5,7 @@ import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from './mutation-observer';
 import fontManifest from '@/flapp/assets/FontManifest.json'
 import { Canvas } from '@tarojs/components';
-import { $ }  from '@tarojs/extend'
+import { $ } from '@tarojs/extend'
 
 export function cloneNode(this: TaroNode, isDeep = false) {
     const document = this.ownerDocument
@@ -68,6 +68,10 @@ class HTMLCanvasElement extends TaroElement {
         super()
         this.tagName = "CANVAS"
         this.nodeName = "canvas"
+        // console.log(this.getAttribute("type"))
+        // if (this.getAttribute("type") === "undefined") {
+        this.setAttribute("type", "webgl")
+        // }
         // let t = "webgl" //this.getAttribute("type") ?? "webgl"
         // let w = this.style.getPropertyValue("width") ?? 150
         // let h = this.style.getPropertyValue("height") ?? 150
@@ -79,58 +83,70 @@ class HTMLCanvasElement extends TaroElement {
         //     type: t, width: w, height: h,
         //     // ...attrs
         // });
+        
+    }
+
+    set id(val) {
+        super.id = val
+        this.setAttribute("canvas-id", val)
     }
 
     get width(): number {
         return this.canvas.width
     }
-    // set width(val: number) {
-    //     this.w = val;
-    // }
 
     get height(): number {
         return this.canvas.height
     }
-    // set height(val: number) {
-    //     this.h= val
-    // }
 
     getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
         console.log("getContext", type)
-        if (type === "webgl2") {
-            type = "webgl"
-            console.warn("webgl2 not supported in weapp")
-        }
-         console.log("cid",this.getAttribute("canvas-id"))
-        console.log(this.id)
+        if (type === '2d')
+            throw new Error('not supported')
+        // if (type === "webgl2") {
+        //     type = "webgl"
+        //     console.warn("webgl2 not supported in weapp")
+        // }
+        // console.log("cid", this.getAttribute("canvas-id"))
+        // console.log(this.id)
+
+        let offcan = wx.createOffscreenCanvas({
+            type: "webgl2", height: 300, width: 300
+          })
+          console.log("offcan", offcan)
+
+        let res = offcan.getContext(type, attrs)
+        console.log(res)
         // let can = $(`#${this.id}`).get(0)
 
-    Taro.createSelectorQuery()
-      .select(`#${this.id}`)  
-      .fields({
-        node: true,
-        size: true
-      })
-      .exec(async (res) => {
-        let can = res[0].node
-        console.log("can", can)
-      }
+        // Taro.createSelectorQuery()
+        //   .select(`#${this.id}`)  
+        //   .fields({
+        //     node: true,
+        //     size: true
+        //   })
+        //   .exec(async (res) => {
+        //     let can = res[0].node
+        //     console.log("can", can)
+        //   }
         // this.canvas ??= Taro.createOffscreenCanvas({
         //     type: type, width: this.w, height: this.h,
         //     ...attrs
         // });
         // console.log(this.canvas.width)
-        if (type === "2d") {
-            return new CanvasRenderingContext2D(this.canvas)
-        } else if  (type === "webgl"){
-            let res = this.canvas.getContext(type)
-            res.__proto__ = WebGLRenderingContext.prototype
-            // console.log(WebGLRenderingContext)
-            // console.log( res instanceof WebGLRenderingContext)
-            // console.log( typeof res)
-            return res
-        }
+        return res
+        // if (type === "2d") {
+        //     return new CanvasRenderingContext2D(this.canvas)
+        // } else if (type === "webgl") {
+        //     let res = this.canvas.getContext(type)
+        //     res.__proto__ = WebGLRenderingContext.prototype
+        //     // console.log(WebGLRenderingContext)
+        //     // console.log( res instanceof WebGLRenderingContext)
+        //     // console.log( typeof res)
+        //     return res
+        // }
     }
+
     setAttribute(qualifiedName: string, value: any): void {
         super.setAttribute(qualifiedName, value)
         if (qualifiedName === 'aria-hidden') {

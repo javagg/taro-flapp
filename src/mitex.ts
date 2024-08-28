@@ -38,6 +38,8 @@ import {
   StrokeJoin,
 } from "canvaskit-wasm/types";
 
+import { parse } from 'opentype.js/dist/opentype.module'
+
 export const valueOfRGB = (
   r: number,
   g: number,
@@ -70,64 +72,40 @@ export abstract class SkEmbindObject<T extends string> implements EmbindObject<T
   }
 }
 
-export const loadFont = (data: ArrayBuffer, familynameAlias?: string) => {
-  const familyName =
-    familynameAlias ??
-    (parseFontTable(data).namesTable.postScriptName.en as string);
-  const font = new FontFace(familyName, data);
-  font.load();
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  document.fonts.add(font);
-  return { familyName };
-};
+// export const loadFont = (data: ArrayBuffer, familynameAlias?: string) => {
+//   const f = parse(data)
 
-class _TypefaceFontProvider extends SkEmbindObject<"FontMgr"> implements TypefaceFontProvider {
+//   const familyName =
+//     familynameAlias ??
+//     (parseFontTable(data).namesTable.postScriptName.en as string);
+//   const font = new FontFace(familyName, data);
+//   font.load();
+//   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//   // @ts-expect-error
+//   document.fonts.add(font);
+//   return { familyName };
+// };
 
-  readonly typefaces: _Typeface[]
-
-  constructor() {
-    super("FontMgr")
-  }
-
-  registerFont(bytes: ArrayBuffer | Uint8Array, family: string): void {
-    loadFont(bytes, family);
-  }
-
-  countFamilies(): number {
-    return this.typefaces.length;
-  }
-  getFamilyName(index: number): string {
-    return this.typefaces[index].familyName;
-  }
-
-  matchFamilyStyle(name: string, style: FontStyle): Typeface {
-    return new _Typeface();
-  }
-}
 
 class _Typeface extends SkEmbindObject<"Typeface"> implements Typeface {
-  cmap: ICMap | null = null;
-
-  constructor(private familyName: string, private fontData: ArrayBuffer) {
+  fobj: any
+  constructor(fontData: ArrayBuffer) {
     super("Typeface")
-    // if (data) {
-    //   this.cmap = parseFontTable(data).cmap;
-    // }
+    this.fobj = parse(fontData)
   }
 
   getGlyphIDs(str: string, numCodePoints?: number, output?: GlyphIDArray): GlyphIDArray {
     const result = output ?? new Uint16Array(numCodePoints ?? str.length);
-    for (let i = 0; i < result.length; i++) {
-      const codepoint = str.codePointAt(i)!;
-      const index = this.cmap?.glyphIndexMap![codepoint] ?? 0;
-      result[i] = index;
+    const glyghs = this.fobj.stringToGlyphs(str.substring(0, result.length))
+    for (let i = 0; i < glyghs.length; i++) {
+      result[i] = glyghs[i].index
     }
     return result;
   }
 }
 
 class _Font extends SkEmbindObject<"Font"> implements Font {
+  tf: Typeface | null
   //     constructor(
   //       face: Typeface | null,
   //       size: number,
@@ -197,7 +175,7 @@ class _Font extends SkEmbindObject<"Font"> implements Font {
     return false;
   }
   getTypeface(): Typeface | null {
-    return new _Typeface();
+    return this.tf;
   }
   setEdging(edging: FontEdging): void { }
   setEmbeddedBitmaps(embeddedBitmaps: boolean): void { }
@@ -208,7 +186,9 @@ class _Font extends SkEmbindObject<"Font"> implements Font {
   setSkewX(sx: number): void { }
   setEmbolden(embolden: boolean): void { }
   setSubpixel(subpixel: boolean): void { }
-  setTypeface(face: Typeface | null): void { }
+  setTypeface(face: Typeface | null): void {
+    this.tf = face;
+  }
 }
 
 class _FontCollection extends SkEmbindObject<"FontCollection"> implements FontCollection {
@@ -280,14 +260,13 @@ class _ParagraphBuilderFactory implements ParagraphBuilderFactory {
 
 class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr {
 
-  // typefaces: Typeface[]
+  typefaces: Typeface[]
   /**
   * Return the number of font families loaded in this manager. Useful for debugging.
   */
-  constructor(private readonly typefaces: Typeface[]) {
+  constructor() {
     super("FontMgr")
   }
-
 
   countFamilies(): number {
     return this.typefaces.length;
@@ -310,6 +289,17 @@ class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr {
   }
 }
 
+class _TypefaceFontProvider extends _FontMgr implements TypefaceFontProvider {
+
+  registerFont(bytes: ArrayBuffer | Uint8Array, family: string): void {
+    const tf = new _TypefaceFactory().MakeFreeTypeFaceFromData(bytes)
+    this.typefaces.push(tf!)
+    const font = new FontFace(family, bytes);
+    font.load();
+    document.fonts.add(font);
+  }
+}
+
 class _FontMgrFactory implements FontMgrFactory {
   FromData(...buffers: ArrayBuffer[]): FontMgr | null {
     const typefaces: Typeface[] = [];
@@ -325,16 +315,10 @@ class _FontMgrFactory implements FontMgrFactory {
 }
 
 class _TypefaceFactory implements TypefaceFactory {
-  // GetDefault(): Typeface | null {
-  //   return new _Typeface();
-  // }
-  // MakeTypefaceFromData(fontData: ArrayBuffer): Typeface | null {
-  //   return new _Typeface();
-  // }
+
   constructor() { }
   MakeFreeTypeFaceFromData(fontData: ArrayBuffer): Typeface | null {
-    const { familyName } = loadFont(fontData);
-    return new _Typeface(familyName, fontData);
+    return new _Typeface(fontData);
   }
 
 }
