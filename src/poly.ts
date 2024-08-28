@@ -4,6 +4,8 @@ import { ReadableStream } from "web-streams-polyfill";
 import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from './mutation-observer';
 import fontManifest from '@/flapp/assets/FontManifest.json'
+import { Canvas } from '@tarojs/components';
+import { $ }  from '@tarojs/extend'
 
 export function cloneNode(this: TaroNode, isDeep = false) {
     const document = this.ownerDocument
@@ -35,37 +37,128 @@ export function cloneNode(this: TaroNode, isDeep = false) {
     return newNode
 }
 
+class CanvasRenderingContext2D {
+    constructor(private canvas: Taro.OffscreenCanvas) {
+    }
+    putImageData(imageData: ImageData, dx, dy) {
+        let d = this.canvas.getContext("webgl").getImageData()
+        console.log(d)
+        d.data = imageData.data
+        // this.canvas.
+        this.canvas.getContext('2d').putImageData(d, dx, dy)
+    }
+    putImageData(imageData, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
+        // let d = this.canvas.getContext("webgl").getImageData()
+        // console.log(d)
+        // console.log(this.canvas)
+        let d = this.canvas.createImageData()
+        console.log(d)
+        d.data = imageData.data
+        this.canvas.getContext('2d').putImageData(d, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight)
+    }
+}
+
 class HTMLCanvasElement extends TaroElement {
-    backend?: any
-    // ctx?: any
+    canvas: Taro.OffscreenCanvas
+    ctx: Taro.RenderingContext
+    w: number = 150
+    h: number = 150
 
     constructor() {
         super()
         this.tagName = "CANVAS"
         this.nodeName = "canvas"
+        // let t = "webgl" //this.getAttribute("type") ?? "webgl"
+        // let w = this.style.getPropertyValue("width") ?? 150
+        // let h = this.style.getPropertyValue("height") ?? 150
+        // console.log("cid",this.getAttribute("canvas-id"))
+        // console.log(this.id)
+        // let can = $(this.id).get(0)
+        // console.log("can", can)
+        // this.canvas = Taro.createOffscreenCanvas({
+        //     type: t, width: w, height: h,
+        //     // ...attrs
+        // });
     }
 
-    getContext(type, attrs?) {
-        if (type === '2d')
-            throw new Error('not supported')
+    get width(): number {
+        return this.canvas.width
+    }
+    // set width(val: number) {
+    //     this.w = val;
+    // }
+
+    get height(): number {
+        return this.canvas.height
+    }
+    // set height(val: number) {
+    //     this.h= val
+    // }
+
+    getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
+        console.log("getContext", type)
         if (type === "webgl2") {
             type = "webgl"
             console.warn("webgl2 not supported in weapp")
         }
-        this.ctx ??= Taro.createOffscreenCanvas({
-            type: type, width: this.style.width, height: this.style.height,
-            ...attrs
-        });
-        let c = this.ctx?.getContext(type)
-        c.__proto__ = WebGLRenderingContext.prototype
-        return c
+         console.log("cid",this.getAttribute("canvas-id"))
+        console.log(this.id)
+        // let can = $(`#${this.id}`).get(0)
+
+    Taro.createSelectorQuery()
+      .select(`#${this.id}`)  
+      .fields({
+        node: true,
+        size: true
+      })
+      .exec(async (res) => {
+        let can = res[0].node
+        console.log("can", can)
+      }
+        // this.canvas ??= Taro.createOffscreenCanvas({
+        //     type: type, width: this.w, height: this.h,
+        //     ...attrs
+        // });
+        // console.log(this.canvas.width)
+        if (type === "2d") {
+            return new CanvasRenderingContext2D(this.canvas)
+        } else if  (type === "webgl"){
+            let res = this.canvas.getContext(type)
+            res.__proto__ = WebGLRenderingContext.prototype
+            // console.log(WebGLRenderingContext)
+            // console.log( res instanceof WebGLRenderingContext)
+            // console.log( typeof res)
+            return res
+        }
     }
     setAttribute(qualifiedName: string, value: any): void {
         super.setAttribute(qualifiedName, value)
         if (qualifiedName === 'aria-hidden') {
-
         }
     }
+}
+
+class ImageData {
+    d: any
+    w: number
+    h: number
+
+    constructor(data: any, width: number, height: number) {
+        this.w = width
+        this.h = height
+        this.d = data
+    }
+
+    get data(): Uint8ClampedArray {
+        return this.d;
+    }
+
+    get width(): number {
+        return this.width
+
+    }
+
+    get height(): number { return this.height }
 }
 
 class TaroTextAreaElement extends TaroElement {
@@ -182,9 +275,9 @@ export async function polyfill() {
         TaroEvent.prototype.initEvent ??= function () { }
         TaroNode.extend('cloneNode', cloneNode)
         TaroElement.extend("append", function (param1) { this.appendChild(param1) })
-        TaroElement.extend("prepend",  function (param1) { this.insertBefore(param1, this.firstChild) })
-        TaroElement.extend("querySelectorAll",  () => [])
-        TaroElement.extend("attachShadow",  (options) => new TaroElement())
+        TaroElement.extend("prepend", function (param1) { this.insertBefore(param1, this.firstChild) })
+        TaroElement.extend("querySelectorAll", () => [])
+        TaroElement.extend("attachShadow", (options) => new TaroElement())
         // TaroElement.prototype.append ??= function (param1) { this.appendChild(param1) }
         // TaroElement.prototype.prepend ??= function (param1) { this.insertBefore(param1, this.firstChild) }
         // TaroElement.prototype.querySelectorAll ??= () => [];
@@ -263,10 +356,13 @@ export async function polyfill() {
         }
 
         self.window.TouchEvent ??= {};
+        // PointerSupportDetector needs this defination.
         self.window.PointerEvent ??= {};
         self.window.dispatchEvent = () => true;
         self.window.ResizeObserver ??= ResizeObserver;
         self.window.HTMLCanvasElement = HTMLCanvasElement;
+        self.window.CanvasRenderingContext2D = CanvasRenderingContext2D;
+        self.window.ImageData = ImageData;
 
         // console.log("Replace window.FontFace.prototype.load...")
         // const oldLoad = self.window.FontFace.prototype.load

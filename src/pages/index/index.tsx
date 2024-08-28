@@ -10,7 +10,7 @@ import { ckload } from '@/src/ck'
 import { flutter } from '@/src/flutter'
 
 import { $ } from '@tarojs/extend'
-
+import { window, TaroEvent, createEvent  } from '@tarojs/runtime'
 
 export default function Index() {
   // const [count, setCount] = createSignal(0);
@@ -39,17 +39,17 @@ export default function Index() {
     host.appendChild(div)
 
     const surface = kit.MakeCanvasSurface("cav");
-    // const paint = new kit.Paint();
-    // paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
-    // paint.setStyle(kit.PaintStyle.Fill);
-    // paint.setAntiAlias(true);
-    // const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
+    const paint = new kit.Paint();
+    paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
+    paint.setStyle(kit.PaintStyle.Fill);
+    paint.setAntiAlias(true);
+    const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
 
-    // function draw(canvas) {
-    //   canvas.clear(kit.WHITE);
-    //   canvas.drawRRect(rr, paint);
-    // }
-    // surface.drawOnce(draw);
+    function draw(canvas) {
+      canvas.clear(kit.WHITE);
+      canvas.drawRRect(rr, paint);
+    }
+    surface.drawOnce(draw);
 
     // const context = Taro.createCanvasContext("cav")
     // console.log(context._context)
@@ -83,7 +83,9 @@ export default function Index() {
   useAddToFavorites((payload) => { return {} })
 
   Taro.onWindowResize(res => {
+    const { size } = res;
     console.log(res)
+    window.trigger("resize", createEvent("resize")) 
   })
 
   useLoad(async (param) => {
@@ -91,7 +93,6 @@ export default function Index() {
     console.log( res.windowHeight)
    
     Taro.onKeyboardHeightChange(res => {
-      
       console.log(res)
     })
   })
