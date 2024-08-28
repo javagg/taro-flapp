@@ -38,6 +38,8 @@ import {
   StrokeJoin,
 } from "canvaskit-wasm/types";
 
+import { parse } from 'opentype.js/dist/opentype.module'
+
 export const valueOfRGB = (
   r: number,
   g: number,
@@ -71,7 +73,8 @@ export abstract class SkEmbindObject<T extends string> implements EmbindObject<T
 }
 
 export const loadFont = (data: ArrayBuffer, familynameAlias?: string) => {
-  const familyName =
+  const f = parse(data)
+    const familyName =
     familynameAlias ??
     (parseFontTable(data).namesTable.postScriptName.en as string);
   const font = new FontFace(familyName, data);

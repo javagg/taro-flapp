@@ -33,12 +33,25 @@ export default function Index() {
     console.log("host", host)
     let div = document.createElement("canvas");
     div.id = "cav"
-    div.setAttribute("canvas-id", "cav");
     div.style.width = "300px"
     div.style.height = "300px"
     host.appendChild(div)
 
-    const surface = kit.MakeCanvasSurface("cav");
+    Taro.createSelectorQuery()
+    .select("#cav")
+    .fields({
+      node: true,
+      size: true
+    })
+    .exec(async (res) => {
+      console.log(res)
+      let canvas = res[0].node;
+      console.log(canvas)
+      // resizeCanvas(canvas);
+      // await setupFlutterApp(canvas);
+    });
+    // const surface = kit.MakeCanvasSurface("cav");
+    // console.log(surface)
     // const paint = new kit.Paint();
     // paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
     // paint.setStyle(kit.PaintStyle.Fill);
@@ -52,7 +65,9 @@ export default function Index() {
     // surface.drawOnce(draw);
 
     // const context = Taro.createCanvasContext("cav")
-    // console.log(context._context)
+    // const a = context._context
+    // console.log(a)
+    // // console.log(context._context)
     // console.log(context)
     // context.setStrokeStyle("#00ff00")
     // context.setLineWidth(5)

@@ -43,8 +43,14 @@ class HTMLCanvasElement extends TaroElement {
         super()
         this.tagName = "CANVAS"
         this.nodeName = "canvas"
+        this.setAttribute("type", "webgl2")
+        // this.setAttribute("canvas-id", this.id)
     }
 
+    set id(val) {
+        super.id=val
+        this.setAttribute("canvas-id", val)
+    }
     getContext(type, attrs?) {
         if (type === '2d')
             throw new Error('not supported')
