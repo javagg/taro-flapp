@@ -11,6 +11,8 @@ import { flutter } from '@/src/flutter'
 
 import { $ } from '@tarojs/extend'
 import { window, TaroEvent, createEvent } from '@tarojs/runtime'
+import { resolve } from 'path'
+import { rejects } from 'assert'
 
 function wait2(milliseconds: number, cb) {
 
@@ -55,36 +57,47 @@ export default function Index() {
     //   hostElement: host,
     // });
 
-    const host = $('#host').get(0)
-    console.log("host", host)
-    let div = document.createElement("canvas");
-    div.id = "cav"
-    div.style.width = "300px"
-    div.style.height = "300px"
-    host.appendChild(div)
+    if (process.env.TARO_ENV === 'weapp') {
+      const canlist = $('#canlist').get(0)
+      let can = document.createElement("canvas");
+      can.id = "master"
+      can.style.width = "300px"
+      can.style.height = "300px"
+      canlist.appendChild(can)
 
-    const kit = window.flutterCanvasKit
-    Taro.createSelectorQuery()
-      .select("#cav")
-      .fields({
-        node: true,
-        size: true
-      }).exec(async (res) => {
-        let canvas = res[0].node;
-        const surface = kit.MakeCanvasSurface(canvas, null, { majorVersion: 1 });
-        console.log(surface)
-        const paint = new kit.Paint();
-        paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
-        paint.setStyle(kit.PaintStyle.Fill);
-        paint.setAntiAlias(true);
-        const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
-        function draw(canvas) {
-          canvas.clear(kit.WHITE);
-          canvas.drawRRect(rr, paint);
-        }
-        surface.drawOnce(draw);
-      });
-
+      await new Promise<void>((resolve) => {
+        Taro.createSelectorQuery()
+        .select("#master")
+        .fields({
+          node: true,
+          size: true
+        }).exec(async (res) => {
+          let canvas = res[0].node;
+          console.log(canvas)
+          Object.defineProperty(can, 'taro_canvas', {
+            value: canvas,
+            writable: false,
+          });
+          window.activeCanvas = can
+          canvas["__weapp_canvas"] = true
+          const kit = window.flutterCanvasKit
+          const surface = kit.MakeCanvasSurface(canvas, null, { majorVersion: 1 });
+          console.log(surface)
+          const paint = new kit.Paint();
+          paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
+          paint.setStyle(kit.PaintStyle.Fill);
+          paint.setAntiAlias(true);
+          const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
+          function draw(canvas) {
+            canvas.clear(kit.WHITE);
+            canvas.drawRRect(rr, paint);
+          }
+          surface.drawOnce(draw);
+          resolve()
+        });
+      })
+    }
+    console.log(window.activeCanvas)
 
     // const context = Taro.createCanvasContext("cav")
     // const a = context._context
@@ -147,6 +160,7 @@ export default function Index() {
   } else {
     return (
       <body>
+        <div id="canlist"></div>
         <div id="host"
           onTouchStart={() => console.log('onTouchStart')}
           onTouchMove={() => console.log('onTouchMove')}

@@ -4,7 +4,6 @@ import { ReadableStream } from "web-streams-polyfill";
 import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from './mutation-observer';
 import fontManifest from '@/flapp/assets/FontManifest.json'
-import { Canvas } from '@tarojs/components';
 import { $ } from '@tarojs/extend'
 
 export function cloneNode(this: TaroNode, isDeep = false) {
@@ -288,6 +287,10 @@ export async function polyfill() {
         self.document.head ??= globalThis.document.head
         self.document.execCommand ??= (commandId) => console.log(`TODO: implement this: ${commandId}`)
 
+        const oldGetElementById = self.document.getElementById
+        self.document.getElementById = function(idOrElement: any) {
+            return oldGetElementById.call(this, idOrElement)
+        }
         TaroEvent.prototype.initEvent ??= function () { }
         TaroNode.extend('cloneNode', cloneNode)
         TaroElement.extend("append", function (param1) { this.appendChild(param1) })
