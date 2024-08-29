@@ -1,62 +1,21 @@
 import {
   useAddToFavorites, useLoad, useReady, useResize, useShareAppMessage, useShareTimeline,
-  useUnload, SelectorQuery
+  useUnload
 } from '@tarojs/taro'
 import Taro from '@tarojs/taro'
 import './index.scss'
-
-// import { createSignal } from 'solid-js'
 import { ckload } from '@/src/ck'
 import { flutter } from '@/src/flutter'
-
 import { $ } from '@tarojs/extend'
-import { window, TaroEvent, createEvent } from '@tarojs/runtime'
-import { resolve } from 'path'
-import { rejects } from 'assert'
-
-function wait2(milliseconds: number, cb) {
-
-  cb()
-  const start = new Date().getTime();
-  while (true) {
-    if (new Date().getTime() - start >= milliseconds) {
-      // console.log("Good, looped for 2 seconds");
-      break;
-    }
-  }
-}
-
-// let result:any
-// function execSync(q: SelectorQuery, timeout: number = 1000): any {
-//   result= null
-//   const start = new Date().getTime();
-//   q.exec((res) =>{ 
-//     result = res
-//     console.log("res:",result)
-//     console.log(`used: ${new Date().getTime() - start} ms`)
-//   })
-//   while (true) {
-//     // console.log("waiting...")
-//     if (new Date().getTime() - start >= timeout) break;
-//     if (result) break
-//   }
-//   return result
-// }
+import { window, createEvent } from '@tarojs/runtime'
 
 export default function Index() {
-  // const [count, setCount] = createSignal(0);
-  // const increment = () => setCount((prev) => prev + 1);
 
   useReady(async () => {
     console.log('Page loaded.');
     await ckload();
-    // const host = $('#host').get(0)
-    // await flutter({
-    //   assetBase: '/',
-    //   fontFallbackBaseUrl: '/assets/fonts/',
-    //   hostElement: host,
-    // });
 
+    const kit = window.flutterCanvasKit
     if (process.env.TARO_ENV === 'weapp') {
       const canlist = $('#canlist').get(0)
       let can = document.createElement("canvas");
@@ -64,42 +23,69 @@ export default function Index() {
       can.style.width = "300px"
       can.style.height = "300px"
       canlist.appendChild(can)
-
       await new Promise<void>((resolve) => {
         Taro.createSelectorQuery()
-        .select("#master")
-        .fields({
-          node: true,
-          size: true
-        }).exec(async (res) => {
-          let canvas = res[0].node;
-          console.log(canvas)
-          Object.defineProperty(can, 'taro_canvas', {
-            value: canvas,
-            writable: false,
+          .select("#master")
+          .fields({
+            node: true,
+            size: true
+          }).exec(async (res) => {
+            let canvas = res[0].node;
+            console.log(canvas)
+            Object.defineProperty(canvas, 'is_taro_canvas', { value: true, writable: false, });
+            window.displayCanvas = canvas
+
+            const surface = kit.MakeCanvasSurface(canvas, null, { majorVersion: 1 });
+            console.log(surface)
+            const paint = new kit.Paint();
+            paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
+            paint.setStyle(kit.PaintStyle.Fill);
+            paint.setAntiAlias(true);
+            const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
+            function draw(canvas) {
+              canvas.clear(kit.WHITE);
+              canvas.drawRRect(rr, paint);
+            }
+            surface.drawOnce(draw);
+            resolve()
           });
-          window.activeCanvas = can
-          canvas["__weapp_canvas"] = true
-          const kit = window.flutterCanvasKit
-          const surface = kit.MakeCanvasSurface(canvas, null, { majorVersion: 1 });
-          console.log(surface)
-          const paint = new kit.Paint();
-          paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
-          paint.setStyle(kit.PaintStyle.Fill);
-          paint.setAntiAlias(true);
-          const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
-          function draw(canvas) {
-            canvas.clear(kit.WHITE);
-            canvas.drawRRect(rr, paint);
-          }
-          surface.drawOnce(draw);
-          resolve()
-        });
       })
     }
-    console.log(window.activeCanvas)
+    console.log(window.displayCanvas)
 
-    // const context = Taro.createCanvasContext("cav")
+    const host = $('#host').get(0)
+    const {windowWidth, windowHeight, pixelRatio} = await Taro.getWindowInfo()
+    host.clientWidth = windowWidth
+    host.clientHeight = windowHeight
+
+    // let offscreen = document.createElement("canvas");
+    // offscreen.id = "offscreen"
+    // offscreen.style.width = "300px"
+    // offscreen.style.height = "300px"
+    // host.appendChild(offscreen)
+
+    // await flutter({
+    //   assetBase: '/',
+    //   fontFallbackBaseUrl: '/assets/fonts/',
+    //   hostElement: host,
+    // });
+
+    const offscreen = Taro.createOffscreenCanvas({type: 'webgl'})
+    console.log(offscreen)
+    offscreen.is_taro_canvas = true
+    const surface = kit.MakeCanvasSurface(offscreen, null, { majorVersion: 1 });
+    console.log("offscreen", surface)
+
+    console.log("surface2........")
+        let canvas2 = document.createElement("canvas");
+        canvas2.id = "offscreen"
+        canvas2.style.width = "300px"
+        canvas2.style.height = "300px"
+
+        const surface2 = kit.MakeCanvasSurface(canvas2, null, { majorVersion: 1 });
+        console.log("surface2", surface2)
+    // host.appendChild(offscreen)
+
     // const a = context._context
     // console.log(a)
     // // console.log(context._context)

@@ -59,9 +59,11 @@ class CanvasRenderingContext2D {
 
 class HTMLCanvasElement extends TaroElement {
     canvas: Taro.OffscreenCanvas
-    ctx: Taro.RenderingContext
+    // ctx: Taro.RenderingContext
     w: number = 150
     h: number = 150
+
+    usedAsOffscreen = false
 
     constructor() {
         super()
@@ -82,7 +84,7 @@ class HTMLCanvasElement extends TaroElement {
         //     type: t, width: w, height: h,
         //     // ...attrs
         // });
-        
+
     }
 
     set id(val) {
@@ -91,17 +93,37 @@ class HTMLCanvasElement extends TaroElement {
     }
 
     get width(): number {
-        return this.canvas.width
+        return this.w
+    }
+
+    set width(val) {
+        this.w = val
     }
 
     get height(): number {
-        return this.canvas.height
+        return this.h
+    }
+
+    set height(val) {
+        this.h = val
     }
 
     getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
         console.log("getContext", type)
-        if (type === '2d')
-            throw new Error('not supported')
+        if (type === '2d' || type === 'webgl') {
+            this.canvas = Taro.createOffscreenCanvas({
+                type: type, width: this.w, height: this.h
+            })
+            return this.canvas.getContext(type)
+        }
+        // if (type === "webgl") {
+        //     this.canvas = Taro.createOffscreenCanvas({
+        //         type: type, width: this.w, height: this.h
+        //     })
+        //     // return new CanvasRenderingContext2D(this.canvas)
+        //     return this.canvas.getContext(type)
+        // }
+        //     throw new Error('not supported')
         // if (type === "webgl2") {
         //     type = "webgl"
         //     console.warn("webgl2 not supported in weapp")
@@ -109,13 +131,8 @@ class HTMLCanvasElement extends TaroElement {
         // console.log("cid", this.getAttribute("canvas-id"))
         // console.log(this.id)
 
-        let offcan = wx.createOffscreenCanvas({
-            type: "webgl2", height: 300, width: 300
-          })
-          console.log("offcan", offcan)
-
-        let res = offcan.getContext(type, attrs)
-        console.log(res)
+        // let res = offcan.getContext(type, attrs)
+        // console.log(res)
         // let can = $(`#${this.id}`).get(0)
 
         // Taro.createSelectorQuery()
@@ -133,7 +150,7 @@ class HTMLCanvasElement extends TaroElement {
         //     ...attrs
         // });
         // console.log(this.canvas.width)
-        return res
+        // return res
         // if (type === "2d") {
         //     return new CanvasRenderingContext2D(this.canvas)
         // } else if (type === "webgl") {
@@ -144,11 +161,13 @@ class HTMLCanvasElement extends TaroElement {
         //     // console.log( typeof res)
         //     return res
         // }
+        return null
     }
 
     setAttribute(qualifiedName: string, value: any): void {
         super.setAttribute(qualifiedName, value)
-        if (qualifiedName === 'aria-hidden') {
+        if (qualifiedName === 'aria-hidden' && value === 'true') {
+            this.usedAsOffscreen = true
         }
     }
 }
@@ -288,7 +307,8 @@ export async function polyfill() {
         self.document.execCommand ??= (commandId) => console.log(`TODO: implement this: ${commandId}`)
 
         const oldGetElementById = self.document.getElementById
-        self.document.getElementById = function(idOrElement: any) {
+        self.document.getElementById = function (idOrElement: any) {
+            if (idOrElement.hasOwnProperty('is_taro_canvas') && idOrElement.is_taro_canvas) return idOrElement
             return oldGetElementById.call(this, idOrElement)
         }
         TaroEvent.prototype.initEvent ??= function () { }
