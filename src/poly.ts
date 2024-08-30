@@ -57,6 +57,9 @@ class CanvasRenderingContext2D {
     }
 }
 
+class WebGLRenderingContext {
+}
+
 class HTMLCanvasElement extends TaroElement {
     canvas: Taro.OffscreenCanvas
     // ctx: Taro.RenderingContext
@@ -114,8 +117,59 @@ class HTMLCanvasElement extends TaroElement {
             this.canvas = Taro.createOffscreenCanvas({
                 type: type, width: this.w, height: this.h
             })
-            return this.canvas.getContext(type)
+
+            if (type === "webgl") {
+                let taroCtx = this.canvas.getContext(type)
+                console.log("taroCtx", taroCtx)
+                 // WebGLRenderingContext.prototype =
+                // Object.setPrototypeOf(WebGLRenderingContext.p, Object.getPrototypeOf(taroCtx))
+
+                // console.log( taroCtx.getExtension)
+                // console.log(taroCtx.constructor.prototype.__proto__)
+                // taroCtx.constructor = WebGLRenderingContext
+                // let cc = new WebGLRenderingContext()
+                // console.log(cc)
+                // console.log(cc instanceof WebGLRenderingContext)
+                // cc = Object.assign(cc, taroCtx)
+                // console.log(cc.getExtension)
+                // cc.getExtension = taroCtx.getExtension
+                //    WebGLRenderingContext.__proto__ = Object.create(taroCtx.__proto__, {
+                // 如果不将 Rectangle.prototype.constructor 设置为 Rectangle，
+                // 它将采用 Shape（父类）的 prototype.constructor。
+                // 为避免这种情况，我们将 prototype.constructor 设置为 Rectangle（子类）。
+                // constructor: {
+                //   value: WebGLRenderingContext,
+                //   enumerable: false,
+                //   writable: true,
+                //   configurable: true,
+                // },
+                return taroCtx
+            };
+            //   console.log("ccccc")
+            //   let  cc = new WebGLRenderingContext()
+            //   console.log(cc)
+            //   console.log(cc instanceof WebGLRenderingContext)
+            //   Object.assign(cc, taroCtx)
+            //   console.log(cc)
+
+            //    console.log(taroCtx)
+
+            //    console.log(typeof taroCtx)
+            //    console.log(typeof taroCtx.__proto__)
+            //    let  cc = new WebGLRenderingContext()
+            //    console.log(typeof cc)
+            //    
+            //    cc.__proto__ =  WebGLRenderingContext.__proto__
+            //    console.log(cc instanceof WebGLRenderingContext)
+            //    console.log(typeof cc)
+            // WebGLRenderingContext.__proto__ = taroCtx.__proto__
+            // let ctx = new WebGLRenderingContext()
+            // Object.assign(ctx, taroCtx)
+            // console.log(ctx instanceof WebGLRenderingContext)
+            // return cc
         }
+        return this.canvas.getContext(type)
+    }
         // if (type === "webgl") {
         //     this.canvas = Taro.createOffscreenCanvas({
         //         type: type, width: this.w, height: this.h
@@ -161,14 +215,14 @@ class HTMLCanvasElement extends TaroElement {
         //     // console.log( typeof res)
         //     return res
         // }
-        return null
-    }
+    //     return null
+    // }
 
-    setAttribute(qualifiedName: string, value: any): void {
-        super.setAttribute(qualifiedName, value)
-        if (qualifiedName === 'aria-hidden' && value === 'true') {
-            this.usedAsOffscreen = true
-        }
+setAttribute(qualifiedName: string, value: any): void {
+    super.setAttribute(qualifiedName, value)
+        if(qualifiedName === 'aria-hidden' && value === 'true') {
+    this.usedAsOffscreen = true
+}
     }
 }
 
@@ -256,6 +310,7 @@ async function polyWasm() {
     }
 }
 
+
 export async function polyfill() {
     if (process.env.TARO_ENV === 'weapp') {
         const ASSETS = [
@@ -308,7 +363,7 @@ export async function polyfill() {
 
         const oldGetElementById = self.document.getElementById
         self.document.getElementById = function (idOrElement: any) {
-            if (idOrElement.hasOwnProperty('is_taro_canvas') && idOrElement.is_taro_canvas) return idOrElement
+            if (idOrElement.hasOwnProperty('is_taro_canvas') && idOrElement.is_taro_canvas) { console.log("return weapp canvas"); return idOrElement }
             return oldGetElementById.call(this, idOrElement)
         }
         TaroEvent.prototype.initEvent ??= function () { }

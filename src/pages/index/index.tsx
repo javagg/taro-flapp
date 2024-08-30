@@ -35,7 +35,7 @@ export default function Index() {
             Object.defineProperty(canvas, 'is_taro_canvas', { value: true, writable: false, });
             window.displayCanvas = canvas
 
-            const surface = kit.MakeCanvasSurface(canvas, null, { majorVersion: 1 });
+            const surface = kit.MakeWebGLCanvasSurface(canvas, null, { majorVersion: 1 });
             console.log(surface)
             const paint = new kit.Paint();
             paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
@@ -54,7 +54,7 @@ export default function Index() {
     console.log(window.displayCanvas)
 
     const host = $('#host').get(0)
-    const {windowWidth, windowHeight, pixelRatio} = await Taro.getWindowInfo()
+    const { windowWidth, windowHeight, pixelRatio } = await Taro.getWindowInfo()
     host.clientWidth = windowWidth
     host.clientHeight = windowHeight
 
@@ -70,20 +70,20 @@ export default function Index() {
     //   hostElement: host,
     // });
 
-    const offscreen = Taro.createOffscreenCanvas({type: 'webgl'})
-    console.log(offscreen)
-    offscreen.is_taro_canvas = true
-    const surface = kit.MakeCanvasSurface(offscreen, null, { majorVersion: 1 });
-    console.log("offscreen", surface)
+    // const offscreen = Taro.createOffscreenCanvas({ type: 'webgl' })
+    // console.log(offscreen)
+    // offscreen.is_taro_canvas = true
+    // const surface = kit.MakeCanvasSurface(offscreen, null, { majorVersion: 1 });
+    // console.log("offscreen", surface)
 
-    console.log("surface2........")
-        let canvas2 = document.createElement("canvas");
-        canvas2.id = "offscreen"
-        canvas2.style.width = "300px"
-        canvas2.style.height = "300px"
+    // console.log("surface2........")
+    // let canvas2 = document.createElement("canvas");
+    // canvas2.id = "offscreen"
+    // canvas2.style.width = "300px"
+    // canvas2.style.height = "300px"
 
-        const surface2 = kit.MakeCanvasSurface(canvas2, null, { majorVersion: 1 });
-        console.log("surface2", surface2)
+    // const surface2 = kit.MakeCanvasSurface(canvas2, null, { majorVersion: 1 });
+    // console.log("surface2", surface2)
     // host.appendChild(offscreen)
 
     // const a = context._context
