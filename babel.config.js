@@ -3,7 +3,7 @@
 module.exports = {
   presets: [
     ['taro', {
-      framework: 'solid',
+      framework: 'vue3', //'solid',
       ts: true,
       compiler: 'webpack5',
     }]

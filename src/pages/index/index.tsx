@@ -34,7 +34,6 @@ export default function Index() {
             console.log(canvas)
             Object.defineProperty(canvas, 'is_taro_canvas', { value: true, writable: false, });
             window.displayCanvas = canvas
-
             const surface = kit.MakeWebGLCanvasSurface(canvas, null, { majorVersion: 1 });
             console.log(surface)
             const paint = new kit.Paint();
@@ -58,54 +57,16 @@ export default function Index() {
     host.clientWidth = windowWidth
     host.clientHeight = windowHeight
 
-    // let offscreen = document.createElement("canvas");
-    // offscreen.id = "offscreen"
-    // offscreen.style.width = "300px"
-    // offscreen.style.height = "300px"
-    // host.appendChild(offscreen)
+    const offscreen = Taro.createOffscreenCanvas({ type: 'webgl' })
+    offscreen.is_taro_canvas = true
+    const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion: 1 });
+    console.log("offscreen", surface)
 
-    // await flutter({
-    //   assetBase: '/',
-    //   fontFallbackBaseUrl: '/assets/fonts/',
-    //   hostElement: host,
-    // });
-
-    // const offscreen = Taro.createOffscreenCanvas({ type: 'webgl' })
-    // console.log(offscreen)
-    // offscreen.is_taro_canvas = true
-    // const surface = kit.MakeCanvasSurface(offscreen, null, { majorVersion: 1 });
-    // console.log("offscreen", surface)
-
-    // console.log("surface2........")
-    // let canvas2 = document.createElement("canvas");
-    // canvas2.id = "offscreen"
-    // canvas2.style.width = "300px"
-    // canvas2.style.height = "300px"
-
-    // const surface2 = kit.MakeCanvasSurface(canvas2, null, { majorVersion: 1 });
-    // console.log("surface2", surface2)
-    // host.appendChild(offscreen)
-
-    // const a = context._context
-    // console.log(a)
-    // // console.log(context._context)
-    // console.log(context)
-    // context.setStrokeStyle("#00ff00")
-    // context.setLineWidth(5)
-    // context.rect(0, 0, 200, 200)
-    // context.stroke()
-    // context.setStrokeStyle("#ff0000")
-    // context.setLineWidth(2)
-    // context.moveTo(160, 100)
-    // context.arc(100, 100, 60, 0, 2 * Math.PI, true)
-    // context.moveTo(140, 100)
-    // context.arc(100, 100, 40, 0, Math.PI, false)
-    // context.moveTo(85, 80)
-    // context.arc(80, 80, 5, 0, 2 * Math.PI, true)
-    // context.moveTo(125, 80)
-    // context.arc(120, 80, 5, 0, 2 * Math.PI, true)
-    // context.stroke()
-    // context.draw()
+    await flutter({
+      assetBase: '/',
+      fontFallbackBaseUrl: '/assets/fonts/',
+      hostElement: host,
+    });
   })
 
   useResize(async (payload) => {

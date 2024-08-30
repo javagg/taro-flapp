@@ -43,7 +43,8 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       '@/flapp': path.resolve(__dirname, '..', 'flapp', 'build', 'web'),
       '@/assets': path.resolve(__dirname, '..', 'assets'),
     },
-    framework: 'solid',
+    // framework: 'solid',
+    framework: 'vue3',
     compiler: {
       type: 'webpack5',
       prebundle: {
@@ -99,12 +100,12 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
             arr: [
               { search: 'typeof fetch', replace: 'typeof window.fetch', attr: 'g' },
               { search: 'fetch(', replace: 'window.fetch(', attr: 'g' },
-              { search: 'typeof HTMLCanvasElement' , replace: 'typeof window.HTMLCanvasElement', attr: 'g' },
+              // { search: 'typeof HTMLCanvasElement' , replace: 'typeof window.HTMLCanvasElement', attr: 'g' },
               // { search: 'instanceof HTMLCanvasElement' , replace: 'instanceof window.HTMLCanvasElement', attr: 'g' },
-              { search: 'new ImageData' , replace: 'new window.ImageData', attr: 'g' },
-              { search: /\w+ instanceof HTMLCanvasElement/ , replace: 'true', attr: 'g' },
-              { search: /\w+ instanceof OffscreenCanvas/ , replace: 'true', attr: 'g' },
-              { search: /\w+ instanceof WebGLRenderingContext/ , replace: 'true', attr: 'g' },
+              // { search: 'new ImageData' , replace: 'new window.ImageData', attr: 'g' },
+              { search: '\\w instanceof HTMLCanvasElement' , replace: 'true', attr: 'g' },
+              { search: '\\w instanceof OffscreenCanvas' , replace: 'true', attr: 'g' },
+              { search: '\\w instanceof WebGLRenderingContext' , replace: 'true', attr: 'g' },
             ]
           })
       }
