@@ -36,41 +36,41 @@ export function cloneNode(this: TaroNode, isDeep = false) {
     return newNode
 }
 
-class CanvasRenderingContext2D {
-    constructor(private canvas: Taro.OffscreenCanvas) {
-    }
-    putImageData(imageData: ImageData, dx, dy) {
-        let d = this.canvas.getContext("webgl").getImageData()
-        console.log(d)
-        d.data = imageData.data
-        // this.canvas.
-        this.canvas.getContext('2d').putImageData(d, dx, dy)
-    }
-    putImageData(imageData, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
-        // let d = this.canvas.getContext("webgl").getImageData()
-        // console.log(d)
-        // console.log(this.canvas)
-        let d = this.canvas.createImageData()
-        console.log(d)
-        d.data = imageData.data
-        this.canvas.getContext('2d').putImageData(d, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight)
-    }
-}
+// class CanvasRenderingContext2D {
+//     constructor(private canvas: Taro.OffscreenCanvas) {
+//     }
+//     putImageData(imageData: ImageData, dx, dy) {
+//         let d = this.canvas.getContext("webgl").getImageData()
+//         console.log(d)
+//         d.data = imageData.data
+//         // this.canvas.
+//         this.canvas.getContext('2d').putImageData(d, dx, dy)
+//     }
+//     putImageData(imageData, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
+//         // let d = this.canvas.getContext("webgl").getImageData()
+//         // console.log(d)
+//         // console.log(this.canvas)
+//         let d = this.canvas.createImageData()
+//         console.log(d)
+//         d.data = imageData.data
+//         this.canvas.getContext('2d').putImageData(d, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight)
+//     }
+// }
 
 // class WebGLRenderingContext {
 // }
 
 class OffscreenCanvas extends TaroElement {
-    backend: Taro.OffscreenCanvas
+    backend: any
 
-    constructor(private w, private h) {
+    constructor(private w?, private h?) {
         super()
         this.tagName = "OFFSCREENCANVAS"
         this.nodeName = "offscreencanvas"
     }
 
     get width(): number {
-        return this.w
+        return this.w ?? 150
     }
 
     set width(val) {
@@ -78,46 +78,33 @@ class OffscreenCanvas extends TaroElement {
     }
 
     get height(): number {
-        return this.h
+        return this.h ?? 150
     }
 
-    getContext(type: "2d" | "webgl", attrs?) {
+    getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
         console.log("offcanvas getContext", type)
-        this.backend ??= Taro.createOffscreenCanvas({
-            type: type, width: this.w, height: this.h
-        })
+        if (type === "2d" || type === "webgl") {
+            this.backend ??= Taro.createOffscreenCanvas({
+                type: type, width: this.w, height: this.h
+            })
+        }
+        if (type === "webgl2") {
+            this.backend ??= wx.createOffscreenCanvas({
+                type: type, width: this.w, height: this.h
+            })
+        }
         return this.backend.getContext(type)
     }
 }
 
 class HTMLCanvasElement extends TaroElement {
-    // canvas: Taro.OffscreenCanvas
-    // ctx: Taro.RenderingContext
     w: number = 150
     h: number = 150
-
-    // usedAsOffscreen = false
 
     constructor() {
         super()
         this.tagName = "CANVAS"
         this.nodeName = "canvas"
-        // console.log(this.getAttribute("type"))
-        // if (this.getAttribute("type") === "undefined") {
-        this.setAttribute("type", "webgl")
-        // }
-        // let t = "webgl" //this.getAttribute("type") ?? "webgl"
-        // let w = this.style.getPropertyValue("width") ?? 150
-        // let h = this.style.getPropertyValue("height") ?? 150
-        // console.log("cid",this.getAttribute("canvas-id"))
-        // console.log(this.id)
-        // let can = $(this.id).get(0)
-        // console.log("can", can)
-        // this.canvas = Taro.createOffscreenCanvas({
-        //     type: t, width: w, height: h,
-        //     // ...attrs
-        // });
-
     }
 
     set id(val) {
@@ -142,73 +129,49 @@ class HTMLCanvasElement extends TaroElement {
     }
 
     getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
-        console.log("getContext", type)
-        console.log(window.displayCanvas)
-        if (type === 'webgl2') return null;
-        if (type === '2d') return null;
+        console.log("HTMLCanvasElement getContext", type)
+        // flutter is detecting the webgl version, just return a non-null object
+        if (type === 'webgl' && this.w === 1 && this.h === 1) return {}
 
-        // if (type === '2d' || type === 'webgl') {
-        //     this.canvas = Taro.createOffscreenCanvas({
-        //         type: type, width: this.w, height: this.h
-        //     })
-
-        //     if (type === "webgl") {
-        //         let taroCtx = this.canvas.getContext(type)
-        //         console.log("taroCtx", taroCtx)
-        //         // WebGLRenderingContext.prototype =
-        //         // Object.setPrototypeOf(WebGLRenderingContext.p, Object.getPrototypeOf(taroCtx))
-
-        //         // console.log( taroCtx.getExtension)
-        //         // console.log(taroCtx.constructor.prototype.__proto__)
-        //         // taroCtx.constructor = WebGLRenderingContext
-        //         // let cc = new WebGLRenderingContext()
-        //         // console.log(cc)
-        //         // console.log(cc instanceof WebGLRenderingContext)
-        //         // cc = Object.assign(cc, taroCtx)
-        //         // console.log(cc.getExtension)
-        //         // cc.getExtension = taroCtx.getExtension
-        //         //    WebGLRenderingContext.__proto__ = Object.create(taroCtx.__proto__, {
-        //         // 如果不将 Rectangle.prototype.constructor 设置为 Rectangle，
-        //         // 它将采用 Shape（父类）的 prototype.constructor。
-        //         // 为避免这种情况，我们将 prototype.constructor 设置为 Rectangle（子类）。
-        //         // constructor: {
-        //         //   value: WebGLRenderingContext,
-        //         //   enumerable: false,
-        //         //   writable: true,
-        //         //   configurable: true,
-        //         // },
-        //         return taroCtx
-        //     };
-        //     //   console.log("ccccc")
-        //     //   let  cc = new WebGLRenderingContext()
-        //     //   console.log(cc)
-        //     //   console.log(cc instanceof WebGLRenderingContext)
-        //     //   Object.assign(cc, taroCtx)
-        //     //   console.log(cc)
-
-        //     //    console.log(taroCtx)
-
-        //     //    console.log(typeof taroCtx)
-        //     //    console.log(typeof taroCtx.__proto__)
-        //     //    let  cc = new WebGLRenderingContext()
-        //     //    console.log(typeof cc)
-        //     //    
-        //     //    cc.__proto__ =  WebGLRenderingContext.__proto__
-        //     //    console.log(cc instanceof WebGLRenderingContext)
-        //     //    console.log(typeof cc)
-        //     // WebGLRenderingContext.__proto__ = taroCtx.__proto__
-        //     // let ctx = new WebGLRenderingContext()
-        //     // Object.assign(ctx, taroCtx)
-        //     // console.log(ctx instanceof WebGLRenderingContext)
-        //     // return cc
-        // }
-        return window.displayCanvas.getContext(type)
+        const attr = `taro-canvas`
+        if (this.hasAttribute(attr)) {
+            const backend = this.getAttribute(attr)
+            const ctx = backend.getContext(type)
+            if (type === 'webgl2') {
+                console.log("patch ctx getParameter")
+                const originGetParameter = ctx.getParameter.bind(ctx);
+                ctx.getParameter = function (v) {
+                //   console.log(this.VERSION)
+                  if (v === this.VERSION) {
+                    const value = originGetParameter(v);
+                    if (value.indexOf("OpenGL ES 3.2") > 0) {
+                      return "WebGL 2.0 (OpenGL ES 3.2 Chromium)";
+                    } else {
+                      return value;
+                    }
+                  } else if (v === ctx.SHADING_LANGUAGE_VERSION) {
+                    // console.log(ctx.SHADING_LANGUAGE_VERSION)
+                    const value = originGetParameter(v);
+                    if (value.indexOf("GLSL ES") < 0) {
+                      return "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.2 Chromium)";
+                    }
+                    else if (value.indexOf("OpenGL ES 3.2") > 0) {
+                      return "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.2 Chromium)";
+                    } else {
+                      return value;
+                    }
+                  }
+                  return originGetParameter(v);
+                };
+            }
+            console.log(ctx)
+            return ctx
+        }
     }
 
     setAttribute(qualifiedName: string, value: any): void {
         super.setAttribute(qualifiedName, value)
         if (qualifiedName === 'aria-hidden' && value === 'true') {
-            this.usedAsOffscreen = true
         }
     }
 }
@@ -297,6 +260,7 @@ async function polyWasm() {
     }
 }
 
+let flt_id = 0
 
 export async function polyfill() {
     if (process.env.TARO_ENV === 'weapp') {
@@ -325,6 +289,8 @@ export async function polyfill() {
             switch (true) {
                 case nodeName === "canvas":
                     return new HTMLCanvasElement()
+                case nodeName === "offscreencanvas":
+                    return new OffscreenCanvas()
                 default:
                     return oldCreateElement.call(this, ...arguments)
             }
@@ -350,12 +316,25 @@ export async function polyfill() {
 
         const oldGetElementById = self.document.getElementById
         self.document.getElementById = function (idOrElement: any) {
-            if (idOrElement.hasOwnProperty('is_taro_canvas') && idOrElement.is_taro_canvas) { console.log("return weapp canvas"); return idOrElement }
+            if (idOrElement.hasOwnProperty('taro-canvas')) {
+                console.log("return taro canvas");
+                if (idOrElement.getAttribute === 'undefined') {
+                    return idOrElement.getAttribute('taro-canvas')
+                } else {
+                    return idOrElement['taro-canvas']
+                }
+            }
             return oldGetElementById.call(this, idOrElement)
         }
         TaroEvent.prototype.initEvent ??= function () { }
         TaroNode.extend('cloneNode', cloneNode)
-        TaroElement.extend("append", function (param1) { this.appendChild(param1) })
+        TaroElement.extend("append", function (param1) {
+            if (this.tagName === "flt-canvas-container") {
+                console.log("RenderCanvas is appended to flt-canvas-container")
+                param1.setAttribute("flt-id", flt_id++)
+            }
+            this.appendChild(param1)
+        })
         TaroElement.extend("prepend", function (param1) { this.insertBefore(param1, this.firstChild) })
         TaroElement.extend("querySelectorAll", () => [])
         TaroElement.extend("attachShadow", (options) => new TaroElement())
@@ -442,9 +421,9 @@ export async function polyfill() {
         self.window.dispatchEvent = () => true;
         self.window.ResizeObserver ??= ResizeObserver;
         self.window.HTMLCanvasElement = HTMLCanvasElement;
-        // self.window.OffscreenCanvas = OffscreenCanvas;
-        self.window.CanvasRenderingContext2D = CanvasRenderingContext2D;
-        self.window.ImageData = ImageData;
+        self.window.OffscreenCanvas = OffscreenCanvas;
+        // self.window.CanvasRenderingContext2D = CanvasRenderingContext2D;
+        // self.window.ImageData = ImageData;
 
         // console.log("Replace window.FontFace.prototype.load...")
         // const oldLoad = self.window.FontFace.prototype.load
@@ -514,4 +493,5 @@ export async function polyfill() {
         }
     }
     await polyWasm()
+    console.log("runtime patched")
 }

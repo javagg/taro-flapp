@@ -1,26 +1,32 @@
 <template>
-  <body>
+  <div>
+    <div>
+      <!-- <canvas id="weapp-2d" type="2d" width="300" height="300"/> -->
+      <canvas id="weapp-webgl" type="webgl" width="300" height="300"/>
+      <canvas id="weapp-webgl2" type="webgl2" width="300" height="300"/>
+    </div>
     <div id="canlist"></div>
     <div id="host">
     </div>
-  </body>
+  </div>
 </template>
 
 <script>
-import { ref } from 'vue'
 import './index.scss'
 import Taro from '@tarojs/taro'
 import { ckload } from '@/src/ck'
 import { flutter } from '@/src/flutter'
 import { $ } from '@tarojs/extend'
-import { window, createEvent } from '@tarojs/runtime'
+import { window, document, createEvent } from '@tarojs/runtime'
+import {
+  createTaroCanvas, createCkSurface, createTaroOffscreenCanvas,
+  // create2dOffscreenCanvas, createWebglOffscreenCanvas,
+  createWebglOffscreenCanvasAndCkSurface,
+  createWeappOffscreenCanvasAndCkSurface,
+} from '@/src/utils'
 
 export default {
   setup() {
-    const msg = ref('Hello world')
-    return {
-      msg
-    }
   },
   async onReady() {
     console.log('Page loaded.');
@@ -32,52 +38,60 @@ export default {
     host.clientHeight = windowHeight
 
     const kit = window.flutterCanvasKit
-    if (process.env.TARO_ENV === 'weapp') {
-      const canlist = $('#canlist').get(0)
-      let can = document.createElement("canvas");
-      can.id = "master"
-      can.style.width = `${host.clientWidth}px`
-      can.style.height = `${host.clientHeight}px`
-      canlist.appendChild(can)
-      await new Promise((resolve) => {
-        Taro.createSelectorQuery()
-          .select("#master")
-          .fields({
-            node: true,
-            size: true
-          }).exec(async (res) => {
-            let canvas = res[0].node;
-            console.log(canvas)
-            Object.defineProperty(canvas, 'is_taro_canvas', { value: true, writable: false, });
-            window.displayCanvas = canvas
-            const surface = kit.MakeWebGLCanvasSurface(canvas, null, { majorVersion: 1 });
-            console.log(surface)
-            const paint = new kit.Paint();
-            paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
-            paint.setStyle(kit.PaintStyle.Fill);
-            paint.setAntiAlias(true);
-            const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
-            function draw(canvas) {
-              canvas.clear(kit.WHITE);
-              canvas.drawRRect(rr, paint);
-            }
-            surface.drawOnce(draw);
-            resolve()
-          });
+    const canlist = $('#canlist').get(0)
+
+    // for (const t of ['2d', 'webgl',
+    //   // 'webgl2'
+    // ]) {
+    //   const can = await createTaroCanvas(canlist, `render-canvas-${t}`, t, 300, 300)
+    //   const ctx = can.getContext(t)
+    //   console.log("taro-ctx", ctx)
+    //   if (t !== '2d') {
+    //     const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+    //     console.log("surface", surface)
+    //   }
+    // }
+
+    // for (const t of [
+    //   // '2d',
+    //  'webgl',
+    //   // 'webgl2'
+    // ]) {
+    //   const canvas = await new Promise((resolve) => {
+    //     wx.createSelectorQuery().select(`#weapp-${t}`).fields({ node: true, size: true }).exec((res) =>
+    //         {  console.log(res); return resolve(res[0].node)})
+    // })
+    //   const ctx = canvas.getContext(t)
+    //   canvas["taro-canvas"] = canvas
+    //   console.log(`weapp-ctx ${t}:`, ctx)
+    //      const surface = kit.MakeWebGLCanvasSurface(canvas, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+    //     console.log("surface", surface)
+    // }
+
+    for (const t of [
+      // 'webgl',
+      'webgl2',
+    ]) {
+
+      const offscreen = wx.createOffscreenCanvas({
+        type: t, width: 300, height: 300
       })
+      offscreen["taro-canvas"] = offscreen
+      console.log(`offscreen ${t}:`, offscreen)
+      const ctx = offscreen.getContext(t)
+      console.log(`offscreen ctx ${t}:`, ctx)
+      // if (t !== '2d') {
+        const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+        console.log("surface", surface)
+      // }
     }
-    console.log(window.displayCanvas)
 
-    const offscreen = Taro.createOffscreenCanvas({ type: 'webgl' })
-    offscreen.is_taro_canvas = true
-    const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion: 1 });
-    console.log("offscreen", surface)
-
-    await flutter({
-      assetBase: '/',
-      fontFallbackBaseUrl: '/assets/fonts/',
-      hostElement: host,
-    });
+    // await createWeappOffscreenCanvasAndCkSurface()
+    // await flutter({
+    //   assetBase: '/',
+    //   fontFallbackBaseUrl: '/assets/fonts/',
+    //   hostElement: host,
+    // });
   },
 }
 </script>
