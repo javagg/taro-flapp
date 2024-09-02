@@ -95,7 +95,7 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
         chain.module
           .rule("/canvaskit\.js$/")
           .use("replace")
-          .loader("webpack-replace-loader")
+          .loader("./config/replace-loader")
           .options({
             arr: [
               // { search: 'typeof fetch', replace: 'typeof window.fetch', attr: 'g' },
@@ -105,7 +105,7 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
               // { search: 'new ImageData' , replace: 'new window.ImageData', attr: 'g' },
               // { search: '\\w instanceof HTMLCanvasElement' , replace: 'true', attr: 'g' },
               // { search: '\\w instanceof OffscreenCanvas' , replace: 'true', attr: 'g' },
-              { search: '\\w instanceof WebGLRenderingContext' , replace: 'true', attr: 'g' },
+              { search: '"webgl"\\s*==\\s*\\w\\s*==\\s*\\w instanceof WebGLRenderingContext' , replace: 'true', attr: 'g' },
             ]
           })
       }

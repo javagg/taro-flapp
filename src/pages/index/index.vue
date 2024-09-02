@@ -40,17 +40,15 @@ export default {
     const kit = window.flutterCanvasKit
     const canlist = $('#canlist').get(0)
 
-    // for (const t of ['2d', 'webgl',
-    //   // 'webgl2'
-    // ]) {
-    //   const can = await createTaroCanvas(canlist, `render-canvas-${t}`, t, 300, 300)
-    //   const ctx = can.getContext(t)
-    //   console.log("taro-ctx", ctx)
-    //   if (t !== '2d') {
-    //     const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
-    //     console.log("surface", surface)
-    //   }
-    // }
+    for (const t of ['2d', 'webgl', 'webgl2']) {
+      const can = await createTaroCanvas(canlist, `render-canvas-${t}`, t, 300, 300)
+      const ctx = can.getContext(t)
+      console.log("taro-ctx", ctx)
+      if (t !== '2d') {
+        const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+        console.log("surface", surface)
+      }
+    }
 
     // for (const t of [
     //   // '2d',
@@ -68,23 +66,21 @@ export default {
     //     console.log("surface", surface)
     // }
 
-    for (const t of [
-      // 'webgl',
-      'webgl2',
-    ]) {
+    // for (const t of [
+    //   'webgl',
+    //   'webgl2',
+    // ]) {
 
-      const offscreen = wx.createOffscreenCanvas({
-        type: t, width: 300, height: 300
-      })
-      offscreen["taro-canvas"] = offscreen
-      console.log(`offscreen ${t}:`, offscreen)
-      const ctx = offscreen.getContext(t)
-      console.log(`offscreen ctx ${t}:`, ctx)
-      // if (t !== '2d') {
-        const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
-        console.log("surface", surface)
-      // }
-    }
+    //   const offscreen = wx.createOffscreenCanvas({
+    //     type: t, width: 300, height: 300
+    //   })
+    //   offscreen["taro-canvas"] = offscreen
+    //   console.log(`offscreen ${t}:`, offscreen)
+    //   const ctx = offscreen.getContext(t)
+    //   console.log(`offscreen ctx ${t}:`, ctx)
+    //     const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+    //     console.log("surface", surface)
+    // }
 
     // await createWeappOffscreenCanvasAndCkSurface()
     // await flutter({

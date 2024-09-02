@@ -149,7 +149,7 @@ class HTMLCanvasElement extends TaroElement {
                     } else {
                       return value;
                     }
-                  } else if (v === ctx.SHADING_LANGUAGE_VERSION) {
+                  } else if (v === this.SHADING_LANGUAGE_VERSION) {
                     // console.log(ctx.SHADING_LANGUAGE_VERSION)
                     const value = originGetParameter(v);
                     if (value.indexOf("GLSL ES") < 0) {
