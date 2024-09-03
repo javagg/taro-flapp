@@ -4,7 +4,6 @@ import { ReadableStream } from "web-streams-polyfill";
 import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from '@tarojs/runtime';
 import fontManifest from '@/flapp/assets/FontManifest.json'
-import { $ } from '@tarojs/extend'
 
 export function cloneNode(this: TaroNode, isDeep = false) {
     const document = this.ownerDocument
@@ -36,37 +35,23 @@ export function cloneNode(this: TaroNode, isDeep = false) {
     return newNode
 }
 
-// class CanvasRenderingContext2D {
-//     constructor(private canvas: Taro.OffscreenCanvas) {
-//     }
-//     putImageData(imageData: ImageData, dx, dy) {
-//         let d = this.canvas.getContext("webgl").getImageData()
-//         console.log(d)
-//         d.data = imageData.data
-//         // this.canvas.
-//         this.canvas.getContext('2d').putImageData(d, dx, dy)
-//     }
-//     putImageData(imageData, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
-//         // let d = this.canvas.getContext("webgl").getImageData()
-//         // console.log(d)
-//         // console.log(this.canvas)
-//         let d = this.canvas.createImageData()
-//         console.log(d)
-//         d.data = imageData.data
-//         this.canvas.getContext('2d').putImageData(d, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight)
-//     }
-// }
-
-// class WebGLRenderingContext {
-// }
-
 class OffscreenCanvas extends TaroElement {
-    backend: any
-
+    _2d_backend: any
+    _webgl_backend: any
+    _webgl2_backend: any
     constructor(private w?, private h?) {
         super()
         this.tagName = "OFFSCREENCANVAS"
         this.nodeName = "offscreencanvas"
+        this._webgl_backend = wx.createOffscreenCanvas({
+            type: "webgl", width: this.w, height: this.h
+        })
+        // this["taro-canvas-webgl"]= this._webgl_backend;
+        this._webgl2_backend = wx.createOffscreenCanvas({
+            type: "webgl2", width: this.w, height: this.h
+        })
+        this["taro-canvas-webgl"]= this._webgl_backend;
+        this["taro-canvas-webgl2"]= this._webgl2_backend;
     }
 
     get width(): number {
@@ -81,20 +66,28 @@ class OffscreenCanvas extends TaroElement {
         return this.h ?? 150
     }
 
+    set height(val) {
+        this.h = val
+    }
     getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
         console.log("offcanvas getContext", type)
         if (type === "2d") {
-            this.backend ??= Taro.createOffscreenCanvas({
-                type: type, width: this.w, height: this.h
+            this._2d_backend ??= Taro.createOffscreenCanvas({
+                type: "2d", width: this.w, height: this.h
             })
+            this._webgl_backend = null
+            this._webgl2_backend = null
+            return this._2d_backend.getContext("2d")
         }
-        if (type === "webgl" || type === "webgl2") {
-            this.backend ??= wx.createOffscreenCanvas({
-                type: "webgl", width: this.w, height: this.h
-            })
+        if (type === "webgl") {
+            this._webgl2_backend = null
+            return this._webgl_backend.getContext("webgl")
         }
-        // console.log(this.backend)
-        return this.backend.getContext(type)
+        if (type === "webgl2") {
+            this._webgl_backend = null
+            return this._webgl2_backend.getContext("webgl2")
+        }
+        return null
     }
 }
 
@@ -134,7 +127,7 @@ class HTMLCanvasElement extends TaroElement {
         // flutter is detecting the webgl version, just return a non-null object
         if (type === 'webgl' && this.w === 1 && this.h === 1) return {}
 
-        const attr = `taro-canvas`
+        const attr = `taro-canvas-${type}`
         if (this.hasAttribute(attr)) {
             const backend = this.getAttribute(attr)
             const ctx = backend.getContext(type)
@@ -142,7 +135,6 @@ class HTMLCanvasElement extends TaroElement {
                 console.log("patch ctx getParameter")
                 const originGetParameter = ctx.getParameter.bind(ctx);
                 ctx.getParameter = function (v) {
-                //   console.log(this.VERSION)
                   if (v === this.VERSION) {
                     const value = originGetParameter(v);
                     if (value.indexOf("OpenGL ES 3.2") > 0) {
@@ -151,7 +143,6 @@ class HTMLCanvasElement extends TaroElement {
                       return value;
                     }
                   } else if (v === this.SHADING_LANGUAGE_VERSION) {
-                    // console.log(ctx.SHADING_LANGUAGE_VERSION)
                     const value = originGetParameter(v);
                     if (value.indexOf("GLSL ES") < 0) {
                       return "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.2 Chromium)";
@@ -165,7 +156,6 @@ class HTMLCanvasElement extends TaroElement {
                   return originGetParameter(v);
                 };
             }
-            console.log(ctx)
             return ctx
         }
     }
@@ -292,20 +282,32 @@ export async function polyfill() {
         self.document.head ??= globalThis.document.head
         self.document.execCommand ??= (commandId) => console.log(`TODO: implement this: ${commandId}`)
 
-        const oldGetElementById = self.document.getElementById
-        self.document.getElementById = function (idOrElement: any) {
-            if (idOrElement.hasOwnProperty('taro-canvas')) {
-                console.log("return taro canvas");
-                if (idOrElement.getAttribute === 'undefined') {
-                    return idOrElement.getAttribute('taro-canvas')
-                } else {
-                    return idOrElement['taro-canvas']
-                }
-            }
-            return oldGetElementById.call(this, idOrElement)
-        }
+        // const oldGetElementById = self.document.getElementById
+        // self.document.getElementById = function (idOrElement: any) {
+        //     if (idOrElement.hasOwnProperty('taro-canvas')) {
+        //         console.log("return taro canvas");
+        //         if (idOrElement.getAttribute === 'undefined') {
+        //             return idOrElement.getAttribute('taro-canvas')
+        //         } else {
+        //             return idOrElement['taro-canvas']
+        //         }
+        //     }
+        //     return oldGetElementById.call(this, idOrElement)
+        // }
+
+        // self.document.getCanvasByCanvas = function(element: any) {
+        //     if (element.hasOwnProperty('taro-canvas')) {
+        //         console.log("return taro canvas");
+        //         if (element.getAttribute === 'undefined') {
+        //             return element.getAttribute('taro-canvas')
+        //         } else {
+        //             return element['taro-canvas']
+        //         }
+        //     }
+        //     return null
+        // }
         TaroEvent.prototype.initEvent ??= function () { }
-        TaroNode.extend('cloneNode', cloneNode)
+        // TaroNode.extend('cloneNode', cloneNode)
         TaroElement.extend("append", function (param1) {
             if (this.tagName === "flt-canvas-container") {
                 console.log("RenderCanvas is appended to flt-canvas-container")
