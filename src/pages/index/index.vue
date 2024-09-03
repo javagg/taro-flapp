@@ -40,31 +40,26 @@ export default {
     const kit = window.flutterCanvasKit
     const canlist = $('#canlist').get(0)
 
+    // for (const t of ['2d', 'webgl', 'webgl2']) {
+    //   const can = await createTaroCanvas(canlist, `render-canvas-${t}`, t, 300, 300)
+    //   const ctx = can.getContext(t)
+    //   console.log("taro-ctx", ctx)
+    //   if (t !== '2d') {
+    //     const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+    //     console.log("surface", surface)
+    //   }
+    // }
+
     for (const t of ['2d', 'webgl', 'webgl2']) {
-      const can = await createTaroCanvas(canlist, `render-canvas-${t}`, t, 300, 300)
-      const ctx = can.getContext(t)
-      console.log("taro-ctx", ctx)
+      let offscreen = document.createElement("offscreencanvas");
+      const ctx = offscreen.getContext(t)
+      console.log(`taro-offscreen-ctx-${t}`, ctx)
       if (t !== '2d') {
-        const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+        const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
         console.log("surface", surface)
       }
     }
 
-    // for (const t of [
-    //   // '2d',
-    //  'webgl',
-    //   // 'webgl2'
-    // ]) {
-    //   const canvas = await new Promise((resolve) => {
-    //     wx.createSelectorQuery().select(`#weapp-${t}`).fields({ node: true, size: true }).exec((res) =>
-    //         {  console.log(res); return resolve(res[0].node)})
-    // })
-    //   const ctx = canvas.getContext(t)
-    //   canvas["taro-canvas"] = canvas
-    //   console.log(`weapp-ctx ${t}:`, ctx)
-    //      const surface = kit.MakeWebGLCanvasSurface(canvas, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
-    //     console.log("surface", surface)
-    // }
 
     // for (const t of [
     //   'webgl',
