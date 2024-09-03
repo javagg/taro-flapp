@@ -1,6 +1,7 @@
 {
   "miniprogramRoot": "./dist",
   "projectname": "mySo",
+  "libVersion": "trial",
   "description": "",
   "appid": "touristappid",
   "setting": {

@@ -105,7 +105,7 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
               // { search: 'new ImageData' , replace: 'new window.ImageData', attr: 'g' },
               // { search: '\\w instanceof HTMLCanvasElement' , replace: 'true', attr: 'g' },
               // { search: '\\w instanceof OffscreenCanvas' , replace: 'true', attr: 'g' },
-              { search: '"webgl"\\s*==\\s*\\w\\s*==\\s*\\w instanceof WebGLRenderingContext' , replace: 'true', attr: 'g' },
+              { search: '"webgl"\\s*==\\s*\\w\\s*==\\s*\\w instanceof WebGLRenderingContext' , replace: '"1"&&true', attr: 'g' },
             ]
           })
       }

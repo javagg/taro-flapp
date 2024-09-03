@@ -31,6 +31,7 @@ function stringEscape (str) {
 function replaceFunc (configArray, source) {
   for (let i = 0; i < configArray.length; i++) {
     // console.log(new RegExp(stringEscape(configArray[i].search)))
+    // console.log(configArray[i].replace)
     source = source.replace(new RegExp(stringEscape(configArray[i].search), configArray[i].attr), configArray[i].replace);
   }
   return source;

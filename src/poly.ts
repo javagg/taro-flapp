@@ -83,16 +83,17 @@ class OffscreenCanvas extends TaroElement {
 
     getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
         console.log("offcanvas getContext", type)
-        if (type === "2d" || type === "webgl") {
+        if (type === "2d") {
             this.backend ??= Taro.createOffscreenCanvas({
                 type: type, width: this.w, height: this.h
             })
         }
-        if (type === "webgl2") {
+        if (type === "webgl" || type === "webgl2") {
             this.backend ??= wx.createOffscreenCanvas({
-                type: type, width: this.w, height: this.h
+                type: "webgl", width: this.w, height: this.h
             })
         }
+        // console.log(this.backend)
         return this.backend.getContext(type)
     }
 }
@@ -174,29 +175,6 @@ class HTMLCanvasElement extends TaroElement {
         if (qualifiedName === 'aria-hidden' && value === 'true') {
         }
     }
-}
-
-class ImageData {
-    d: any
-    w: number
-    h: number
-
-    constructor(data: any, width: number, height: number) {
-        this.w = width
-        this.h = height
-        this.d = data
-    }
-
-    get data(): Uint8ClampedArray {
-        return this.d;
-    }
-
-    get width(): number {
-        return this.width
-
-    }
-
-    get height(): number { return this.height }
 }
 
 class TaroTextAreaElement extends TaroElement {
