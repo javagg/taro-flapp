@@ -5,36 +5,6 @@ import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from '@tarojs/runtime';
 import fontManifest from '@/flapp/assets/FontManifest.json'
 
-export function cloneNode(this: TaroNode, isDeep = false) {
-    const document = this.ownerDocument
-    let newNode
-
-    if (this.nodeType === 1 /*NodeType.ELEMENT_NODE*/) {
-        newNode = document.createElement(this.nodeName)
-    } else if (this.nodeType === 3  /*NodeType.TEXT_NODE*/) {
-        newNode = document.createTextNode('')
-    }
-
-    for (const key in this) {
-        const value: any = this[key]
-        // eslint-disable-next-line valid-typeof
-        if ([PROPS, DATASET].includes(key) && typeof value === OBJECT) {
-            newNode[key] = { ...value }
-        } else if (key === '_value') {
-            newNode[key] = value
-        } else if (key === STYLE) {
-            newNode.style._value = { ...value._value }
-            newNode.style._usedStyleProp = new Set(Array.from(value._usedStyleProp))
-        }
-    }
-
-    if (isDeep) {
-        newNode.childNodes = this.childNodes.map(node => (node as any).cloneNode(true))
-    }
-
-    return newNode
-}
-
 class OffscreenCanvas extends TaroElement {
     _2d_backend: any
     _webgl_backend: any
@@ -253,6 +223,7 @@ export async function polyfill() {
         const oldCreateElement = self.window.document.createElement
         self.window.document.createElement = function (type: string) {
             const nodeName = type.toLowerCase()
+            console.log(`${nodeName} creating`)
             let element: TaroElement
             switch (true) {
                 case nodeName === "canvas":
@@ -281,33 +252,7 @@ export async function polyfill() {
         self.document.fonts ??= globalThis.document.fonts
         self.document.head ??= globalThis.document.head
         self.document.execCommand ??= (commandId) => console.log(`TODO: implement this: ${commandId}`)
-
-        // const oldGetElementById = self.document.getElementById
-        // self.document.getElementById = function (idOrElement: any) {
-        //     if (idOrElement.hasOwnProperty('taro-canvas')) {
-        //         console.log("return taro canvas");
-        //         if (idOrElement.getAttribute === 'undefined') {
-        //             return idOrElement.getAttribute('taro-canvas')
-        //         } else {
-        //             return idOrElement['taro-canvas']
-        //         }
-        //     }
-        //     return oldGetElementById.call(this, idOrElement)
-        // }
-
-        // self.document.getCanvasByCanvas = function(element: any) {
-        //     if (element.hasOwnProperty('taro-canvas')) {
-        //         console.log("return taro canvas");
-        //         if (element.getAttribute === 'undefined') {
-        //             return element.getAttribute('taro-canvas')
-        //         } else {
-        //             return element['taro-canvas']
-        //         }
-        //     }
-        //     return null
-        // }
         TaroEvent.prototype.initEvent ??= function () { }
-        // TaroNode.extend('cloneNode', cloneNode)
         TaroElement.extend("append", function (param1) {
             if (this.tagName === "flt-canvas-container") {
                 console.log("RenderCanvas is appended to flt-canvas-container")
@@ -318,11 +263,6 @@ export async function polyfill() {
         TaroElement.extend("prepend", function (param1) { this.insertBefore(param1, this.firstChild) })
         TaroElement.extend("querySelectorAll", () => [])
         TaroElement.extend("attachShadow", (options) => new TaroElement())
-        // TaroElement.prototype.append ??= function (param1) { this.appendChild(param1) }
-        // TaroElement.prototype.prepend ??= function (param1) { this.insertBefore(param1, this.firstChild) }
-        // TaroElement.prototype.querySelectorAll ??= () => [];
-        // TaroElement.prototype.attachShadow ??= (options) => new TaroElement();
-
         const originalAddEventListener = TaroElement.prototype.addEventListener
         TaroElement.prototype.addEventListener = function (type: any, handler: any, options: any): void {
             console.log(`${this.tagName} addEventListener ${type}`)
@@ -368,9 +308,7 @@ export async function polyfill() {
             originalAddEventListener.call(this, type, handler, options)
         }
 
-        // TaroElement.prototype.getBoundingClientRect ??= function () {
         TaroElement.extend("getBoundingClientRect", function () {
-
             // throw new Error("not implemented")
             return {
                 x: 0,
@@ -402,18 +340,7 @@ export async function polyfill() {
         self.window.ResizeObserver ??= ResizeObserver;
         self.window.HTMLCanvasElement = HTMLCanvasElement;
         self.window.OffscreenCanvas = OffscreenCanvas;
-        // self.window.CanvasRenderingContext2D = CanvasRenderingContext2D;
-        // self.window.ImageData = ImageData;
 
-        // console.log("Replace window.FontFace.prototype.load...")
-        // const oldLoad = self.window.FontFace.prototype.load
-        // self.window.FontFace.prototype.load = async function () {
-        //     console.log("FontFace load nothing")
-        //     console.log(fontData);
-        //     const myFont = new self.window.FontFace(this.family, Uint8Array.from(atob(fontData), (m) => m.codePointAt(0)),);
-        //     oldLoad.apply(myFont)
-        //     return myFont;
-        // }
         async function fileExist(path: string) {
             const fs = Taro.getFileSystemManager();
             return await new Promise((resolve) => {

@@ -46,21 +46,21 @@ export default {
       }
     }
 
-    for (const t of ['2d', 'webgl', 'webgl2']) {
-      let offscreen = document.createElement("offscreencanvas");
-      console.log(offscreen)
-      if (t !== '2d') {
-        const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
-        console.log("surface", surface)
-      }
-    }
+    // for (const t of ['2d', 'webgl', 'webgl2']) {
+    //   let offscreen = document.createElement("offscreencanvas");
+    //   console.log(offscreen)
+    //   if (t !== '2d') {
+    //     const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+    //     console.log("surface", surface)
+    //   }
+    // }
 
     // await createWeappOffscreenCanvasAndCkSurface()
-    // await flutter({
-    //   assetBase: '/',
-    //   fontFallbackBaseUrl: '/assets/fonts/',
-    //   hostElement: host,
-    // });
+    await flutter({
+      assetBase: '/',
+      fontFallbackBaseUrl: '/assets/fonts/',
+      hostElement: host,
+    });
   },
 }
 </script>
