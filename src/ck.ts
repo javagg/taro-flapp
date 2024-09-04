@@ -18,4 +18,5 @@ export async function ckload() {
   // if (process.env.TARO_APP_MINTEX === 'true') { (await import('@/src/mitex')).install(kit) }
   window.flutterCanvasKit = kit
   window.flutterCanvasKitLoaded = await Promise.resolve(kit)
+  console.log("ck loaded")
 }

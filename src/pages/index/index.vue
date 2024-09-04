@@ -1,11 +1,11 @@
 <template>
   <div>
-    <div>
-      <!-- <canvas id="weapp-2d" type="2d" width="300" height="300"/> -->
-      <canvas id="weapp-webgl" type="webgl" width="300" height="300"/>
-      <canvas id="weapp-webgl2" type="webgl2" width="300" height="300"/>
+    <div id="canlist">
+      <canvas id="render" canvas-id="render" type="2d"  style="width: 100%; height: 100%"/>
     </div>
-    <div id="canlist"></div>
+    <!-- <div style="width: 100%; height: 400px">
+    </div> -->
+   
     <div id="host">
     </div>
   </div>
@@ -19,8 +19,7 @@ import { flutter } from '@/src/flutter'
 import { $ } from '@tarojs/extend'
 import { window, document, createEvent } from '@tarojs/runtime'
 import {
-  createTaroCanvas, createCkSurface, createTaroOffscreenCanvas,
-  createWeappOffscreenCanvasAndCkSurface,
+  createTaroCanvas, createTestCanvas, updateLogicalHtmlCanvasSize
 } from '@/src/utils'
 
 export default {
@@ -34,28 +33,22 @@ export default {
     const { windowWidth, windowHeight, pixelRatio } = await Taro.getWindowInfo()
     host.clientWidth = windowWidth
     host.clientHeight = windowHeight
+    console.log(host.clientWidth)
+    console.log(host.clientHeight)
 
     const kit = window.flutterCanvasKit
     const canlist = $('#canlist').get(0)
 
-    for (const t of ['2d', 'webgl', 'webgl2']) {
-      const can = await createTaroCanvas(canlist, `render-canvas-${t}`, t, 300, 300)
-      if (t !== '2d') {
-        const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
-        console.log("surface", surface)
-      }
-    }
+    // await createTestCanvas()
+    // await createTaroCanvas(canlist, `render-canvas`, '2d', host.clientWidth , host.clientHeight)
+    const canvas = await new Promise((resolve) => {
+        Taro.createSelectorQuery().select(`#render`).fields({ node: true, size: true }).exec((res) => resolve(res[0].node))
+    })
+    window.renderCanvas = canvas
+    console.log(canvas)
+    updateLogicalHtmlCanvasSize(canlist, host.clientWidth, host.clientHeight)
+    // console.log(canvas)
 
-    // for (const t of ['2d', 'webgl', 'webgl2']) {
-    //   let offscreen = document.createElement("offscreencanvas");
-    //   console.log(offscreen)
-    //   if (t !== '2d') {
-    //     const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
-    //     console.log("surface", surface)
-    //   }
-    // }
-
-    // await createWeappOffscreenCanvasAndCkSurface()
     await flutter({
       assetBase: '/',
       fontFallbackBaseUrl: '/assets/fonts/',
@@ -63,4 +56,5 @@ export default {
     });
   },
 }
+
 </script>

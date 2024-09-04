@@ -5,6 +5,24 @@ import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from '@tarojs/runtime';
 import fontManifest from '@/flapp/assets/FontManifest.json'
 
+// export class MutationObserver {
+  
+//     constructor (callback: MutationCallback) {
+//     }
+  
+//     public observe (...args: [any]) {
+//         console.log("MutationObserver observe")
+//     }
+  
+//     public disconnect () {
+//         console.log("MutationObserver disconnect")       
+//     }
+  
+//     public takeRecords () {
+//         console.log("MutationObserver takeRecords")
+//     }
+// }
+
 class OffscreenCanvas extends TaroElement {
     _2d_backend: any
     _webgl_backend: any
@@ -59,6 +77,11 @@ class OffscreenCanvas extends TaroElement {
         }
         return null
     }
+
+    convertToBlob(options) {
+        console.log("called")
+        return new Blob()
+    }
 }
 
 class HTMLCanvasElement extends TaroElement {
@@ -93,42 +116,47 @@ class HTMLCanvasElement extends TaroElement {
     }
 
     getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
-        console.log("HTMLCanvasElement getContext", type)
         // flutter is detecting the webgl version, just return a non-null object
-        if (type === 'webgl' && this.w === 1 && this.h === 1) return {}
-
-        const attr = `taro-canvas-${type}`
-        if (this.hasAttribute(attr)) {
-            const backend = this.getAttribute(attr)
-            const ctx = backend.getContext(type)
-            if (type === 'webgl2') {
-                console.log("patch ctx getParameter")
-                const originGetParameter = ctx.getParameter.bind(ctx);
-                ctx.getParameter = function (v) {
-                  if (v === this.VERSION) {
-                    const value = originGetParameter(v);
-                    if (value.indexOf("OpenGL ES 3.2") > 0) {
-                      return "WebGL 2.0 (OpenGL ES 3.2 Chromium)";
-                    } else {
-                      return value;
-                    }
-                  } else if (v === this.SHADING_LANGUAGE_VERSION) {
-                    const value = originGetParameter(v);
-                    if (value.indexOf("GLSL ES") < 0) {
-                      return "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.2 Chromium)";
-                    }
-                    else if (value.indexOf("OpenGL ES 3.2") > 0) {
-                      return "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.2 Chromium)";
-                    } else {
-                      return value;
-                    }
-                  }
-                  return originGetParameter(v);
-                };
-            }
-            return ctx
-        }
+        if ((type === 'webgl' || type === 'webgl2') && this.w === 1 && this.h === 1) return {}
+        return window.renderCanvas.getContext(type)
     }
+    // getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
+    //     console.log("HTMLCanvasElement getContext", type)
+    //     // flutter is detecting the webgl version, just return a non-null object
+    //     if ((type === 'webgl' || type === 'webgl2') && this.w === 1 && this.h === 1) return {}
+
+    //     const attr = `taro-canvas-${type}`
+    //     if (this.hasAttribute(attr)) {
+    //         const backend = this.getAttribute(attr)
+    //         const ctx = backend.getContext(type)
+    //         if (type === 'webgl2') {
+    //             console.log("patch ctx getParameter")
+    //             const originGetParameter = ctx.getParameter.bind(ctx);
+    //             ctx.getParameter = function (v) {
+    //               if (v === this.VERSION) {
+    //                 const value = originGetParameter(v);
+    //                 if (value.indexOf("OpenGL ES 3.2") > 0) {
+    //                   return "WebGL 2.0 (OpenGL ES 3.2 Chromium)";
+    //                 } else {
+    //                   return value;
+    //                 }
+    //               } else if (v === this.SHADING_LANGUAGE_VERSION) {
+    //                 const value = originGetParameter(v);
+    //                 if (value.indexOf("GLSL ES") < 0) {
+    //                   return "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.2 Chromium)";
+    //                 }
+    //                 else if (value.indexOf("OpenGL ES 3.2") > 0) {
+    //                   return "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.2 Chromium)";
+    //                 } else {
+    //                   return value;
+    //                 }
+    //               }
+    //               return originGetParameter(v);
+    //             };
+    //         }
+    //         return ctx
+    //     }
+    // }
 
     setAttribute(qualifiedName: string, value: any): void {
         super.setAttribute(qualifiedName, value)
@@ -209,21 +237,20 @@ export async function polyfill() {
         ]
         const orginalWindow = globalThis
         const orginalDocument = globalThis.document
-        console.log("original window: %o", orginalWindow) // window
-        console.log("original document: %o", orginalDocument) // document
-        console.log(window) // taro window
-        console.log(window.window) // window
-        console.log(window.document) // taro document
+        // console.log("original window: %o", orginalWindow) // window
+        // console.log("original document: %o", orginalDocument) // document
+        // console.log(window) // taro window
+        // console.log(window.window) // window
+        // console.log(window.document) // taro document
         self = window
-        console.log(self.window) // window
+        // console.log(self.window) // window
         self.window = window
-        console.log(self.window) // taro window
-        console.log(self.window.document) // taro document
-        console.log(self.window.navigator.vendor)
+        // console.log(self.window) // taro window
+        // console.log(self.window.document) // taro document
+        // console.log(self.window.navigator.vendor)
         const oldCreateElement = self.window.document.createElement
         self.window.document.createElement = function (type: string) {
             const nodeName = type.toLowerCase()
-            console.log(`${nodeName} creating`)
             let element: TaroElement
             switch (true) {
                 case nodeName === "canvas":
@@ -254,19 +281,24 @@ export async function polyfill() {
         self.document.execCommand ??= (commandId) => console.log(`TODO: implement this: ${commandId}`)
         TaroEvent.prototype.initEvent ??= function () { }
         TaroElement.extend("append", function (param1) {
-            if (this.tagName === "flt-canvas-container") {
+            if (this.tagName && this.tagName.toUpperCase() === "FLT-CANVAS-CONTAINER") {
                 console.log("RenderCanvas is appended to flt-canvas-container")
+                console.log(param1)
                 param1.setAttribute("flt-id", flt_id++)
             }
             this.appendChild(param1)
         })
+        const originalRemove = TaroNode.prototype.remove
+        TaroNode.prototype.remove = function () {
+            return originalRemove.call(this, ...arguments)
+        }
         TaroElement.extend("prepend", function (param1) { this.insertBefore(param1, this.firstChild) })
         TaroElement.extend("querySelectorAll", () => [])
         TaroElement.extend("attachShadow", (options) => new TaroElement())
         const originalAddEventListener = TaroElement.prototype.addEventListener
         TaroElement.prototype.addEventListener = function (type: any, handler: any, options: any): void {
-            console.log(`${this.tagName} addEventListener ${type}`)
-            if (this.tagName === "flutter-view") {
+            console.log(`${this.tagName || this.nodeName} addEventListener ${type}`)
+            if (this.tagName && this.tagName.toUpperCase() === "FLUTTER-VIEW") {
                 if (type === "touchstart" || type === "pointerdown") {
                     //   FlutterHostView.shared.ontouchstart = callback;
                 } else if (type === "touchmove" || type === "pointermove") {
@@ -276,7 +308,7 @@ export async function polyfill() {
                 } else if (type === "touchcancel") {
                     //   FlutterHostView.shared.ontouchcancel = callback;
                 }
-            } else if (this.tagName === "canvas") {
+            } else if (this.tagName && this.tagName.toUpperCase() === "CANVAS") {
                 if (type === "webglcontextlost") {
                     //   if (!this.isOffscreenCanvas) {
                     //     FlutterHostView.shared.onwebglcontextlost = () => {

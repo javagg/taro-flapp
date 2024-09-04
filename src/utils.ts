@@ -84,3 +84,32 @@ export const createWeappOffscreenCanvasAndCkSurface = async ()=> {
         }
     }
 }
+
+async function createTestCanvas() {
+    // for (const t of ['2d', 'webgl', 'webgl2']) {
+    //   const can = await createTaroCanvas(canlist, `render-canvas-${t}`, t, 300, 300)
+    //   if (t !== '2d') {
+    //     const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+    //     console.log("surface", surface)
+    //   }
+    // }
+    // for (const t of ['2d', 'webgl', 'webgl2']) {
+    //   let offscreen = document.createElement("offscreencanvas");
+    //   console.log(offscreen)
+    //   if (t !== '2d') {
+    //     const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+    //     console.log("surface", surface)
+    //   }
+    // }
+    // await createWeappOffscreenCanvasAndCkSurface()
+}
+
+export function updateLogicalHtmlCanvasSize(canvas: any, pxw: number, pxh: number) {
+    const dpr = window.devicePixelRatio
+    const w = Math.round(pxw * dpr)
+    const h = Math.round(pxh * dpr)
+    canvas.width = pxw
+    canvas.height = pxh
+    canvas.style.width = `${w}px`
+    canvas.style.height = `${h}px`
+}
