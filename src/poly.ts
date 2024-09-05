@@ -34,7 +34,6 @@ class OffscreenCanvas extends TaroElement {
         this._webgl_backend = Taro.createOffscreenCanvas({
             type: "webgl", width: this.w, height: this.h
         })
-        // this["taro-canvas-webgl"]= this._webgl_backend;
         this._webgl2_backend = Taro.createOffscreenCanvas({
             type: "webgl2", width: this.w, height: this.h
         })
@@ -79,41 +78,6 @@ class OffscreenCanvas extends TaroElement {
         }
         return null
     }
-
-    convertToBlob(options) {
-        console.log("called")
-        return new Blob()
-    }
-
-    transferToImageBitmap() {
-        const t = this.getAttribute("type")
-        console.log("transferToImageBitmap:",t)
-        if (t === "2d" && this._2d_backend) {
-            return this._2d_backend.createImage()
-        }
-        if (t === "webgl" && this._webgl_backend) {
-            return this._webgl_backend.createImage()
-        }
-        if (t === "webgl2" && this._webgl2_backend) {
-            return this._webgl2_backend.createImage()
-        }
-        return null
-    }
-
-    getImageData(x, y, w, h) {
-        const t = this.getAttribute("type")
-        console.log("transferToImageBitmap:", t)
-        if (t === "2d" && this._2d_backend) {
-            return this._2d_backend.getImageData(x, y, w, h)
-        }
-        if (t === "webgl" && this._webgl_backend) {
-            return this._webgl_backend.getImageData(x, y, w, h)
-        }
-        if (t === "webgl2" && this._webgl2_backend) {
-            return this._webgl2_backend.getImageData(x, y, w, h)
-        }
-        return null  
-    }
 }
 
 class HTMLCanvasElement extends TaroElement {
@@ -124,6 +88,12 @@ class HTMLCanvasElement extends TaroElement {
         super()
         this.tagName = "CANVAS"
         this.nodeName = "canvas"
+        // this._webgl_backend = Taro.createOffscreenCanvas({
+        //     type: "webgl", width: this.w, height: this.h
+        // })
+        // this._webgl2_backend = window.displayCanvas
+        // this["taro-canvas-webgl"]= this._webgl_backend;
+        this["taro-canvas-webgl2"]=  window.displayCanvas;
     }
 
     set id(val) {
@@ -150,7 +120,9 @@ class HTMLCanvasElement extends TaroElement {
     getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
         // flutter is detecting the webgl version, just return a non-null object
         if ((type === 'webgl' || type === 'webgl2') && this.w === 1 && this.h === 1) return {}
-        return window.renderCanvas.getContext(type)
+        // const backend = window.displayCanvas
+        const backend = this.getAttribute(`taro-canvas-${type}`)
+        return backend.getContext(type)
     }
     // getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
     //     console.log("HTMLCanvasElement getContext", type)
@@ -294,7 +266,7 @@ export async function polyfill() {
             }
             throw new Error("dead code")
         }
-
+        self.window.navigator.vendor = 'Apple Computer, Inc.'
         self.window.Blob ??= Blob;
         self.window.ReadableStream ??= ReadableStream;
         self.window.FileReader ??= FileReader;
@@ -462,6 +434,7 @@ export async function polyfill() {
                 throw new Error(`my fetch error: ${e}`)
             }
         }
+        console.log(window) // taro window
     }
     await polyWasm()
     console.log("runtime patched")

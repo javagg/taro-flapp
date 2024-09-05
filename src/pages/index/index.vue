@@ -1,13 +1,9 @@
 <template>
   <div>
     <div id="canlist">
-      <canvas id="render" canvas-id="render" type="2d"  style="width: 100%; height: 100%"/>
+      <canvas id="displayCanvas" canvas-id="displayCanvas" type="webgl2" style="width: 100%; height: 100%;"/>
     </div>
-    <!-- <div style="width: 100%; height: 400px">
-    </div> -->
-   
-    <div id="host">
-    </div>
+    <div id="host"/>
   </div>
 </template>
 
@@ -37,20 +33,22 @@ export default {
     const kit = window.flutterCanvasKit
     const canlist = $('#canlist').get(0)
 
-     // await createTaroCanvas(canlist, `render-canvas`, '2d', host.clientWidth , host.clientHeight)
+    // const can = await createTaroCanvas(canlist, `render-canvas`, 'webgl2', host.clientWidth , host.clientHeight)
+    // console.log(can)
     const canvas = await new Promise((resolve) => {
-        Taro.createSelectorQuery().select(`#render`).fields({ node: true, size: true }).exec((res) => resolve(res[0].node))
+        Taro.createSelectorQuery().select(`#displayCanvas`).fields({ node: true, size: true }).exec((res) => resolve(res[0].node))
     })
-    window.renderCanvas = canvas
+    window.displayCanvas = canvas
     console.log(canvas)
     updateLogicalHtmlCanvasSize(canlist, host.clientWidth, host.clientHeight)
 
-    await testDrawToCanvas()
-    // await flutter({
-    //   assetBase: '/',
-    //   fontFallbackBaseUrl: '/assets/fonts/',
-    //   hostElement: host,
-    // });
+    // await createTestCanvas(canlist)
+    // await testDrawToCanvas()
+    await flutter({
+      assetBase: '/',
+      fontFallbackBaseUrl: '/assets/fonts/',
+      hostElement: host,
+    });
   },
 }
 

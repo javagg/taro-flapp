@@ -1,3 +1,5 @@
 export default definePageConfig({
-  // navigationBarTitleText: '首页'
+  usingComponents: {},
+  disableScroll: true,
+  navigationStyle: "custom",
 })

@@ -85,15 +85,15 @@ export async function createTaroCanvas(host: TaroElement, id: string, type: '2d'
 //     }
 // }
 
-export async function createTestCanvas() {
+export async function createTestCanvas(host: any) {
     const kit = window.flutterCanvasKit
-    // for (const t of ['2d', 'webgl', 'webgl2']) {
-    //   const can = await createTaroCanvas(canlist, `render-canvas-${t}`, t, 300, 300)
-    //   if (t !== '2d') {
-    //     const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
-    //     console.log("surface", surface)
-    //   }
-    // }
+    for (const t of ['2d', 'webgl', 'webgl2']) {
+      const can = await createTaroCanvas(host, `render-canvas-${t}`, t, 300, 300)
+      if (t !== '2d') {
+        const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+        console.log("surface", surface)
+      }
+    }
     for (const t of ['2d', 'webgl', 'webgl2']) {
         let offscreen = document.createElement("offscreencanvas");
         console.log(offscreen)
@@ -131,8 +131,8 @@ export async function testDrawToCanvas() {
     }
     surface.drawOnce(draw);
     const ctx = offscreen.getContext("webgl2")
-    const img = offscreen.transferToImageBitmap()
-    console.log(img)
+    const data = offscreen.getImageData(0,0,300,150)
+    console.log(data)
     const canvas = window.renderCanvas
 
     const ctx1 = canvas.getContext("2d")
