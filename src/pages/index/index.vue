@@ -19,7 +19,7 @@ import { flutter } from '@/src/flutter'
 import { $ } from '@tarojs/extend'
 import { window, document, createEvent } from '@tarojs/runtime'
 import {
-  createTaroCanvas, createTestCanvas, updateLogicalHtmlCanvasSize
+  createTaroCanvas, createTestCanvas, updateLogicalHtmlCanvasSize, testDrawToCanvas
 } from '@/src/utils'
 
 export default {
@@ -33,27 +33,24 @@ export default {
     const { windowWidth, windowHeight, pixelRatio } = await Taro.getWindowInfo()
     host.clientWidth = windowWidth
     host.clientHeight = windowHeight
-    console.log(host.clientWidth)
-    console.log(host.clientHeight)
 
     const kit = window.flutterCanvasKit
     const canlist = $('#canlist').get(0)
 
-    // await createTestCanvas()
-    // await createTaroCanvas(canlist, `render-canvas`, '2d', host.clientWidth , host.clientHeight)
+     // await createTaroCanvas(canlist, `render-canvas`, '2d', host.clientWidth , host.clientHeight)
     const canvas = await new Promise((resolve) => {
         Taro.createSelectorQuery().select(`#render`).fields({ node: true, size: true }).exec((res) => resolve(res[0].node))
     })
     window.renderCanvas = canvas
     console.log(canvas)
     updateLogicalHtmlCanvasSize(canlist, host.clientWidth, host.clientHeight)
-    // console.log(canvas)
 
-    await flutter({
-      assetBase: '/',
-      fontFallbackBaseUrl: '/assets/fonts/',
-      hostElement: host,
-    });
+    await testDrawToCanvas()
+    // await flutter({
+    //   assetBase: '/',
+    //   fontFallbackBaseUrl: '/assets/fonts/',
+    //   hostElement: host,
+    // });
   },
 }
 

@@ -31,11 +31,11 @@ class OffscreenCanvas extends TaroElement {
         super()
         this.tagName = "OFFSCREENCANVAS"
         this.nodeName = "offscreencanvas"
-        this._webgl_backend = wx.createOffscreenCanvas({
+        this._webgl_backend = Taro.createOffscreenCanvas({
             type: "webgl", width: this.w, height: this.h
         })
         // this["taro-canvas-webgl"]= this._webgl_backend;
-        this._webgl2_backend = wx.createOffscreenCanvas({
+        this._webgl2_backend = Taro.createOffscreenCanvas({
             type: "webgl2", width: this.w, height: this.h
         })
         this["taro-canvas-webgl"]= this._webgl_backend;
@@ -57,8 +57,10 @@ class OffscreenCanvas extends TaroElement {
     set height(val) {
         this.h = val
     }
+
     getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
         console.log("offcanvas getContext", type)
+        this.setAttribute("type", type)
         if (type === "2d") {
             this._2d_backend ??= Taro.createOffscreenCanvas({
                 type: "2d", width: this.w, height: this.h
@@ -81,6 +83,36 @@ class OffscreenCanvas extends TaroElement {
     convertToBlob(options) {
         console.log("called")
         return new Blob()
+    }
+
+    transferToImageBitmap() {
+        const t = this.getAttribute("type")
+        console.log("transferToImageBitmap:",t)
+        if (t === "2d" && this._2d_backend) {
+            return this._2d_backend.createImage()
+        }
+        if (t === "webgl" && this._webgl_backend) {
+            return this._webgl_backend.createImage()
+        }
+        if (t === "webgl2" && this._webgl2_backend) {
+            return this._webgl2_backend.createImage()
+        }
+        return null
+    }
+
+    getImageData(x, y, w, h) {
+        const t = this.getAttribute("type")
+        console.log("transferToImageBitmap:", t)
+        if (t === "2d" && this._2d_backend) {
+            return this._2d_backend.getImageData(x, y, w, h)
+        }
+        if (t === "webgl" && this._webgl_backend) {
+            return this._webgl_backend.getImageData(x, y, w, h)
+        }
+        if (t === "webgl2" && this._webgl2_backend) {
+            return this._webgl2_backend.getImageData(x, y, w, h)
+        }
+        return null  
     }
 }
 
