@@ -23,6 +23,13 @@ import fontManifest from '@/flapp/assets/FontManifest.json'
 //     }
 // }
 
+class TaroShadowRoot extends TaroElement {
+    constructor() {
+        super()
+        this.nodeName = "shadowroot"
+    }
+}
+
 class OffscreenCanvas extends TaroElement {
     _2d_backend: any
     _webgl_backend: any
@@ -93,7 +100,7 @@ class HTMLCanvasElement extends TaroElement {
         // })
         // this._webgl2_backend = window.displayCanvas
         // this["taro-canvas-webgl"]= this._webgl_backend;
-        this["taro-canvas-webgl2"]=  window.displayCanvas;
+        // this["taro-canvas-webgl2"]=  window.displayCanvas;
     }
 
     set id(val) {
@@ -119,8 +126,7 @@ class HTMLCanvasElement extends TaroElement {
 
     getContext(type: "2d" | "webgl" | "webgl2", attrs?) {
         // flutter is detecting the webgl version, just return a non-null object
-        if ((type === 'webgl' || type === 'webgl2') && this.w === 1 && this.h === 1) return {}
-        // const backend = window.displayCanvas
+        // if ((type === 'webgl' || type === 'webgl2') && this.w === 1 && this.h === 1) return {}
         const backend = this.getAttribute(`taro-canvas-${type}`)
         return backend.getContext(type)
     }
@@ -162,11 +168,11 @@ class HTMLCanvasElement extends TaroElement {
     //     }
     // }
 
-    setAttribute(qualifiedName: string, value: any): void {
-        super.setAttribute(qualifiedName, value)
-        if (qualifiedName === 'aria-hidden' && value === 'true') {
-        }
-    }
+    // setAttribute(qualifiedName: string, value: any): void {
+    //     super.setAttribute(qualifiedName, value)
+    //     if (qualifiedName === 'aria-hidden' && value === 'true') {
+    //     }
+    // }
 }
 
 class TaroTextAreaElement extends TaroElement {
@@ -258,7 +264,15 @@ export async function polyfill() {
             let element: TaroElement
             switch (true) {
                 case nodeName === "canvas":
-                    return new HTMLCanvasElement()
+                    if (window.displayCanvas) {
+                        console.log("reuse displayCanvas")
+                        const canvas = window.displayCanvas
+                        // window.displayCanvas = null
+                        return canvas
+                    } else {
+                        console.log("create brand new HTMLCanvasElement")
+                        return new HTMLCanvasElement()
+                    }
                 case nodeName === "offscreencanvas":
                     return new OffscreenCanvas()
                 default:
@@ -270,20 +284,21 @@ export async function polyfill() {
         self.window.Blob ??= Blob;
         self.window.ReadableStream ??= ReadableStream;
         self.window.FileReader ??= FileReader;
-        self.window.devicePixelRatio ??= Taro.getSystemInfoSync().pixelRatio;
-        self.window.innerWidth ??= Taro.getSystemInfoSync().windowWidth;
         self.window.matchMedia ??= function (query) {
-            // const _highContrastMediaQueryString = '(forced-colors: active)'
             return new MediaQueryList();
         };
-        self.window.MutationObserver ??= MutationObserver
-        self.document.currentScript ??= { src: "/", getAttribute: function () { }, };
-        self.document.querySelector ??= function () { }
+        self.window.MutationObserver = MutationObserver
+        self.document.currentScript = { src: "/", getAttribute: function () {}, };
+        // self.document.querySelector ??= function () { }
         // self.document.querySelectorAll ??= function () { }
-        self.document.fonts ??= globalThis.document.fonts
-        self.document.head ??= globalThis.document.head
+        // self.document.fonts ??= globalThis.document.fonts
+        // self.document.head ??= globalThis.document.head
         self.document.execCommand ??= (commandId) => console.log(`TODO: implement this: ${commandId}`)
-        TaroEvent.prototype.initEvent ??= function () { }
+        TaroEvent.prototype.initEvent ??= function(type, bubbles, cancelable) {
+            this.type = type
+            this.bubbles = bubbles
+            this.cancelable = cancelable
+        }
         TaroElement.extend("append", function (param1) {
             if (this.tagName && this.tagName.toUpperCase() === "FLT-CANVAS-CONTAINER") {
                 console.log("RenderCanvas is appended to flt-canvas-container")
@@ -297,85 +312,89 @@ export async function polyfill() {
             return originalRemove.call(this, ...arguments)
         }
         TaroElement.extend("prepend", function (param1) { this.insertBefore(param1, this.firstChild) })
-        TaroElement.extend("querySelectorAll", () => [])
-        TaroElement.extend("attachShadow", (options) => new TaroElement())
-        const originalAddEventListener = TaroElement.prototype.addEventListener
-        TaroElement.prototype.addEventListener = function (type: any, handler: any, options: any): void {
-            console.log(`${this.tagName || this.nodeName} addEventListener ${type}`)
-            if (this.tagName && this.tagName.toUpperCase() === "FLUTTER-VIEW") {
-                if (type === "touchstart" || type === "pointerdown") {
-                    //   FlutterHostView.shared.ontouchstart = callback;
-                } else if (type === "touchmove" || type === "pointermove") {
-                    //   FlutterHostView.shared.ontouchmove = callback;
-                } else if (type === "touchend" || type === "pointercancel") {
-                    //   FlutterHostView.shared.ontouchend = callback;
-                } else if (type === "touchcancel") {
-                    //   FlutterHostView.shared.ontouchcancel = callback;
-                }
-            } else if (this.tagName && this.tagName.toUpperCase() === "CANVAS") {
-                if (type === "webglcontextlost") {
-                    //   if (!this.isOffscreenCanvas) {
-                    //     FlutterHostView.shared.onwebglcontextlost = () => {
-                    //       const event = new Event();
-                    //       event.target = this;
-                    //       callback(event);
-                    //     };
-                    //   }
-                    //   this.onwebglcontextlost = () => {
-                    //     const event = new Event();
-                    //     event.target = this;
-                    //     callback(event);
-                    //   }
-                } else if (type === "webglcontextrestored") {
-                    //   if (!this.isOffscreenCanvas) {
-                    //     FlutterHostView.shared.onwebglcontextrestored = () => {
-                    //       const event = new Event();
-                    //       event.target = this;
-                    //       callback(event);
-                    //     };
-                    //   }
-                    //   this.onwebglcontextrestored = () => {
-                    //     const event = new Event();
-                    //     event.target = this;
-                    //     callback(event);
-                    //   }
-                }
-            }
-            originalAddEventListener.call(this, type, handler, options)
+        // TaroElement.extend("querySelectorAll", () => [])
+        TaroElement.prototype.attachShadow = function(options) {
+            const root = new TaroShadowRoot()
+            this.appendChild(root)
+            return root
         }
+        // const originalAddEventListener = TaroElement.prototype.addEventListener
+        // TaroElement.prototype.addEventListener = function (type: any, handler: any, options: any): void {
+        //     console.log(`${this.tagName || this.nodeName} addEventListener ${type}`)
+        //     if (this.tagName && this.tagName.toUpperCase() === "FLUTTER-VIEW") {
+        //         if (type === "touchstart" || type === "pointerdown") {
+        //             //   FlutterHostView.shared.ontouchstart = callback;
+        //         } else if (type === "touchmove" || type === "pointermove") {
+        //             //   FlutterHostView.shared.ontouchmove = callback;
+        //         } else if (type === "touchend" || type === "pointercancel") {
+        //             //   FlutterHostView.shared.ontouchend = callback;
+        //         } else if (type === "touchcancel") {
+        //             //   FlutterHostView.shared.ontouchcancel = callback;
+        //         }
+        //     } else if (this.tagName && this.tagName.toUpperCase() === "CANVAS") {
+        //         if (type === "webglcontextlost") {
+        //             //   if (!this.isOffscreenCanvas) {
+        //             //     FlutterHostView.shared.onwebglcontextlost = () => {
+        //             //       const event = new Event();
+        //             //       event.target = this;
+        //             //       callback(event);
+        //             //     };
+        //             //   }
+        //             //   this.onwebglcontextlost = () => {
+        //             //     const event = new Event();
+        //             //     event.target = this;
+        //             //     callback(event);
+        //             //   }
+        //         } else if (type === "webglcontextrestored") {
+        //             //   if (!this.isOffscreenCanvas) {
+        //             //     FlutterHostView.shared.onwebglcontextrestored = () => {
+        //             //       const event = new Event();
+        //             //       event.target = this;
+        //             //       callback(event);
+        //             //     };
+        //             //   }
+        //             //   this.onwebglcontextrestored = () => {
+        //             //     const event = new Event();
+        //             //     event.target = this;
+        //             //     callback(event);
+        //             //   }
+        //         }
+        //     }
+        //     originalAddEventListener.call(this, type, handler, options)
+        // }
 
-        TaroElement.extend("getBoundingClientRect", function () {
-            // throw new Error("not implemented")
-            return {
-                x: 0,
-                y: 0,
-                width: 100,
-                height: 100,
-                left: 0,
-                top: 0,
-                right: 100,
-                bottom: 100,
-            };
-        })
-        TaroElement.prototype.sheet = {
-            cssRules: [],
-            insertRule: () => {
-                return 0.0;
-            },
-        };
+        // TaroElement.extend("getBoundingClientRect", function () {
+        //     // throw new Error("not implemented")
+        //     return {
+        //         x: 0,
+        //         y: 0,
+        //         width: 100,
+        //         height: 100,
+        //         left: 0,
+        //         top: 0,
+        //         right: 100,
+        //         bottom: 100,
+        //     };
+        // })
+        // TaroElement.prototype.sheet = {
+        //     cssRules: [],
+        //     insertRule: () => {
+        //         return 0.0;
+        //     },
+        // };
 
-        const originalremoveEventListener = TaroElement.prototype.removeEventListener
-        TaroElement.prototype.removeEventListener = function (type: any, handler: any, sideEffect?: boolean): void {
-            originalremoveEventListener.call(this, type, handler, sideEffect)
-        }
+        // const originalremoveEventListener = TaroElement.prototype.removeEventListener
+        // TaroElement.prototype.removeEventListener = function (type: any, handler: any, sideEffect?: boolean): void {
+        //     originalremoveEventListener.call(this, type, handler, sideEffect)
+        // }
 
-        self.window.TouchEvent ??= {};
+        self.window.TouchEvent = {};
         // PointerSupportDetector needs this defination.
-        self.window.PointerEvent ??= {};
+        self.window.PointerEvent = {};
         self.window.dispatchEvent = () => true;
-        self.window.ResizeObserver ??= ResizeObserver;
+        self.window.ResizeObserver = ResizeObserver;
         self.window.HTMLCanvasElement = HTMLCanvasElement;
-        self.window.OffscreenCanvas = OffscreenCanvas;
+        // self.window.OffscreenCanvas = OffscreenCanvas;
 
         async function fileExist(path: string) {
             const fs = Taro.getFileSystemManager();

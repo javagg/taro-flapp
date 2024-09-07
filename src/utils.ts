@@ -58,8 +58,6 @@ export const encodeImageToFilePath = async (
 export async function createTaroCanvas(host: TaroElement, id: string, type: '2d' | 'webgl' | 'webgl2', w: number, h: number) {
     let can = document.createElement("canvas");
     can.id = id
-    can.style.width = `${w}px`
-    can.style.height = `${h}px`
     can.setAttribute("type", type)
     host.appendChild(can)
     const canvas = await new Promise((resolve) => {

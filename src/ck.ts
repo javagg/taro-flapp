@@ -9,11 +9,13 @@ export async function ckload() {
   const CanvasKitInit = m.default
   const kit = await CanvasKitInit({ locateFile: (file: string) => `${wasm_dir}/${file}` })
 
-  const oldGetWebGLContext = kit.GetWebGLContext
-  kit.GetWebGLContext = function(canvas, attrs) {
-    const t = attrs.majorVersion > 1 ? "webgl2" : "webgl"
-    const can = canvas[`taro-canvas-${t}`]
-    return oldGetWebGLContext(can, attrs)
+  if (process.env.TARO_ENV !== 'h5') {
+    const oldGetWebGLContext = kit.GetWebGLContext
+    kit.GetWebGLContext = function (canvas, attrs) {
+      const t = attrs.majorVersion > 1 ? "webgl2" : "webgl"
+      const can = canvas[`taro-canvas-${t}`]
+      return oldGetWebGLContext(can, attrs)
+    }
   }
   // if (process.env.TARO_APP_MINTEX === 'true') { (await import('@/src/mitex')).install(kit) }
   window.flutterCanvasKit = kit

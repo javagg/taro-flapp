@@ -46,6 +46,7 @@ export class FlutterEntrypointLoader {
         } else {
             await import("@/flapp/main.dart");
         }
+        // await import("@/flapp/main.dart");
     }
     didCreateEngineInitializer(engineInitializer) {
         if (typeof this._didCreateEngineInitializerResolve === "function") {
