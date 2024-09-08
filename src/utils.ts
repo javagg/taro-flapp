@@ -1,5 +1,6 @@
 import { TaroElement } from '@tarojs/runtime';
 import Taro from '@tarojs/taro'
+import { $ } from '@tarojs/extend'
 
 export const encodeImage = async (
     rawRgba,
@@ -55,6 +56,12 @@ export const encodeImageToFilePath = async (
     });
 };
 
+export async function createCanvas(id: string) {
+    return await new Promise((resolve) => {
+        Taro.createSelectorQuery().select(`#${id}`).fields({ node: true, size: true }).exec((res) => resolve(res[0].node))
+    })
+}
+
 export async function createTaroCanvas(host: TaroElement, id: string, type: '2d' | 'webgl' | 'webgl2', w: number, h: number) {
     let can = document.createElement("canvas");
     can.id = id
@@ -67,21 +74,6 @@ export async function createTaroCanvas(host: TaroElement, id: string, type: '2d'
     can.setAttribute(`taro-canvas-${type}`, canvas)
     return can
 }
-
-// export const createWeappOffscreenCanvasAndCkSurface = async ()=> {
-//     const w = 300
-//     const h = 300
-//     const kit = window.flutterCanvasKit
-//     for (const t of ['2d', 'webgl', 'webgl2']) {
-//         const offscreen = wx.createOffscreenCanvas({
-//             type: t, width: w, height: h
-//         })
-//         if (t !== '2d') {
-//             const surface = kit.MakeWebGLCanvasSurface(offscreen, null, { majorVersion:  t === "webgl2" ? 2 :  1 });
-//             console.log("offscreen", surface)
-//         }
-//     }
-// }
 
 export async function createTestCanvas(host: any) {
     const kit = window.flutterCanvasKit
@@ -148,11 +140,30 @@ export async function testDrawToCanvas() {
 }
 
 export function updateLogicalHtmlCanvasSize(canvas: any, pxw: number, pxh: number) {
-    const dpr = window.devicePixelRatio
-    const w = Math.round(pxw * dpr)
-    const h = Math.round(pxh * dpr)
+    let dpr = window.devicePixelRatio
+    dpr = 1
+    const w = Math.round(pxw / dpr)
+    const h = Math.round(pxh / dpr)
     canvas.width = pxw
     canvas.height = pxh
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
 }
+
+export function testDrawCanvas(canvas: any) {
+    const kit = window.flutterCanvasKit
+    const surface = kit.MakeWebGLCanvasSurface(canvas, null, { majorVersion: 2 });
+    console.log("surface", surface)
+    const paint = new kit.Paint();
+    paint.setColor(kit.Color4f(0.9, 0, 0, 1.0));
+    paint.setStyle(kit.PaintStyle.Fill);
+    paint.setAntiAlias(true);
+    const rr = kit.RRectXY(kit.LTRBRect(10, 60, 210, 260), 25, 15);
+    function draw(c) {
+        c.clear(kit.WHITE);
+        c.drawRRect(rr, paint);
+    }
+    surface.drawOnce(draw);
+}
+
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

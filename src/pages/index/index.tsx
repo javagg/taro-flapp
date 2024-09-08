@@ -1,6 +1,6 @@
 import {
   // useAddToFavorites, useLoad,
-   useReady,
+  useReady,
   //  useResize, useShareAppMessage, useShareTimeline,
   // useUnload
 } from '@tarojs/taro'
@@ -9,9 +9,9 @@ import './index.scss'
 import { ckload } from '@/src/ck'
 import { flutter } from '@/src/flutter'
 import { $ } from '@tarojs/extend'
-import { window, createEvent } from '@tarojs/runtime'
+import { window } from '@tarojs/runtime'
 import {
-  createTaroCanvas, createTestCanvas, updateLogicalHtmlCanvasSize, testDrawToCanvas
+  createCanvas,
 } from '@/src/utils'
 
 export default function Index() {
@@ -21,16 +21,20 @@ export default function Index() {
     await ckload();
 
     const host = $('#host').get(0)
-
     const kit = window.flutterCanvasKit
 
     if (process.env.TARO_ENV !== 'h5') {
-      const { windowWidth, windowHeight, pixelRatio } = await Taro.getWindowInfo()
-      host.clientWidth = windowWidth
-      host.clientHeight = windowHeight
-      window.devicePixelRatio = pixelRatio
-      const canlist = $('#canlist').get(0)
-      const can = await createTaroCanvas(canlist, `display-canvas`, 'webgl2', host.clientWidth , host.clientHeight)
+      host.clientWidth = window.innerWidth // windowWidth
+      host.clientHeight = window.innerHeight // windowHeight
+      const can = await createCanvas("render-canvas-webgl2", 'webgl2')
+      const c = $("#render-canvas-webgl2")[0]
+      console.log(c)
+      // c.width = host.clientWidth / window.devicePixelRatio
+      // c.height = host.clientHeight / window.devicePixelRatio
+      // c.style.width = `${host.clientWidth}px`
+      // c.style.height = `${host.clientHeight}px`
+      // c.style.width = '300px'
+      // c.style.height = '600px'
       window.displayCanvas = can
     }
     await flutter({
@@ -78,7 +82,7 @@ export default function Index() {
   } else {
     return (
       <body>
-        <div id="canlist"></div>
+        <canvas id="render-canvas-webgl2" canvas-id="render-canvas-webgl2" type='webgl2' style="width: 300px; height:600px"/>
         <div id="host"
           onTouchStart={() => console.log('onTouchStart')}
           onTouchMove={() => console.log('onTouchMove')}

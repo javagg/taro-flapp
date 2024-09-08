@@ -25,23 +25,23 @@ export default {
 
     const host = $('#host').get(0)
     const { windowWidth, windowHeight, pixelRatio } = await Taro.getWindowInfo()
-    host.clientWidth = windowWidth
-    host.clientHeight = windowHeight
+    host.clientWidth = window.innerWidth // windowWidth
+    host.clientHeight = window.innerHeight // windowHeight
     window.devicePixelRatio = pixelRatio
 
-    const kit = window.flutterCanvasKit
-    const canlist = $('#canlist').get(0)
-    const can = await createTaroCanvas(canlist, `display-canvas`, 'webgl2', host.clientWidth , host.clientHeight)
-    window.displayCanvas = can
+    // const kit = window.flutterCanvasKit
+    // const canlist = $('#canlist').get(0)
+    // const can = await createTaroCanvas(canlist, `display-canvas`, 'webgl2', host.clientWidth , host.clientHeight)
+    // window.displayCanvas = can
     // const ctx = can.getContext('webgl2')
 
     // updateLogicalHtmlCanvasSize(canlist, host.clientWidth, host.clientHeight)
 
-    await flutter({
-      assetBase: '/',
-      fontFallbackBaseUrl: '/assets/fonts/',
-      hostElement: host,
-    });
+    // await flutter({
+    //   assetBase: '/',
+    //   fontFallbackBaseUrl: '/assets/fonts/',
+    //   hostElement: host,
+    // });
   },
 }
 
