@@ -167,3 +167,14 @@ export function testDrawCanvas(canvas: any) {
 }
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export async function safeArea(ms: number) {
+    const { safeArea, windowHeight, statusBarHeight } = await Taro.getSystemInfoAsync()
+    if (safeArea) {
+        safeAreaInsetTop =  Math.max(safeArea.top, statusBarHeight)
+        safeAreaInsetBottom = windowHeight - safeArea.bottom
+    } else {
+        safeAreaInsetTop = 0
+        safeAreaInsetBottom = 0
+    }
+}

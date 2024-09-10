@@ -1,12 +1,11 @@
 import {
-  useReady,
+  useReady, useResize
 } from '@tarojs/taro'
-import Taro from '@tarojs/taro'
 import './index.scss'
 import { ckload } from '@/src/ck'
 import { flutter } from '@/src/flutter'
 import { $ } from '@tarojs/extend'
-import { window } from '@tarojs/runtime'
+import { window, createEvent } from '@tarojs/runtime'
 import {
   createCanvas,
 } from '@/src/utils'
@@ -32,9 +31,9 @@ export default function Index() {
     });
   })
 
-  // useResize(async (payload) => {
-  //   console.log(`resize: ${JSON.stringify(payload)}`)
-  // })
+  useResize(async (payload) => {
+    console.log(`resize: ${JSON.stringify(payload)}`)
+  })
 
   // useShareAppMessage(async (payload) => { return {} })
 
@@ -65,26 +64,13 @@ export default function Index() {
 
   if (process.env.TARO_ENV === 'h5') {
     return (
-      <div id="host" style="width: 100%; height: 100%;" />
+      <div id="host" style="height:100%;"/>
     )
   } else {
     return (
       <body>
-        <canvas id="render-canvas-webgl2" canvas-id="render-canvas-webgl2" type='webgl2' />
-        <div id="host"
-          onTouchStart={() => console.log('onTouchStart')}
-          onTouchMove={() => console.log('onTouchMove')}
-          onTouchEnd={() => console.log('onTouchEnd')}
-          onPointerUp={() => console.log('onPointerUp')}
-          onPointerDown={() => console.log('onPointerDown')}
-          onPointerOut={() => console.log('onPointerOut')}
-          onPointerMove={() => console.log('onPointerMove')}
-          onPointerOver={() => console.log('onPointerOver')}
-          onKeyUp={() => console.log('onKeyUp')}
-          onKeyDown={() => console.log('onKeyDown')}
-          onFocusIn={() => console.log('onFocusIn')}
-          onFocusOut={() => console.log('onFocusOut')} >
-        </div>
+        <canvas id="render-canvas-webgl2" canvas-id="render-canvas-webgl2" type='webgl2'/>
+        <div id="host"/>
       </body>
     )
   }

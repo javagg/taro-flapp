@@ -1,9 +1,8 @@
-import { window, TaroElement, TaroEvent, TaroNode, PROPS, OBJECT, DATASET, STYLE, Style } from '@tarojs/runtime';
+import { window, TaroElement, TaroEvent, TaroNode, Style } from '@tarojs/runtime';
 import Taro from '@tarojs/taro';
 import { ReadableStream } from "web-streams-polyfill";
 import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from '@tarojs/runtime';
-import fontManifest from '@/flapp/assets/FontManifest.json'
 import { $ } from '@tarojs/extend'
 
 // export class MutationObserver {
@@ -290,7 +289,6 @@ class ResizeObserver {
     disconnect() { }
 }
 
-
 export async function readAsText(path: string) {
     const TMPFILE = "taro_temp.txt"
     const fs = Taro.getFileSystemManager()
@@ -319,7 +317,8 @@ export async function polyfill() {
         const ASSETS = [
             "/assets/fonts/MaterialIcons-Regular.otf",
             "/assets/fonts/roboto/v20/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf",
-            "/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf"
+            "/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+            "/assets/FontManifest.json"
         ]
         const orginalWindow = globalThis
         const orginalDocument = globalThis.document
@@ -452,9 +451,8 @@ export async function polyfill() {
         // self.window.OffscreenCanvas = OffscreenCanvas;
 
         async function fileExist(path: string) {
-            const fs = Taro.getFileSystemManager();
             return await new Promise((resolve) => {
-                fs.getFileInfo({
+                Taro.getFileSystemManager().getFileInfo({
                     filePath: path,
                     success: () => resolve(true),
                     fail: () => resolve(false),
@@ -465,22 +463,7 @@ export async function polyfill() {
         self.window.fetch ??= async function (url: string, headers) {
             console.log(`Fetch from: ${url} with headers ${JSON.stringify(headers)}`)
             try {
-                if (url.startsWith("/assets/FontManifest.json")) {
-                    const str = JSON.stringify(fontManifest)
-                    const data = new TextEncoder().encode(str)
-                    return {
-                        ok: true,
-                        status: 200,
-                        arrayBuffer: () => data.buffer,
-                        text: async () => str,
-                        body: new ReadableStream({
-                            start(controller) {
-                                controller.enqueue(data)
-                                controller.close()
-                            }
-                        }),
-                    };
-                } else if (["/assets/canvaskit/canvaskit.wasm", "/assets/canvaskit-nofont/canvaskit.wasm"].includes(url)) {
+                if (["/assets/canvaskit/canvaskit.wasm", "/assets/canvaskit-nofont/canvaskit.wasm"].includes(url)) {
                     return {
                         ok: true,
                         status: 200,
@@ -488,7 +471,7 @@ export async function polyfill() {
                     };
                 } else if (ASSETS.includes(url)) {
                     const fs = Taro.getFileSystemManager();
-                    const data = fs.readCompressedFileSync({ filePath: `${url}.br`, compressionAlgorithm: "br" })
+                    const data = (await fileExist(url)) ?  fs.readFileSync(url) : fs.readCompressedFileSync({ filePath: `${url}.br`, compressionAlgorithm: "br" })
                     return {
                         ok: true,
                         status: 200,

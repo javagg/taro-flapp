@@ -54,6 +54,7 @@
     "@tarojs/runtime": "4.0.5",
     "@tarojs/shared": "4.0.5",
     "@tarojs/taro": "4.0.5",
+    "canvaskit-wasm": "^0.39.1",
     "solid-js": "^1.8.16",
     "vue": "^3.0.0"
   },
@@ -71,7 +72,6 @@
     "@vue/compiler-sfc": "^3.0.0",
     "babel-preset-taro": "4.0.5",
     "blob-polyfill": "^9.0.20240710",
-    "canvaskit-wasm": "^0.39.1",
     "compression-webpack-plugin": "^11.1.0",
     "css-loader": "^7.1.1",
     "eslint": "^8.57.0",
