@@ -42,7 +42,7 @@
     "@tarojs/helper": "4.0.5",
     "@tarojs/plugin-framework-solid": "4.0.5",
     "@tarojs/plugin-framework-vue3": "4.0.5",
-    "@tarojs/plugin-html": "link:C:/Users/lilu/works/taro-flapp/pkgs/plugin-html",
+    "@tarojs/plugin-html": "./pkgs/plugin-html",
     "@tarojs/plugin-platform-alipay": "4.0.5",
     "@tarojs/plugin-platform-h5": "4.0.5",
     "@tarojs/plugin-platform-harmony-hybrid": "4.0.5",

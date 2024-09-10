@@ -1,8 +1,5 @@
 import {
-  // useAddToFavorites, useLoad,
   useReady,
-  //  useResize, useShareAppMessage, useShareTimeline,
-  // useUnload
 } from '@tarojs/taro'
 import Taro from '@tarojs/taro'
 import './index.scss'
@@ -21,20 +18,11 @@ export default function Index() {
     await ckload();
 
     const host = $('#host').get(0)
-    const kit = window.flutterCanvasKit
 
     if (process.env.TARO_ENV !== 'h5') {
       host.clientWidth = window.innerWidth // windowWidth
       host.clientHeight = window.innerHeight // windowHeight
       const can = await createCanvas("render-canvas-webgl2", 'webgl2')
-      const c = $("#render-canvas-webgl2")[0]
-      console.log(c)
-      // c.width = host.clientWidth / window.devicePixelRatio
-      // c.height = host.clientHeight / window.devicePixelRatio
-      // c.style.width = `${host.clientWidth}px`
-      // c.style.height = `${host.clientHeight}px`
-      // c.style.width = '300px'
-      // c.style.height = '600px'
       window.displayCanvas = can
     }
     await flutter({
@@ -82,7 +70,7 @@ export default function Index() {
   } else {
     return (
       <body>
-        <canvas id="render-canvas-webgl2" canvas-id="render-canvas-webgl2" type='webgl2' style="width: 300px; height:600px"/>
+        <canvas id="render-canvas-webgl2" canvas-id="render-canvas-webgl2" type='webgl2' />
         <div id="host"
           onTouchStart={() => console.log('onTouchStart')}
           onTouchMove={() => console.log('onTouchMove')}

@@ -197,6 +197,7 @@ class StyleEx extends Style {
     }
 }
 
+const CAN_ID = "taro-canvas-webgl2"
 class TaroCanvasElement extends TaroElement {
     backend: any
     proxied: any
@@ -205,16 +206,17 @@ class TaroCanvasElement extends TaroElement {
         this.tagName = "PROXYCANVAS"
         this.nodeName = "proxycanvas"
         this.backend = window.displayCanvas;
-        this["taro-canvas-webgl2"] = this.backend
+        this[CAN_ID] = this.backend
         this.style = new StyleEx(this)
-        this.proxied = $('#render-canvas-webgl2').get(0)
+        this.proxied = $(`#render-canvas-webgl2`).get(0)
     }
 
     onStylePropertySet(propertyName: string, value?: string | null) {
-        // this.proxied.style[propertyName] = value
+        this.proxied.style[propertyName] = value
     }
+
     onStylePropertyValueGet(propertyName: string) {
-        // return this.proxied.style[propertyName]
+        return this.proxied.style[propertyName]
     }
 
     setAttribute(qualifiedName: string, value: any) {
@@ -233,6 +235,7 @@ class TaroCanvasElement extends TaroElement {
     }
 
     set width(val) {
+        this.backend.width = val
         this.proxied.width = val
     }
 
@@ -241,6 +244,7 @@ class TaroCanvasElement extends TaroElement {
     }
 
     set height(val) {
+        this.backend.height = val
         this.proxied.height = val
     }
 
@@ -330,7 +334,7 @@ export async function polyfill() {
         // console.log(self.window) // taro window
         // console.log(self.window.document) // taro document
         // console.log(self.window.navigator.vendor)
-        self.window.devicePixelRatio = 1//Taro.getSystemInfoSync().pixelRatio
+        self.window.devicePixelRatio = Taro.getSystemInfoSync().pixelRatio
         const oldCreateElement = self.window.document.createElement
         self.window.document.createElement = function (type: string) {
             const nodeName = type.toLowerCase()
