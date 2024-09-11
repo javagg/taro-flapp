@@ -319,7 +319,7 @@ export async function polyfill() {
             "/assets/fonts/MaterialIcons-Regular.otf",
             "/assets/fonts/roboto/v20/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf",
             "/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
-            // "/assets/FontManifest.json"
+            "/assets/FontManifest.json"
         ]
         const orginalWindow = globalThis
         const orginalDocument = globalThis.document
@@ -373,9 +373,10 @@ export async function polyfill() {
             this.appendChild(root)
             return root
         }
-        // const originalAddEventListener = TaroElement.prototype.addEventListener
-        // TaroElement.prototype.addEventListener = function (type: any, handler: any, options: any): void {
-        //     console.log(`${this.tagName || this.nodeName} addEventListener ${type}`)
+        TaroNode.extend("contains", function () {  return false; })
+        const originalAddEventListener = TaroElement.prototype.addEventListener
+        TaroElement.prototype.addEventListener = function (type: any, handler: any, options: any): void {
+            console.log(`${this.tagName || this.nodeName} addEventListener ${type}`)
         //     if (this.tagName && this.tagName.toUpperCase() === "FLUTTER-VIEW") {
         //         if (type === "touchstart" || type === "pointerdown") {
         //             //   FlutterHostView.shared.ontouchstart = callback;
@@ -415,22 +416,21 @@ export async function polyfill() {
         //             //   }
         //         }
         //     }
-        //     originalAddEventListener.call(this, type, handler, options)
-        // }
-
-        // TaroElement.extend("getBoundingClientRect", function () {
-        //     // throw new Error("not implemented")
-        //     return {
-        //         x: 0,
-        //         y: 0,
-        //         width: 100,
-        //         height: 100,
-        //         left: 0,
-        //         top: 0,
-        //         right: 100,
-        //         bottom: 100,
-        //     };
-        // })
+            originalAddEventListener.call(this, type, handler, options)
+        }
+        TaroElement.extend("getBoundingClientRect", function () {
+            // throw new Error("not implemented")
+            return {
+                x: 0,
+                y: 0,
+                width: 100,
+                height: 100,
+                left: 0,
+                top: 0,
+                right: 100,
+                bottom: 100,
+            };
+        })
         // TaroElement.prototype.sheet = {
         //     cssRules: [],
         //     insertRule: () => {
@@ -452,12 +452,11 @@ export async function polyfill() {
         // self.window.OffscreenCanvas = OffscreenCanvas;
 
         async function fileExist(path: string) {
-            console.log("path:",path)
             return await new Promise((resolve) => {
                 Taro.getFileSystemManager().getFileInfo({
                     filePath: path,
                     success: () => resolve(true),
-                    fail: (r) => {  console.log("err: ", r); resolve(false)},
+                    fail: (r) => resolve(false),
                 })
             })
         };
@@ -465,22 +464,22 @@ export async function polyfill() {
         self.window.fetch ??= async function (url: string, headers) {
             console.log(`Fetch from: ${url} with headers ${JSON.stringify(headers)}`)
             try {
-                if (url.startsWith("/assets/FontManifest.json")) {
-                    const str = JSON.stringify(fontManifest)
-                    const data = new TextEncoder().encode(str)
-                    return {
-                        ok: true,
-                        status: 200,
-                        arrayBuffer: () => data.buffer,
-                        text: async () => str,
-                        body: new ReadableStream({
-                            start(controller) {
-                                controller.enqueue(data)
-                                controller.close()
-                            }
-                        }),
-                    };
-                }
+                // if (url.startsWith("/assets/FontManifest.json")) {
+                //     const str = JSON.stringify(fontManifest)
+                //     const data = new TextEncoder().encode(str)
+                //     return {
+                //         ok: true,
+                //         status: 200,
+                //         arrayBuffer: () => data.buffer,
+                //         text: async () => str,
+                //         body: new ReadableStream({
+                //             start(controller) {
+                //                 controller.enqueue(data)
+                //                 controller.close()
+                //             }
+                //         }),
+                //     };
+                // }
                 if (["/assets/canvaskit/canvaskit.wasm", "/assets/canvaskit-nofont/canvaskit.wasm"].includes(url)) {
                     return {
                         ok: true,

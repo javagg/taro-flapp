@@ -1,6 +1,5 @@
-import { TaroElement } from '@tarojs/runtime';
+import { TaroElement, TaroEvent } from '@tarojs/runtime';
 import Taro from '@tarojs/taro'
-import { $ } from '@tarojs/extend'
 
 export const encodeImage = async (
     rawRgba,
@@ -78,11 +77,11 @@ export async function createTaroCanvas(host: TaroElement, id: string, type: '2d'
 export async function createTestCanvas(host: any) {
     const kit = window.flutterCanvasKit
     for (const t of ['2d', 'webgl', 'webgl2']) {
-      const can = await createTaroCanvas(host, `render-canvas-${t}`, t, 300, 300)
-      if (t !== '2d') {
-        const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
-        console.log("surface", surface)
-      }
+        const can = await createTaroCanvas(host, `render-canvas-${t}`, t, 300, 300)
+        if (t !== '2d') {
+            const surface = kit.MakeWebGLCanvasSurface(`render-canvas-${t}`, null, { majorVersion: t === 'webgl2' ? 2 : 1 });
+            console.log("surface", surface)
+        }
     }
     for (const t of ['2d', 'webgl', 'webgl2']) {
         let offscreen = document.createElement("offscreencanvas");
@@ -121,7 +120,7 @@ export async function testDrawToCanvas() {
     }
     surface.drawOnce(draw);
     const ctx = offscreen.getContext("webgl2")
-    const data = offscreen.getImageData(0,0,300,150)
+    const data = offscreen.getImageData(0, 0, 300, 150)
     console.log(data)
     const canvas = window.renderCanvas
 
@@ -171,10 +170,79 @@ export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export async function safeArea(ms: number) {
     const { safeArea, windowHeight, statusBarHeight } = await Taro.getSystemInfoAsync()
     if (safeArea) {
-        safeAreaInsetTop =  Math.max(safeArea.top, statusBarHeight)
+        safeAreaInsetTop = Math.max(safeArea.top, statusBarHeight)
         safeAreaInsetBottom = windowHeight - safeArea.bottom
     } else {
         safeAreaInsetTop = 0
         safeAreaInsetBottom = 0
+    }
+}
+
+class PointerEvent extends TaroEvent {
+    _ze: any
+
+    tiltX = 0
+    tiltY = 0
+    // get altKey() { return false }
+    ctrlKey = false
+    // get metaKey() { return false }
+    // get shiftKey() { return false }
+
+    clientX: number
+    clientY: number
+
+    offsetX: number
+    offsetY: number
+
+    pageX: number
+    pageY: number
+
+    constructor(type, event) {
+        super(type, {})
+        this._ze = event
+        this.button = this._ze.button
+    }
+
+    // get screenX() { }
+    // get screenY() { }
+
+    getModifierState(key) { return false }
+
+    get pointerId() { return 0 }
+    get buttons() { return this.type === "pointerstart" || this.type === "pointermove" ? 1 : 0 }
+    get pointerType() { return "touch" }
+}
+
+function translateEvent(e: TaroEvent): PointerEvent {
+    const touches = e.mpEvent.changedTouches
+    const first = touches[0]
+    let type = "";
+    switch (e.type) {
+        case "touchstart": type = "pointerdown"; break;
+        case "touchmove": type = "pointermove"; break;
+        case "touchend": type = "pointerup"; break;
+        case "touchcancel": type = "pointercancel"; break;
+        default: throw new Error("invalid touch event");
+    }
+    const pe = new PointerEvent(type, e)
+    pe.clientX = first.clientX
+    pe.clientY = first.clientY
+    pe.offsetX = first.offsetX
+    pe.offsetY = first.offsetY
+    pe.pageX = first.pageX
+    pe.pageY = first.pageY
+    return pe;
+}
+
+export class FlutterEventConverter {
+    setup(host: TaroElement, fv: () => TaroElement) {
+        const handler = (e) => {
+            const v = fv()
+            if (v) v.dispatchEvent(translateEvent(e))
+        }
+        host.addEventListener("touchstart", handler)
+        host.addEventListener("touchend", handler)
+        host.addEventListener("touchmove", handler)
+        host.addEventListener("touchcancel", handler)
     }
 }

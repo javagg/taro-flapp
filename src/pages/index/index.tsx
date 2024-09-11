@@ -7,7 +7,7 @@ import { flutter } from '@/src/flutter'
 import { $ } from '@tarojs/extend'
 import { window, createEvent } from '@tarojs/runtime'
 import {
-  createCanvas,
+  createCanvas, FlutterEventConverter
 } from '@/src/utils'
 
 export default function Index() {
@@ -24,6 +24,15 @@ export default function Index() {
       const can = await createCanvas("render-canvas-webgl2", 'webgl2')
       window.displayCanvas = can
     }
+
+    // flutter web engine only recognizes pointer events for now.
+    if (process.env.TARO_ENV === 'weapp') {
+      new FlutterEventConverter().setup(host, () => {
+        // we need to get the flutter view after flutter is initialized.
+        return window.flutterView ??= $('flutter-view').get(0)
+      })
+    }
+
     await flutter({
       assetBase: '/',
       fontFallbackBaseUrl: '/assets/fonts/',
@@ -61,16 +70,15 @@ export default function Index() {
   //     console.log(res)
   //   })
   // })
-
   if (process.env.TARO_ENV === 'h5') {
     return (
-      <div id="host" style="height:100%;"/>
+      <div id="host" style="height:100%;" />
     )
   } else {
     return (
       <body>
-        <canvas id="render-canvas-webgl2" canvas-id="render-canvas-webgl2" type='webgl2'/>
-        <div id="host"/>
+        <canvas id="render-canvas-webgl2" canvas-id="render-canvas-webgl2" type='webgl2' />
+        <div id="host" />
       </body>
     )
   }
