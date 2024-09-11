@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro';
 import { ReadableStream } from "web-streams-polyfill";
 import { Blob, FileReader } from 'blob-polyfill';
 import { MutationObserver } from '@tarojs/runtime';
+import fontManifest from '@/flapp/assets/FontManifest.json'
 import { $ } from '@tarojs/extend'
 
 // export class MutationObserver {
@@ -318,7 +319,7 @@ export async function polyfill() {
             "/assets/fonts/MaterialIcons-Regular.otf",
             "/assets/fonts/roboto/v20/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf",
             "/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
-            "/assets/FontManifest.json"
+            // "/assets/FontManifest.json"
         ]
         const orginalWindow = globalThis
         const orginalDocument = globalThis.document
@@ -451,11 +452,12 @@ export async function polyfill() {
         // self.window.OffscreenCanvas = OffscreenCanvas;
 
         async function fileExist(path: string) {
+            console.log("path:",path)
             return await new Promise((resolve) => {
                 Taro.getFileSystemManager().getFileInfo({
                     filePath: path,
                     success: () => resolve(true),
-                    fail: () => resolve(false),
+                    fail: (r) => {  console.log("err: ", r); resolve(false)},
                 })
             })
         };
@@ -463,6 +465,22 @@ export async function polyfill() {
         self.window.fetch ??= async function (url: string, headers) {
             console.log(`Fetch from: ${url} with headers ${JSON.stringify(headers)}`)
             try {
+                if (url.startsWith("/assets/FontManifest.json")) {
+                    const str = JSON.stringify(fontManifest)
+                    const data = new TextEncoder().encode(str)
+                    return {
+                        ok: true,
+                        status: 200,
+                        arrayBuffer: () => data.buffer,
+                        text: async () => str,
+                        body: new ReadableStream({
+                            start(controller) {
+                                controller.enqueue(data)
+                                controller.close()
+                            }
+                        }),
+                    };
+                }
                 if (["/assets/canvaskit/canvaskit.wasm", "/assets/canvaskit-nofont/canvaskit.wasm"].includes(url)) {
                     return {
                         ok: true,
