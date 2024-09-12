@@ -1,6 +1,7 @@
 import {
   useReady, useResize
 } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import './index.scss'
 import { ckload } from '@/src/ck'
 import { flutter } from '@/src/flutter'
@@ -15,6 +16,8 @@ export default function Index() {
   useReady(async () => {
     console.log('Page loaded.');
     await ckload();
+    
+    // const body = $('#body').get(0)
 
     const host = $('#host').get(0)
 
@@ -76,7 +79,7 @@ export default function Index() {
     )
   } else {
     return (
-      <body>
+      <body id="body">
         <canvas id="render-canvas-webgl2" canvas-id="render-canvas-webgl2" type='webgl2' />
         <div id="host" />
       </body>
