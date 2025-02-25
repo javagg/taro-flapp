@@ -464,22 +464,22 @@ export async function polyfill() {
         self.window.fetch ??= async function (url: string, headers) {
             console.log(`Fetch from: ${url} with headers ${JSON.stringify(headers)}`)
             try {
-                // if (url.startsWith("/assets/FontManifest.json")) {
-                //     const str = JSON.stringify(fontManifest)
-                //     const data = new TextEncoder().encode(str)
-                //     return {
-                //         ok: true,
-                //         status: 200,
-                //         arrayBuffer: () => data.buffer,
-                //         text: async () => str,
-                //         body: new ReadableStream({
-                //             start(controller) {
-                //                 controller.enqueue(data)
-                //                 controller.close()
-                //             }
-                //         }),
-                //     };
-                // }
+                if (url.startsWith("/assets/FontManifest.json")) {
+                    const str = JSON.stringify(fontManifest)
+                    const data = new TextEncoder().encode(str)
+                    return {
+                        ok: true,
+                        status: 200,
+                        arrayBuffer: () => data.buffer,
+                        text: async () => str,
+                        body: new ReadableStream({
+                            start(controller) {
+                                controller.enqueue(data)
+                                controller.close()
+                            }
+                        }),
+                    };
+                }
                 if (["/assets/canvaskit/canvaskit.wasm", "/assets/canvaskit-nofont/canvaskit.wasm"].includes(url)) {
                     return {
                         ok: true,
