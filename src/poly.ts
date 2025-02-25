@@ -334,7 +334,12 @@ export async function polyfill() {
         // console.log(self.window) // taro window
         // console.log(self.window.document) // taro document
         // console.log(self.window.navigator.vendor)
-        self.window.devicePixelRatio = Taro.getSystemInfoSync().pixelRatio
+        const { safeArea, statusBarHeight, pixelRatio, windowWidth, windowHeight } = await Taro.getSystemInfoSync()
+        const safeAreaInsetTop = safeArea ?  Math.max(safeArea.top, statusBarHeight) : 0
+        const safeAreaInsetBottom = safeArea ?  windowHeight - safeArea.bottom : 0
+        self.window.devicePixelRatio = pixelRatio
+        self.window.innerWidth = windowWidth
+        self.window.innerHeight = windowHeight
         const oldCreateElement = self.window.document.createElement
         self.window.document.createElement = function (type: string) {
             const nodeName = type.toLowerCase()

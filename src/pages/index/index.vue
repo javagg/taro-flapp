@@ -24,9 +24,10 @@ export default {
     await ckload();
 
     const host = $('#host').get(0)
-    const { windowWidth, windowHeight, pixelRatio } = await Taro.getWindowInfo()
+    const { windowWidth, windowHeight, pixelRatio, statusBarHeight } = await Taro.getWindowInfo()
+    host.style.top = statusBarHeight
     host.clientWidth = window.innerWidth // windowWidth
-    host.clientHeight = window.innerHeight // windowHeight
+    host.clientHeight = window.innerHeight - statusBarHeight // windowHeight
     window.devicePixelRatio = pixelRatio
 
     // const kit = window.flutterCanvasKit
