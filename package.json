@@ -7,8 +7,8 @@
     "name": "default",
     "typescript": true,
     "css": "Sass",
-    "framework1": "Solid",
-    "framework": "Vue3"
+    "framework": "Solid",
+    "framework1": "Vue3"
   },
   "scripts": {
     "build:weapp": "taro build --type weapp",
@@ -54,7 +54,6 @@
     "@tarojs/runtime": "4.0.9",
     "@tarojs/shared": "4.0.9",
     "@tarojs/taro": "4.0.9",
-    "canvaskit-wasm": "^0.39.1",
     "solid-js": "^1.8.16",
     "vue": "^3.0.0"
   },

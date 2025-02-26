@@ -20,7 +20,7 @@ export default {
   setup() {
   },
   async onReady() {
-    console.log('Page loaded.');
+    console.log('[vue] Page loaded.');
     await ckload();
 
     const host = $('#host').get(0)

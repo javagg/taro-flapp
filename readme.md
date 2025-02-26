@@ -1,4 +1,10 @@
 # Taro with flutter web
+
+## link your flutter app
+```
+cd project_root
+ln -s flapp [your flutter web dir]
+```
 ## run taro with flutter
 ```
 pnpm dlx @tarojs/cli@4.0.9 build --type weapp

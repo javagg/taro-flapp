@@ -1,3 +1,5 @@
+import { FlatESLint } from 'eslint/use-at-your-own-risk';
+
 declare global {
     interface Window {
         _flutter: any;
@@ -9,7 +11,7 @@ declare global {
 interface FlutterConfiguration {
     assetBase?: string;
     canvasKitBaseUrl?: string;
-    renderer?: "auto" | "html" | "canvaskit" | "skwasm";
+    renderer?: "auto" | "canvaskit" | "skwasm";
     hostElement?: HTMLElement;
     fontFallbackBaseUrl?: string;
     entrypointUrl: string;

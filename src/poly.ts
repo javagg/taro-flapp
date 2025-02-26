@@ -317,7 +317,7 @@ export async function polyfill() {
     if (process.env.TARO_ENV === 'weapp') {
         const ASSETS = [
             "/assets/fonts/MaterialIcons-Regular.otf",
-            "/assets/fonts/roboto/v20/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf",
+            "/assets/fonts/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
             "/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
             "/assets/FontManifest.json"
         ]
