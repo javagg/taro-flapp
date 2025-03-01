@@ -493,6 +493,11 @@ export async function polyfill() {
                         arrayBuffer: async () => new TextEncoder().encode(`${url}.br`).buffer,
                     };
                 } else if (ASSETS.includes(url)) {
+                    // console.log(url)
+                    // if (url.endsWith("KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2")) {
+                    //    url = url.replace("woff2", "otf")
+                    //    console.log(url)
+                    // }
                     const fs = Taro.getFileSystemManager();
                     const data = (await fileExist(url)) ?  fs.readFileSync(url) : fs.readCompressedFileSync({ filePath: `${url}.br`, compressionAlgorithm: "br" })
                     return {

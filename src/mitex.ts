@@ -1,4 +1,4 @@
-import {
+ import {
     type CanvasKit, type ParagraphBuilder, type FontCollectionFactory,
     type FontCollection, type TypefaceFontProvider, type EmbindObject,
     type Typeface, type FontStyle, type Font, type GlyphIDArray,
@@ -7,6 +7,7 @@ import {
     type FontBlock, type ShapedLine, type TypefaceFactory, type FontMgrFactory,
     type TypefaceFontProviderFactory, type StrutStyle, type TextAlign, type TextBaseline,
     type TextDirection, type TextHeightBehavior, type TextStyle, type InputColor, type DecorationStyle,
+    PlaceholderAlignmentEnumValues,
     type TextFontFeatures, type TextFontVariations, type TextShadow,
     type TextBaselineEnumValues, type TextDirectionEnumValues,
     type TextHeightBehaviorEnumValues, type AffinityEnumValues, type FontWeightEnumValues,
@@ -38,6 +39,8 @@ import {
     StrokeJoin,
 } from "../types/canvaskit";
 
+import decompress from 'brotli/decompress';
+import { Buffer } from 'buffer';
 import { parse } from 'opentype.js'
 import { drawLine } from '@cprecioso/canvas-text-layout'
 
@@ -72,7 +75,26 @@ class _Typeface extends SkEmbindObject<"Typeface"> implements Typeface {
     fobj: any
     constructor(fontData: ArrayBuffer) {
         super("Typeface")
-        this.fobj = parse(fontData)
+        // console.log(fontData)
+        // const brotliData = new Uint8Array(fontData.slice(48));
+        // const data = decompress(brotliData);
+             // 使用 brotli.js 解压
+            //  const brotliData = new Uint8Array(fontData.slice(48));
+            //  console.log("brotliData")
+            //  const decompressedData = decompress(brotliData);
+            //  console.log("decompressedData")
+            //  // 将解压后的数据转换为 ArrayBuffer
+            //  const data = decompressedData.buffer;
+
+        // console.log(fontData.buffer)
+        // const a = Buffer.from(fontData)
+        // console.log(a)
+        // const data = decompress (a) // brotli
+
+        // console.log(data)
+
+        // console.log(data.buffer)
+        // this.fobj = parse(data)
     }
 
     getGlyphIDs(str: string, numCodePoints?: number, output?: GlyphIDArray): GlyphIDArray {
@@ -86,7 +108,10 @@ class _Typeface extends SkEmbindObject<"Typeface"> implements Typeface {
 }
 
 class _Font extends SkEmbindObject<"Font"> implements Font {
-    tf: Typeface | null
+    face: Typeface | null
+    size: number;
+    scaleX: number;
+    skewX: number;
     //     constructor(
     //       face: Typeface | null,
     //       size: number,
@@ -117,7 +142,11 @@ class _Font extends SkEmbindObject<"Font"> implements Font {
     //  * @param skewX
     //  */
     constructor(face: Typeface | null, size: number, scaleX: number, skewX: number) {
-        super();
+        super("Font");
+        this.face = face;
+        this.size = size;
+        this.scaleX = scaleX;
+        this.skewX = skewX;
     }
 
 
@@ -129,6 +158,12 @@ class _Font extends SkEmbindObject<"Font"> implements Font {
         paint?: Paint | null,
         output?: Float32Array
     ): Float32Array {
+        // for (let i = 0; i < glyphs.length; i++) {
+        //     const glyph = glyphs[i];
+        //     const glyphInfo = this.face?.getGlyphIDs(glyph)
+        //     output?.set([0, 0, 0, 0], i * 4)
+        // }
+        // this.face?.getGlyphIDs("a")
         return new Float32Array([0, 0, 0, 0]);
     }
     getGlyphIDs(str: string, numCodePoints?: number,
@@ -156,19 +191,31 @@ class _Font extends SkEmbindObject<"Font"> implements Font {
         return false;
     }
     getTypeface(): Typeface | null {
-        return this.tf;
+        return this.face;
     }
     setEdging(edging: FontEdging): void { }
     setEmbeddedBitmaps(embeddedBitmaps: boolean): void { }
     setHinting(hinting: FontHinting): void { }
-    setLinearMetrics(linearMetrics: boolean): void { }
-    setScaleX(sx: number): void { }
-    setSize(points: number): void { }
-    setSkewX(sx: number): void { }
-    setEmbolden(embolden: boolean): void { }
-    setSubpixel(subpixel: boolean): void { }
+    setLinearMetrics(linearMetrics: boolean): void {
+        
+     }
+    setScaleX(sx: number): void {
+        this.scaleX = sx;
+     }
+    setSize(points: number): void {
+        this.size = points;
+     }
+    setSkewX(sx: number): void {
+        this.skewX = sx;
+     }
+    setEmbolden(embolden: boolean): void { 
+
+    }
+    setSubpixel(subpixel: boolean): void {
+
+     }
     setTypeface(face: Typeface | null): void {
-        this.tf = face;
+        this.face = face;
     }
 }
 
@@ -265,7 +312,7 @@ class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr {
      * Find the closest matching typeface to the specified familyName and style.
      */
     matchFamilyStyle(name: string, style: FontStyle): Typeface {
-        const tf = new _Typeface()
+        // const tf = new _Typeface()
         throw new Error("matchFamilyStyle not implemented.");
     }
 }
@@ -308,7 +355,7 @@ class _TypefaceFactory implements TypefaceFactory {
     MakeTypefaceFromData(fontData: ArrayBuffer): Typeface | null {
         return new _Typeface(fontData);
     }
-    
+
     MakeFreeTypeFaceFromData(fontData: ArrayBuffer): Typeface | null {
         return this.MakeTypefaceFromData(fontData);
     }
@@ -371,57 +418,76 @@ class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implements Pa
     private styles: TextStyle[] = [];
 
     constructor(private style: TextStyle, private fontCollection: FontCollection) {
-        super()
-    }
-
-    addPlaceholder(width?: number, height?: number, alignment?: PlaceholderAlignment, baseline?: TextBaseline, offset?: number): void {
-        throw new Error("Method not implemented.");
+        super("ParagraphBuilder")
     }
 
     /**
- * Adds text to the builder. Forms the proper runs to use the upper-most style
- * on the style_stack.
- * @param str
- */
+     * Pushes the information required to leave an open space.
+     * @param width
+     * @param height
+     * @param alignment
+     * @param baseline
+     * @param offset
+     */
+    addPlaceholder(width?: number, height?: number, alignment?: PlaceholderAlignment, baseline?: TextBaseline, offset?: number): void {
+        // width = width || 0;
+        // height = height || 0;
+        // alignment = alignment || CanvasKit.PlaceholderAlignmentEnumValues.Baseline;
+        // baseline = baseline || canvasKit.TextBaselineEnumValues.Alphabetic;
+        // offset = offset || 0;
+    }
+
+    /**
+     * Adds text to the builder. Forms the proper runs to use the upper-most style
+     * on the style_stack.
+     * @param str
+     */
     addText(str: string): void {
         console.log("ParagraphBuilder.addText", str);
         // throw new Error("Method not implemented.");
     }
 
     /**
- * Returns a Paragraph object that can be used to be layout and paint the text to an
- * Canvas.
- */
+     * Returns a Paragraph object that can be used to be layout and paint the text to an
+     * Canvas.
+     */
     build(): Paragraph {
         return new _Paragraph()
     }
 
     /**
- * @param words is an array of word edges (starting or ending). You can
- * pass 2 elements (0 as a start of the entire text and text.size as the
- * end). This information is only needed for a specific API method getWords.
- *
- * The indices are expected to be relative to the UTF-8 representation of
- * the text.
- */
+     * @param words is an array of word edges (starting or ending). You can
+     * pass 2 elements (0 as a start of the entire text and text.size as the
+     * end). This information is only needed for a specific API method getWords.
+     *
+     * The indices are expected to be relative to the UTF-8 representation of
+     * the text.
+     */
     setWordsUtf8(words: InputWords): void {
         throw new Error("Method not implemented.");
     }
 
     /**
- * @param words is an array of word edges (starting or ending). You can
- * pass 2 elements (0 as a start of the entire text and text.size as the
- * end). This information is only needed for a specific API method getWords.
- *
- * The indices are expected to be relative to the UTF-16 representation of
- * the text.
- *
- * The `Intl.Segmenter` API can be used as a source for this data.
- */
+     * @param words is an array of word edges (starting or ending). You can
+     * pass 2 elements (0 as a start of the entire text and text.size as the
+     * end). This information is only needed for a specific API method getWords.
+     *
+     * The indices are expected to be relative to the UTF-16 representation of
+     * the text.
+     *
+     * The `Intl.Segmenter` API can be used as a source for this data.
+     */
     setWordsUtf16(words: InputWords): void {
         throw new Error("Method not implemented.");
     }
 
+    /**
+     * @param graphemes is an array of indexes in the input text that point
+     * to the start of each grapheme.
+     *
+     * The indices are expected to be relative to the UTF-8 representation of
+     * the text.
+     */
     setGraphemeBreaksUtf8(graphemes: InputGraphemes): void {
         throw new Error("Method not implemented.");
     }
@@ -745,7 +811,7 @@ export function install(canvasKit: CanvasKit, pixelRatio: number,) {
     canvasKit.TypefaceFontProvider = new _TypefaceFontProviderFactory();
     canvasKit.Font = _Font;
     canvasKit.ParagraphStyle = (style: ParagraphStyle) => style;
-    canvasKit.TextStyle = (style: TextStyle) => style;
+    // canvasKit.TextStyle = (style: TextStyle) => style;
 
     // Paragraph Enums
     // canvasKit.TextAlign = new TextAlignEnumValues  ();
@@ -793,22 +859,23 @@ export function install(canvasKit: CanvasKit, pixelRatio: number,) {
    */
     const originalDrawParagraph = canvasKit.Canvas.prototype.drawParagraph
     canvasKit.Canvas.prototype.drawParagraph = function (p: Paragraph, x: number, y: number) {
-        // if (paragraph.isMiniTex === true) {
-        //   drawParagraph(canvasKit, this, paragraph, dx, dy);
-        // } else {
-        originalDrawParagraph.apply(this, [p, x, y]);
+        throw new Error("drawParagraph not implemented.");
+    //     // if (paragraph.isMiniTex === true) {
+    //     //   drawParagraph(canvasKit, this, paragraph, dx, dy);
+    //     // } else {
+    //     originalDrawParagraph.apply(this, [p, x, y]);
 
-        const srcRect = canvasKit.XYWHRect(0, 0,
-            p.getHeight()!,
-            paragraph.skImageHeight!
-        );
-        const dstRect = canvasKit.XYWHRect(
-            Math.ceil(dx),
-            Math.ceil(dy),
-            paragraph.skImageWidth! / Drawer.pixelRatio,
-            paragraph.skImageHeight! / Drawer.pixelRatio
-        );
-        // }
+    //     const srcRect = canvasKit.XYWHRect(0, 0,
+    //         p.getHeight()!,
+    //         paragraph.skImageHeight!
+    //     );
+    //     const dstRect = canvasKit.XYWHRect(
+    //         Math.ceil(dx),
+    //         Math.ceil(dy),
+    //         paragraph.skImageWidth! / Drawer.pixelRatio,
+    //         paragraph.skImageHeight! / Drawer.pixelRatio
+    //     );
+    //     // }
     };
 
     /**
@@ -820,11 +887,10 @@ export function install(canvasKit: CanvasKit, pixelRatio: number,) {
      * @param paint
      * @param font
      */
-    const originalDrawText = canvasKit.Canvas.prototype.drawText
-    canvasKit.Canvas.prototype.drawText = function (str: string, x: number, y: number, paint: Paint, font: Font) {
-
-        originalDrawText.apply(this, [str, x, y, paint, font]);
-    }
+    // canvasKit.Canvas.prototype.drawText = function (str: string, x: number, y: number, paint: Paint, font: Font) {
+    //     throw new Error("Method not implemented.");
+    //     // originalDrawText.apply(this, [str, x, y, paint, font]);
+    // }
 
     /**
    * Draws the given TextBlob at (x, y) using the current clip, current matrix, and the
@@ -834,10 +900,11 @@ export function install(canvasKit: CanvasKit, pixelRatio: number,) {
    * @param y
    * @param paint
    */
-    const originalDrawTextBlob = canvasKit.Canvas.prototype.drawTextBlob
-    canvasKit.Canvas.prototype.drawTextBlob = function (blob: TextBlob, x: number, y: number, paint: Paint) {
-        originalDrawText.apply(this, [blob, x, y, paint]);
-    }
+    // const originalDrawTextBlob = canvasKit.Canvas.prototype.drawTextBlob
+    // canvasKit.Canvas.prototype.drawTextBlob = function (blob: TextBlob, x: number, y: number, paint: Paint) {
+    //     throw new Error("Method not implemented.");
+    //     originalDrawText.apply(this, [blob, x, y, paint]);
+    // }
 }
 
 

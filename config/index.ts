@@ -103,6 +103,15 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
               { search: '"webgl"\\s*==\\s*\\w\\s*==\\s*\\w instanceof WebGLRenderingContext' , replace: '"1"&&true', attr: 'g' },
             ]
           })
+        // chain.module
+        //   .rule("/main\.dart\.js$/")
+        //   .use("replace")
+        //   .loader("./config/replace-loader")
+        //   .options({
+        //     arr: [
+        //       { search: 'KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2' , replace: 'KFOmCnqEu92Fr1Me4GZLCzYlKw.otf', attr: 'g' },
+        //     ]
+        //   })
       }
     },
     h5: {
