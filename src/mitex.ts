@@ -36,9 +36,9 @@ import {
     Shader,
     StrokeCap,
     StrokeJoin,
-} from "canvaskit-wasm/types";
+} from "../types/canvaskit";
 
-import { parse } from 'opentype.js/dist/opentype.module'
+import { parse } from 'opentype.js'
 import { drawLine } from '@cprecioso/canvas-text-layout'
 
 export const valueOfRGB = (
@@ -51,23 +51,17 @@ export const valueOfRGB = (
 };
 
 export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {
-    // readonly _type: T;
     _deleted = false;
-
     constructor(readonly _type: T) { }
-
     delete(): void {
         this._deleted = true;
     }
-
     deleteLater(): void {
         this._deleted = true;
     }
-
     isAliasOf(other: any): boolean {
         return other._type === this._type;
     }
-
     isDeleted(): boolean {
         return this._deleted;
     }
@@ -107,11 +101,11 @@ class _Font extends SkEmbindObject<"Font"> implements Font {
     //  * @param face
     //  * @param size - font size in points. If not specified, uses a default value.
     //  */
-    constructor() { }
+    // constructor() { }
 
-    constructor(face: Typeface | null, size?: number) {
-        super();
-    }
+    // constructor(face: Typeface | null, size?: number) {
+    //     super();
+    // }
 
     // /**
     //  * Constructs Font with default values with Typeface and size in points,
@@ -247,7 +241,7 @@ class _ParagraphBuilderFactory implements ParagraphBuilderFactory {
 
 class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr {
 
-    typefaces: Typeface[]
+    typefaces: Typeface[] = []
     /**
     * Return the number of font families loaded in this manager. Useful for debugging.
     */
@@ -279,6 +273,11 @@ class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr {
 class _TypefaceFontProvider extends _FontMgr implements TypefaceFontProvider {
 
     registerFont(bytes: ArrayBuffer | Uint8Array, family: string): void {
+        if (bytes instanceof Uint8Array) {
+            bytes = bytes.buffer;
+        }
+        // let arrayBuffer = uint8Array.buffer
+        // console.log(bytes)
         const tf = new _TypefaceFactory().MakeFreeTypeFaceFromData(bytes)
         this.typefaces.push(tf!)
         const font = new FontFace(family, bytes);
@@ -303,9 +302,15 @@ class _FontMgrFactory implements FontMgrFactory {
 
 class _TypefaceFactory implements TypefaceFactory {
 
-    constructor() { }
-    MakeFreeTypeFaceFromData(fontData: ArrayBuffer): Typeface | null {
+    GetDefault(): Typeface | null {
+        throw new Error("Method not implemented.");
+    }
+    MakeTypefaceFromData(fontData: ArrayBuffer): Typeface | null {
         return new _Typeface(fontData);
+    }
+    
+    MakeFreeTypeFaceFromData(fontData: ArrayBuffer): Typeface | null {
+        return this.MakeTypefaceFromData(fontData);
     }
 
 }

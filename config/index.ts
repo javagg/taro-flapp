@@ -28,7 +28,7 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
         { from: 'assets/fonts', to: 'dist/assets/fonts/roboto/v32' }, // flutter 3.29 => v32
         // h5
         { from: 'flapp/build/web/canvaskit/canvaskit.wasm', to: 'dist/assets/canvaskit' },
-        // { from: 'node_modules/canvaskit-wasm/bin/canvaskit.wasm', to: 'dist/assets/canvaskit' },
+        // { from: 'node_modules/canvaskit-wasm/bin/canvaskit.wasm', to: 'dist/assets/canvaskit' }, // dot't use, quickReject missing
         { from: 'assets/canvaskit-nofont/canvaskit.wasm', to: 'dist/assets/canvaskit-nofont' },
         // weapp
         { from: 'flapp/build/web/canvaskit/canvaskit.wasm', to: 'dist/canvaskit/pages' },

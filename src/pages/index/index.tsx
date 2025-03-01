@@ -43,13 +43,13 @@ export default function Index() {
     });
   })
 
-//   useResize(async (payload) => {
-//     console.log(`resize: ${JSON.stringify(payload)}`)
-//   })
+  useResize(async (payload) => {
+    console.log(`resize: ${JSON.stringify(payload)}`)
+  })
 
-//   // useShareAppMessage(async (payload) => { return {} })
+  // useShareAppMessage(async (payload) => { return {} })
 
-//   // useShareTimeline(() => { return {} })
+  // useShareTimeline(() => { return {} })
 
 //   // useAddToFavorites((payload) => { return {} })
 
@@ -86,19 +86,3 @@ export default function Index() {
     )
   }
 }
-
-import { View, Text } from '@tarojs/components'
-// import { useLoad } from '@tarojs/taro'
-// import './index.scss'
-
-// export default function Index () {
-//   useLoad(() => {
-//     console.log('Page loaded.')
-//   })
-
-//   return (
-//     <View className='index'>
-//       <Text>Hello world!</Text>
-//     </View>
-//   )
-// }
