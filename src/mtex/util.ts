@@ -4,7 +4,7 @@
 
 // import { appTarget } from "./target";
 
-// declare var wx: any;
+declare var wx: any;
 declare var window: any;
 
 // export const makeFloat32Array = (arr: any) => {

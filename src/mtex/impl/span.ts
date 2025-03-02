@@ -4,11 +4,20 @@
 
 import {
   LetterRect,
-  FontSlant,
+  // FontSlant,
+  // TextStyle,
+  // ParagraphStyle,
+  TextAlign,
+} from  "../adapter/skia";
+
+import {
+  // LetterRect,
+  // FontSlant,
   TextStyle,
   ParagraphStyle,
-  TextAlign,
-} from "../adapter/skia";
+  // TextAlign,
+} from "../canvaskit"
+
 import { colorToHex } from "../util";
 
 export class Span {
