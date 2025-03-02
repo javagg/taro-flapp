@@ -1,4 +1,5 @@
-import {install} from './mitex'
+// import {install} from './mitex'
+import { install } from './mtex/index'
 
 export async function ckload() {
   let m = await (
@@ -25,6 +26,7 @@ export async function ckload() {
   console.log("ck loaded")
 
   if (process.env.TARO_APP_NOFONT === 'true') {
-    install(kit, 1)
+    // install(kit, 1)
+    install(kit, 1, [], {})
   }
 }

@@ -37,7 +37,7 @@
     Shader,
     StrokeCap,
     StrokeJoin,
-} from "../types/canvaskit";
+} from "./mtex/canvaskit";
 
 import decompress from 'brotli/decompress';
 import { Buffer } from 'buffer';
@@ -219,6 +219,7 @@ class _Font extends SkEmbindObject<"Font"> implements Font {
     }
 }
 
+
 class _FontCollection extends SkEmbindObject<"FontCollection"> implements FontCollection {
     fontManager: TypefaceFontProvider | null = null;
 
@@ -286,6 +287,23 @@ class _ParagraphBuilderFactory implements ParagraphBuilderFactory {
     }
 }
 
+class _TypefaceFontProvider extends _FontMgr implements TypefaceFontProvider {
+
+    registerFont(bytes: ArrayBuffer | Uint8Array, family: string): void {
+        if (bytes instanceof Uint8Array) {
+            bytes = bytes.buffer;
+        }
+        // let arrayBuffer = uint8Array.buffer
+        // console.log(bytes)
+        const tf = new _TypefaceFactory().MakeFreeTypeFaceFromData(bytes)
+        this.typefaces.push(tf!)
+        const font = new FontFace(family, bytes);
+        font.load();
+        document.fonts.add(font);
+    }
+}
+
+
 class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr {
 
     typefaces: Typeface[] = []
@@ -314,22 +332,6 @@ class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr {
     matchFamilyStyle(name: string, style: FontStyle): Typeface {
         // const tf = new _Typeface()
         throw new Error("matchFamilyStyle not implemented.");
-    }
-}
-
-class _TypefaceFontProvider extends _FontMgr implements TypefaceFontProvider {
-
-    registerFont(bytes: ArrayBuffer | Uint8Array, family: string): void {
-        if (bytes instanceof Uint8Array) {
-            bytes = bytes.buffer;
-        }
-        // let arrayBuffer = uint8Array.buffer
-        // console.log(bytes)
-        const tf = new _TypefaceFactory().MakeFreeTypeFaceFromData(bytes)
-        this.typefaces.push(tf!)
-        const font = new FontFace(family, bytes);
-        font.load();
-        document.fonts.add(font);
     }
 }
 
