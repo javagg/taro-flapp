@@ -1,207 +1,122 @@
-import {
-    CanvasKit,
-    EmbindObject,
-    FontBlock, FontCollection,
-    FontMgrFactory,
-    FontCollectionFactory, FontMgr, ParagraphBuilder, ParagraphBuilderFactory, ParagraphStyle, ShapedLine, TypefaceFontProvider,
-    TypefaceFactory,
-    Typeface,
-    TypefaceFontProviderFactory,
-    Font,
-    FontEdging,
-    FontHinting,
-    InputGlyphIDArray,
-    GlyphIDArray,
-    Paint,
-    FontMetrics,
-    StrutStyle,
-    TextAlign,
-    TextDirection,
-    FontStyle,
-    TextHeightBehavior,
-    TextStyle,
-    DecorationStyle,
-    InputColor,
-    TextBaseline,
-    TextFontFeatures,
-    TextFontVariations,
-    TextShadow,
-    BlendMode,
-    Blender,
-    Color,
-    ColorFilter,
-    ColorInt,
-    ColorSpace,
-    GlyphInfo,
-    Image,
-    ImageFilter,
-    InputGraphemes,
-    InputLineBreaks,
-    InputWords,
-    LineMetrics,
-    MaskFilter,
-    PaintStyle,
-    Paragraph,
-    PathEffect,
-    PlaceholderAlignment,
-    PositionWithAffinity,
-    RectHeightStyle,
-    RectWidthStyle,
-    RectWithDirection,
-    Shader,
-    StrokeCap,
-    StrokeJoin,
-    URange,
-} from "./canvaskit";
-
-import {
-    colorToHex, convertToUpwardToPixelRatio, isEnglishWord, isPunctuation, isSquareCharacter,
-} from "./util";
-
-import {
-    default as layoutEngine,
-    bidi, Fragment, AttributedString,
-    fromFragments, linebreaker, justification, scriptItemizer,
-    textDecoration, fontSubstitution,
-} from '@react-pdf/textkit';
-
+import { colorToHex, convertToUpwardToPixelRatio, isEnglishWord, isPunctuation, isSquareCharacter, } from "./util";
+import { default as layoutEngine, bidi, fromFragments, linebreaker, justification, scriptItemizer, textDecoration, fontSubstitution, } from '@react-pdf/textkit';
 import FontStore from '@react-pdf/font';
-
-export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {
-    _deleted = false;
-    constructor(readonly _type: T) { }
-    delete(): void {
+export class SkEmbindObject {
+    constructor(_type) {
+        this._type = _type;
+        this._deleted = false;
+    }
+    delete() {
         this._deleted = true;
     }
-    deleteLater(): void {
+    deleteLater() {
         this._deleted = true;
     }
-    isAliasOf(other: any): boolean {
+    isAliasOf(other) {
         return other._type === this._type;
     }
-    isDeleted(): boolean {
+    isDeleted() {
         return this._deleted;
     }
 }
-
-export class _ParagraphBuilderFactory implements ParagraphBuilderFactory {
+export class _ParagraphBuilderFactory {
     /**
      * Creates a ParagraphBuilder using the fonts available from the given font provider.
      * @param style
      * @param fontSrc
      */
-    MakeFromFontProvider(style: ParagraphStyle, fontSrc: TypefaceFontProvider): ParagraphBuilder {
+    MakeFromFontProvider(style, fontSrc) {
         throw new Error("MakeFromFontProvider not implemented.");
     }
-
     /**
      * Return a shaped array of lines
      */
-    ShapeText(text: string, runs: FontBlock[], width?: number): ShapedLine[] {
+    ShapeText(text, runs, width) {
         throw new Error("ShapeText not implemented.");
     }
-
     /**
      * Creates a ParagraphBuilder using the fonts available from the given font manager.
      * @param style
      * @param fontManager
      */
-    Make(style: ParagraphStyle, fontManager: FontMgr): ParagraphBuilder {
+    Make(style, fontManager) {
         return this.MakeFromFontCollection(style, new _FontCollection());
     }
-
     /**
      * Creates a ParagraphBuilder using the given font collection.
      * @param style
      * @param fontCollection
      */
-    MakeFromFontCollection(style: ParagraphStyle, fontCollection: FontCollection): ParagraphBuilder {
-        return new _ParagraphBuilder(style)
+    MakeFromFontCollection(style, fontCollection) {
+        return new _ParagraphBuilder(style);
     }
-
     /**
      * Whether the paragraph builder requires ICU data to be provided by the
      * client.
      */
-    RequiresClientICU(): boolean {
+    RequiresClientICU() {
         return false;
     }
 }
-
-export class _FontCollection extends SkEmbindObject<"FontCollection"> implements FontCollection {
+export class _FontCollection extends SkEmbindObject {
     constructor() {
         super("FontCollection");
     }
-
-    setDefaultFontManager(fontManager: TypefaceFontProvider | null): void { }
-
-    enableFontFallback(): void { }
+    setDefaultFontManager(fontManager) { }
+    enableFontFallback() { }
 }
-
-export class _FontCollectionFactory implements FontCollectionFactory {
-    Make(): FontCollection {
+export class _FontCollectionFactory {
+    Make() {
         return new _FontCollection();
     }
 }
-
-export class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr {
-
+export class _FontMgr extends SkEmbindObject {
     /**
     * Return the number of font families loaded in this manager. Useful for debugging.
     */
     constructor() {
-        super("FontMgr")
+        super("FontMgr");
     }
-
-    countFamilies(): number {
+    countFamilies() {
         return 0;
     }
-
     /**
      * Return the nth family name. Useful for debugging.
      * @param index
      */
-    getFamilyName(index: number): string {
+    getFamilyName(index) {
         return "";
     }
-
     /**
      * Find the closest matching typeface to the specified familyName and style.
      */
-    matchFamilyStyle(name: string, style: FontStyle): Typeface {
+    matchFamilyStyle(name, style) {
         throw new Error("matchFamilyStyle not implemented.");
     }
 }
-
-export class _FontMgrFactory implements FontMgrFactory {
-    FromData(...buffers: ArrayBuffer[]): FontMgr | null {
-        return null
-    }
-}
-
-export class _TypefaceFactory implements TypefaceFactory {
-    GetDefault(): Typeface | null {
-        return null;
-    }
-
-    MakeTypefaceFromData(fontData: ArrayBuffer): Typeface | null {
-        return null;
-    }
-
-    MakeFreeTypeFaceFromData(fontData: ArrayBuffer): Typeface | null {
+export class _FontMgrFactory {
+    FromData(...buffers) {
         return null;
     }
 }
-
-export class _TypefaceFontProviderFactory implements TypefaceFontProviderFactory {
-    Make(): TypefaceFontProvider {
+export class _TypefaceFactory {
+    GetDefault() {
+        return null;
+    }
+    MakeTypefaceFromData(fontData) {
+        return null;
+    }
+    MakeFreeTypeFaceFromData(fontData) {
+        return null;
+    }
+}
+export class _TypefaceFontProviderFactory {
+    Make() {
         return new _TypefaceFontProvider();
     }
 }
-
-export class _TypefaceFontProvider extends _FontMgr implements TypefaceFontProvider {
-
-    registerFont(bytes: ArrayBuffer | Uint8Array, family: string): void {
+export class _TypefaceFontProvider extends _FontMgr {
+    registerFont(bytes, family) {
         // if (bytes instanceof Uint8Array) {
         //     bytes = bytes.buffer;
         // }
@@ -214,9 +129,7 @@ export class _TypefaceFontProvider extends _FontMgr implements TypefaceFontProvi
         // document.fonts.add(font);
     }
 }
-
-
-export class _Font extends SkEmbindObject<"Font"> implements Font {
+export class _Font extends SkEmbindObject {
     // /**
     //  * Constructs Font with default values with Typeface and size in points,
     //  * horizontal scale, and horizontal skew. Horizontal scale emulates condensed
@@ -226,121 +139,74 @@ export class _Font extends SkEmbindObject<"Font"> implements Font {
     //  * @param scaleX
     //  * @param skewX
     //  */
-    constructor(face: Typeface | null, size: number, scaleX: number, skewX: number) {
+    constructor(face, size, scaleX, skewX) {
         super("Font");
     }
-
-    getMetrics(): FontMetrics {
+    getMetrics() {
         return { ascent: 0, descent: 0, leading: 0 };
     }
-    getGlyphBounds(
-        glyphs: InputGlyphIDArray,
-        paint?: Paint | null,
-        output?: Float32Array
-    ): Float32Array {
+    getGlyphBounds(glyphs, paint, output) {
         return new Float32Array([0, 0, 0, 0]);
     }
-    getGlyphIDs(str: string, numCodePoints?: number,
-        output?: GlyphIDArray): GlyphIDArray {
+    getGlyphIDs(str, numCodePoints, output) {
         return new Uint16Array([]);
     }
-    getGlyphWidths(glyphs: InputGlyphIDArray, paint?: Paint | null,
-        output?: Float32Array): Float32Array {
+    getGlyphWidths(glyphs, paint, output) {
         return new Float32Array([]);
     }
-    getGlyphIntercepts(glyphs: InputGlyphIDArray, positions: Float32Array | number[],
-        top: number, bottom: number): Float32Array {
+    getGlyphIntercepts(glyphs, positions, top, bottom) {
         return new Float32Array([]);
     }
-    getScaleX(): number {
+    getScaleX() {
         return 1;
     }
-    getSize(): number {
+    getSize() {
         return 0;
     }
-    getSkewX(): number {
+    getSkewX() {
         return 1;
     }
-    isEmbolden(): boolean {
+    isEmbolden() {
         return false;
     }
-    getTypeface(): Typeface | null {
+    getTypeface() {
         return null;
     }
-    setEdging(edging: FontEdging): void { }
-    setEmbeddedBitmaps(embeddedBitmaps: boolean): void { }
-    setHinting(hinting: FontHinting): void { }
-    setLinearMetrics(linearMetrics: boolean): void {
-
+    setEdging(edging) { }
+    setEmbeddedBitmaps(embeddedBitmaps) { }
+    setHinting(hinting) { }
+    setLinearMetrics(linearMetrics) {
     }
-    setScaleX(sx: number): void {
+    setScaleX(sx) {
     }
-    setSize(points: number): void {
+    setSize(points) {
     }
-    setSkewX(sx: number): void {
+    setSkewX(sx) {
     }
-    setEmbolden(embolden: boolean): void {
+    setEmbolden(embolden) {
     }
-    setSubpixel(subpixel: boolean): void {
+    setSubpixel(subpixel) {
     }
-    setTypeface(face: Typeface | null): void {
+    setTypeface(face) {
     }
 }
-
-export class _ParagraphStyle implements ParagraphStyle {
-    constructor(ps: ParagraphStyle) {
+export class _ParagraphStyle {
+    constructor(ps) {
         Object.assign(this, ps);
     }
-
-    disableHinting?: boolean;
-    ellipsis?: string;
-    heightMultiplier?: number;
-    maxLines?: number;
-    replaceTabCharacters?: boolean;
-    strutStyle?: StrutStyle;
-    textAlign?: TextAlign;
-    textDirection?: TextDirection;
-    textHeightBehavior?: TextHeightBehavior;
-    textStyle?: TextStyle;
-    applyRoundingHack?: boolean;
 }
-
-export class _TextStyle implements TextStyle {
-    constructor(ts: TextStyle) {
+export class _TextStyle {
+    constructor(ts) {
         Object.assign(this, ts);
     }
-
-    backgroundColor?: InputColor;
-    color?: InputColor;
-    decoration?: number;
-    decorationColor?: InputColor;
-    decorationThickness?: number;
-    decorationStyle?: DecorationStyle;
-    fontFamilies?: string[];
-    fontFeatures?: TextFontFeatures[];
-    fontSize?: number;
-    fontStyle?: FontStyle;
-    fontVariations?: TextFontVariations[];
-    foregroundColor?: InputColor;
-    heightMultiplier?: number;
-    halfLeading?: boolean;
-    letterSpacing?: number;
-    locale?: string;
-    shadows?: TextShadow[];
-    textBaseline?: TextBaseline;
-    wordSpacing?: number;
 }
-
-
-export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implements ParagraphBuilder {
-
-    private spans: Span[] = [];
-    private styles: TextStyle[] = [];
-
-    constructor(private style: ParagraphStyle) {
-        super("ParagraphBuilder")
+export class _ParagraphBuilder extends SkEmbindObject {
+    constructor(style) {
+        super("ParagraphBuilder");
+        this.style = style;
+        this.spans = [];
+        this.styles = [];
     }
-
     /**
      * Pushes the information required to leave an open space.
      * @param width
@@ -349,36 +215,33 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      * @param baseline
      * @param offset
      */
-    addPlaceholder(width?: number, height?: number, alignment?: PlaceholderAlignment, baseline?: TextBaseline, offset?: number): void {
+    addPlaceholder(width, height, alignment, baseline, offset) {
         throw new Error("addPlaceholder not implemented.");
     }
-
     /**
      * Adds text to the builder. Forms the proper runs to use the upper-most style
      * on the style_stack.
      * @param str
      */
-    addText(str: string): void {
+    addText(str) {
         console.log("ParagraphBuilder.addText", str);
         // console.log(this.style)
-        let mergedStyle: TextStyle = {};
+        let mergedStyle = {};
         this.styles.forEach((it) => {
             Object.assign(mergedStyle, it);
         });
         const span = new TextSpan(str, mergedStyle);
         this.spans.push(span);
     }
-
     /**
      * Returns a Paragraph object that can be used to be layout and paint the text to an
      * Canvas.
      */
-    build(): Paragraph {
+    build() {
         console.log("ParagraphBuilder.build");
         // return new Paragraph(this.spans, this.style, this.iconFontData);
-        return new _Paragraph(this.style)
+        return new _Paragraph(this.style);
     }
-
     /**
      * @param words is an array of word edges (starting or ending). You can
      * pass 2 elements (0 as a start of the entire text and text.size as the
@@ -387,8 +250,7 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      * The indices are expected to be relative to the UTF-8 representation of
      * the text.
      */
-    setWordsUtf8(words: InputWords): void { }
-
+    setWordsUtf8(words) { }
     /**
      * @param words is an array of word edges (starting or ending). You can
      * pass 2 elements (0 as a start of the entire text and text.size as the
@@ -399,8 +261,7 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      *
      * The `Intl.Segmenter` API can be used as a source for this data.
      */
-    setWordsUtf16(words: InputWords): void { }
-
+    setWordsUtf16(words) { }
     /**
      * @param graphemes is an array of indexes in the input text that point
      * to the start of each grapheme.
@@ -408,8 +269,7 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      * The indices are expected to be relative to the UTF-8 representation of
      * the text.
      */
-    setGraphemeBreaksUtf8(graphemes: InputGraphemes): void { }
-
+    setGraphemeBreaksUtf8(graphemes) { }
     /**
      * @param graphemes is an array of indexes in the input text that point
      * to the start of each grapheme.
@@ -417,8 +277,7 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      * The indices are expected to be relative to the UTF-8 representation of
      * the text.
      */
-    setGraphemeBreaksUtf16(graphemes: InputGraphemes): void { }
-
+    setGraphemeBreaksUtf16(graphemes) { }
     /**
      * @param lineBreaks is an array of unsigned integers that should be
      * treated as pairs (index, break type) that point to the places of possible
@@ -428,8 +287,7 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      * The indices are expected to be relative to the UTF-8 representation of
      * the text.
      */
-    setLineBreaksUtf8(lineBreaks: InputLineBreaks): void { }
-
+    setLineBreaksUtf8(lineBreaks) { }
     /**
      * @param lineBreaks is an array of unsigned integers that should be
      * treated as pairs (index, break type) that point to the places of possible
@@ -441,13 +299,12 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      *
      * Chrome's `v8BreakIterator` API can be used as a source for this data.
      */
-    setLineBreaksUtf16(lineBreaks: InputLineBreaks): void { }
-
+    setLineBreaksUtf16(lineBreaks) { }
     /**
      * Returns the entire Paragraph text (which is useful in case that text
      * was produced as a set of addText calls).
      */
-    getText(): string {
+    getText() {
         let text = "";
         this.spans.forEach((it) => {
             if (it instanceof TextSpan) {
@@ -461,79 +318,64 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
         }
         return text;
     }
-
     /**
     * Remove a style from the stack. Useful to apply different styles to chunks
     * of text such as bolding.
     */
-    pop(): void {
+    pop() {
         this.styles.pop();
     }
-
     /**
      * Push a style to the stack. The corresponding text added with addText will
      * use the top-most style.
      * @param textStyle
      */
-    pushStyle(text: TextStyle): void {
+    pushStyle(text) {
         this.styles.push(text);
     }
-
     /**
      * Pushes a TextStyle using paints instead of colors for foreground and background.
      * @param textStyle
      * @param fg
      * @param bg
      */
-    pushPaintStyle(textStyle: TextStyle, fg: Paint, bg: Paint): void {
+    pushPaintStyle(textStyle, fg, bg) {
         this.styles.push(textStyle);
     }
-
     /**
      * Resets this builder to its initial state, discarding any text, styles, placeholders that have
      * been added, but keeping the initial ParagraphStyle.
      */
-    reset(): void {
+    reset() {
         this.spans = [];
         this.styles = [];
     }
 }
-
-export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph {
-
-    iconFontMap?: Record<string, string>;
-
-    public skImageCache?: Image;
-    public skImageWidth?: number;
-    public skImageHeight?: number;
-    // private _textLayout = new TextLayout(this);
-
-    glyphInfos: GlyphInfo[] = [];
-    lineMetrics: LineMetrics[] = [];
-    _didExceedMaxLines: boolean = false;
-
-    private previousLayoutWidth: number = 0;
-
-    constructor(private style: ParagraphStyle, private context: CanvasRenderingContext2D) {
-        super("Paragraph")
+export class _Paragraph extends SkEmbindObject {
+    constructor(style, context) {
+        super("Paragraph");
+        this.style = style;
+        this.context = context;
+        // private _textLayout = new TextLayout(this);
+        this.glyphInfos = [];
+        this.lineMetrics = [];
+        this._didExceedMaxLines = false;
+        this.previousLayoutWidth = 0;
         // if (this.iconFontData) {
         // this.iconFontMap = JSON.parse(this.iconFontData);
         //   }
     }
-
-    didExceedMaxLines(): boolean {
+    didExceedMaxLines() {
         return this._didExceedMaxLines;
     }
-
-    getAlphabeticBaseline(): number {
+    getAlphabeticBaseline() {
         return 0;
     }
-
     /**
      * Returns the index of the glyph that corresponds to the provided coordinate,
      * with the top left corner as the origin, and +y direction as down.
      */
-    getGlyphPositionAtCoordinate(dx: number, dy: number): PositionWithAffinity {
+    getGlyphPositionAtCoordinate(dx, dy) {
         this._textLayout.measureGlyphIfNeeded();
         for (let index = 0; index < this._textLayout.glyphInfos.length; index++) {
             const glyphInfo = this._textLayout.glyphInfos[index];
@@ -558,7 +400,8 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
                         pos: lineMetrics.startIndex,
                         affinity: { value: Affinity.Downstream },
                     };
-                } else if (dx >= width) {
+                }
+                else if (dx >= width) {
                     return {
                         pos: lineMetrics.endIndex,
                         affinity: { value: Affinity.Downstream },
@@ -574,28 +417,25 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         }
         return { pos: 0, affinity: { value: Affinity.Upstream } };
     }
-
     /**
      * Returns the information associated with the closest glyph at the specified
      * paragraph coordinate, or null if the paragraph is empty.
      */
-    getClosestGlyphInfoAtCoordinate(dx: number, dy: number): GlyphInfo | null {
+    getClosestGlyphInfoAtCoordinate(dx, dy) {
         return this.getGlyphInfoAt(this.getGlyphPositionAtCoordinate(dx, dy).pos);
-
     }
-
     /**
      * Returns the information associated with the glyph at the specified UTF-16
      * offset within the paragraph's visible lines, or null if the index is out
      * of bounds, or points to a codepoint that is logically after the last
      * visible codepoint.
      */
-    getGlyphInfoAt(index: number): GlyphInfo | null {
+    getGlyphInfoAt(index) {
+        var _a;
         this.measureGlyphIfNeeded();
-        return this.glyphInfos[index] ?? null;
+        return (_a = this.glyphInfos[index]) !== null && _a !== void 0 ? _a : null;
     }
-
-    getHeight(): number {
+    getHeight() {
         const lineMetrics = this.getLineMetrics();
         let height = 0;
         for (let i = 0; i < lineMetrics.length; i++) {
@@ -607,35 +447,32 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         // console.log("getHeight", height);
         return height;
     }
-
-    getIdeographicBaseline(): number {
+    getIdeographicBaseline() {
         return 0;
     }
-
     /**
      * Returns the line number of the line that contains the specified UTF-16
      * offset within the paragraph, or -1 if the index is out of bounds, or
      * points to a codepoint that is logically after the last visible codepoint.
      */
-    getLineNumberAt(index: number): number {
-        return this.getLineMetricsOfRange(index, index)[0]?.lineNumber ?? 0;
+    getLineNumberAt(index) {
+        var _a, _b;
+        return (_b = (_a = this.getLineMetricsOfRange(index, index)[0]) === null || _a === void 0 ? void 0 : _a.lineNumber) !== null && _b !== void 0 ? _b : 0;
     }
-
-    getLineMetrics(): LineMetrics[] {
+    getLineMetrics() {
         return this.lineMetrics;
     }
-
     /**
      * Returns the LineMetrics of the line at the specified line number, or null
      * if the line number is out of bounds, or is larger than or equal to the
      * specified max line number.
      */
-    getLineMetricsAt(lineNumber: number): LineMetrics | null {
-        return this.lineMetrics[lineNumber] ?? null;
+    getLineMetricsAt(lineNumber) {
+        var _a;
+        return (_a = this.lineMetrics[lineNumber]) !== null && _a !== void 0 ? _a : null;
     }
-
-    getLineMetricsOfRange(start: number, end: number): LineMetrics[] {
-        let lineMetrics: LineMetrics[] = [];
+    getLineMetricsOfRange(start, end) {
+        let lineMetrics = [];
         this.lineMetrics.forEach((it) => {
             const range0 = [start, end];
             const range1 = [it.startIndex, it.endIndex];
@@ -646,36 +483,30 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         });
         return lineMetrics;
     }
-    getLongestLine(): number {
+    getLongestLine() {
         return 0;
     }
-
-    getMaxIntrinsicWidth(): number {
+    getMaxIntrinsicWidth() {
+        var _a;
         const lineMetrics = this.getLineMetrics();
         let maxWidth = 0;
         for (let i = 0; i < lineMetrics.length; i++) {
-            maxWidth = Math.max(
-                maxWidth,
-                lineMetrics[i].justifyWidth ?? lineMetrics[i].width
-            );
+            maxWidth = Math.max(maxWidth, (_a = lineMetrics[i].justifyWidth) !== null && _a !== void 0 ? _a : lineMetrics[i].width);
         }
         // console.log("getMaxIntrinsicWidth", maxWidth);
         return maxWidth;
     }
-    getMaxWidth(): number {
+    getMaxWidth() {
+        var _a;
         const lineMetrics = this.getLineMetrics();
         let maxWidth = 0;
         for (let i = 0; i < lineMetrics.length; i++) {
-            maxWidth = Math.max(
-                maxWidth,
-                lineMetrics[i].justifyWidth ?? lineMetrics[i].width
-            );
+            maxWidth = Math.max(maxWidth, (_a = lineMetrics[i].justifyWidth) !== null && _a !== void 0 ? _a : lineMetrics[i].width);
         }
         // console.log("getMaxWidth", maxWidth);
         return maxWidth;
     }
-
-    getMinIntrinsicWidth(): number {
+    getMinIntrinsicWidth() {
         const lineMetrics = this.getLineMetrics();
         let width = 0;
         for (let i = 0; i < lineMetrics.length; i++) {
@@ -684,18 +515,15 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         // console.log("getMinIntrinsicWidth", width);
         return width;
     }
-
     /**
      * Returns the total number of visible lines in the paragraph.
      */
-    getNumberOfLines(): number {
+    getNumberOfLines() {
         return this.lineMetrics.length;
     }
-
-    getRectsForPlaceholders(): RectWithDirection[] {
+    getRectsForPlaceholders() {
         return [];
     }
-
     /**
      * Returns bounding boxes that enclose all text in the range of glpyh indexes [start, end).
      * @param start
@@ -703,9 +531,9 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
      * @param hStyle
      * @param wStyle
      */
-    getRectsForRange(start: number, end: number, hStyle: RectHeightStyle, wStyle: RectWidthStyle): RectWithDirection[] {
+    getRectsForRange(start, end, hStyle, wStyle) {
         this.measureGlyphIfNeeded();
-        let result: RectWithDirection[] = [];
+        let result = [];
         this.lineMetrics.forEach((it) => {
             const range0 = [start, end];
             const range1 = [it.startIndex, it.endIndex];
@@ -728,16 +556,10 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
                         if (currentLineTop < 0) {
                             currentLineTop = glyphInfo.graphemeLayoutBounds[1];
                         }
-                        currentLineTop = Math.min(
-                            currentLineTop,
-                            glyphInfo.graphemeLayoutBounds[1]
-                        );
+                        currentLineTop = Math.min(currentLineTop, glyphInfo.graphemeLayoutBounds[1]);
                         currentLineWidth =
                             glyphInfo.graphemeLayoutBounds[2] - currentLineLeft;
-                        currentLineHeight = Math.max(
-                            currentLineHeight,
-                            glyphInfo.graphemeLayoutBounds[3] - currentLineTop
-                        );
+                        currentLineHeight = Math.max(currentLineHeight, glyphInfo.graphemeLayoutBounds[3] - currentLineTop);
                     }
                 }
                 result.push({
@@ -753,13 +575,10 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         });
         if (result.length === 0) {
             const lastSpan = this.spans[this.spans.length - 1];
-            const lastLine =
-                this.lineMetrics[this.lineMetrics.length - 1];
-            if (
-                end > lastLine.endIndex &&
+            const lastLine = this.lineMetrics[this.lineMetrics.length - 1];
+            if (end > lastLine.endIndex &&
                 lastSpan instanceof TextSpan &&
-                lastSpan.originText.endsWith("\n")
-            ) {
+                lastSpan.originText.endsWith("\n")) {
                 return [
                     {
                         rect: new Float32Array([
@@ -775,28 +594,25 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         }
         return result;
     }
-
     /**
      * Finds the first and last glyphs that define a word containing the glyph at index offset.
      * @param offset
      */
-    getWordBoundary(offset: number): URange {
+    getWordBoundary(offset) {
         return { start: offset, end: offset };
     }
-
     /**
      * Returns an array of ShapedLine objects, describing the paragraph.
      */
-    getShapedLines(): ShapedLine[] {
+    getShapedLines() {
         return [];
     }
-
     /**
      * Lays out the text in the paragraph so it is wrapped to the given width.
      * @param width
      */
-    layout(width: number): void {
-        console.log("Paragraph.layout")
+    layout(width) {
+        console.log("Paragraph.layout");
         if (this.skImageCache) {
             this.skImageCache.delete();
         }
@@ -809,7 +625,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         this.previousLayoutWidth = layoutWidth;
         // this.initCanvas();
         this.glyphInfos = [];
-        let currentLineMetrics: LineMetrics = {
+        let currentLineMetrics = {
             startIndex: 0,
             endIndex: 0,
             endExcludingWhitespaces: 0,
@@ -833,24 +649,25 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
             lineNumber: 0,
             // isLastLine: false,
         };
-        let lineMetrics: LineMetrics[] = [];
+        let lineMetrics = [];
         const spans = spanWithNewline(this.spans);
         spans.forEach((span) => {
+            var _a, _b, _c, _d;
             if (span instanceof TextSpan) {
                 this.context.font = span.toCanvasFont();
                 // TextLayout.sharedLayoutContext.font = span.toCanvasFont();
                 // const matrics = TextLayout.sharedLayoutContext.measureText(span.originText);
-                const matrics = this.context.measureText(span.originText)
-
+                const matrics = this.context.measureText(span.originText);
                 let iconFontWidth = 0;
                 if (this.iconFontData) {
-                    const fontSize = span.style.fontSize ?? 14;
+                    const fontSize = (_a = span.style.fontSize) !== null && _a !== void 0 ? _a : 14;
                     iconFontWidth = fontSize;
                     currentLineMetrics.ascent = fontSize;
                     currentLineMetrics.descent = 0;
                     span.letterBaseline = fontSize;
                     span.letterHeight = fontSize;
-                } else {
+                }
+                else {
                     // const mHeight = TextLayout.sharedLayoutContext.measureText("M").width;
                     const mHeight = this.context.measureText("M").width;
                     currentLineMetrics.ascent = mHeight * 1.15;
@@ -858,119 +675,97 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
                     span.letterBaseline = mHeight * 1.15;
                     span.letterHeight = mHeight * 1.15 + mHeight * 0.35;
                 }
-
                 if (span.style.heightMultiplier && span.style.heightMultiplier > 0) {
-                    currentLineMetrics.heightMultiplier = Math.max(
-                        currentLineMetrics.heightMultiplier,
-                        span.style.heightMultiplier / 1.5
-                    );
+                    currentLineMetrics.heightMultiplier = Math.max(currentLineMetrics.heightMultiplier, span.style.heightMultiplier / 1.5);
                 }
-
-                currentLineMetrics.height = Math.max(
-                    currentLineMetrics.height,
-                    currentLineMetrics.ascent + currentLineMetrics.descent
-                );
-
-                currentLineMetrics.baseline = Math.max(
-                    currentLineMetrics.baseline,
-                    currentLineMetrics.ascent
-                );
-
+                currentLineMetrics.height = Math.max(currentLineMetrics.height, currentLineMetrics.ascent + currentLineMetrics.descent);
+                currentLineMetrics.baseline = Math.max(currentLineMetrics.baseline, currentLineMetrics.ascent);
                 if (this.iconFontData) {
                     const textWidth = span.charSequence.length * iconFontWidth;
                     currentLineMetrics.endIndex += span.charSequence.length;
                     currentLineMetrics.width += textWidth;
-                } else if (
-                    currentLineMetrics.width + matrics.width < layoutWidth &&
+                }
+                else if (currentLineMetrics.width + matrics.width < layoutWidth &&
                     !span.hasLetterSpacing() &&
                     !span.hasWordSpacing() &&
-                    !forceCalcGlyphInfos
-                ) {
+                    !forceCalcGlyphInfos) {
                     // fast measure
                     if (span instanceof NewlineSpan) {
                         const newLineMatrics = this.createNewLine(currentLineMetrics);
                         lineMetrics.push(currentLineMetrics);
                         currentLineMetrics = newLineMatrics;
-                    } else {
+                    }
+                    else {
                         currentLineMetrics.endIndex += span.charSequence.length;
                         currentLineMetrics.width += matrics.width;
-                        if (span.style.fontStyle?.slant?.value === FontSlant.Italic) {
+                        if (((_c = (_b = span.style.fontStyle) === null || _b === void 0 ? void 0 : _b.slant) === null || _c === void 0 ? void 0 : _c.value) === FontSlant.Italic) {
                             currentLineMetrics.width += 2;
                         }
                     }
-                } else {
-                    let letterMeasureResult = LetterMeasurer.measureLetters(
-                        span,
-                        this.context, //TextLayout.sharedLayoutContext
-                    );
-                    let advances: number[] = letterMeasureResult.advances;
-
+                }
+                else {
+                    let letterMeasureResult = LetterMeasurer.measureLetters(span, this.context);
+                    let advances = letterMeasureResult.advances;
                     if (span instanceof NewlineSpan) {
                         advances = [0, 0];
                     }
-
-                    if (
-                        Math.abs(advances[advances.length - 1] - layoutWidth) < 10 &&
-                        layoutWidth === this.previousLayoutWidth
-                    ) {
+                    if (Math.abs(advances[advances.length - 1] - layoutWidth) < 10 &&
+                        layoutWidth === this.previousLayoutWidth) {
                         layoutWidth = advances[advances.length - 1];
                     }
-
                     let currentWord = "";
                     let currentWordWidth = 0;
                     let currentWordLength = 0;
                     let nextWordWidth = 0;
                     let canBreak = true;
                     let forceBreak = false;
-
                     for (let index = 0; index < span.charSequence.length; index++) {
                         const letter = span.charSequence[index];
                         currentWord += letter;
                         let currentLetterLeft = currentWordWidth;
                         let spanEnded = span.charSequence[index + 1] === undefined;
-                        let nextWord = currentWord + span.charSequence[index + 1] ?? "";
+                        let nextWord = (_d = currentWord + span.charSequence[index + 1]) !== null && _d !== void 0 ? _d : "";
                         if (advances[index + 1] === undefined) {
                             currentWordWidth += advances[index] - advances[index - 1];
-                        } else {
+                        }
+                        else {
                             currentWordWidth += advances[index + 1] - advances[index];
                         }
                         if (advances[index + 2] === undefined) {
                             nextWordWidth = currentWordWidth;
-                        } else {
+                        }
+                        else {
                             nextWordWidth =
                                 currentWordWidth + (advances[index + 2] - advances[index + 1]);
                         }
                         currentWordLength += 1;
                         canBreak = true;
                         forceBreak = false;
-
                         if (spanEnded) {
                             canBreak = true;
-                        } else if (isEnglishWord(nextWord)) {
+                        }
+                        else if (isEnglishWord(nextWord)) {
                             canBreak = false;
                         }
-                        if (
-                            isPunctuation(nextWord[nextWord.length - 1]) &&
-                            currentLineMetrics.width + nextWordWidth >= layoutWidth
-                        ) {
+                        if (isPunctuation(nextWord[nextWord.length - 1]) &&
+                            currentLineMetrics.width + nextWordWidth >= layoutWidth) {
                             forceBreak = true;
                         }
                         if (span instanceof NewlineSpan) {
                             forceBreak = true;
                         }
-
-                        const currentGlyphLeft =
-                            currentLineMetrics.width + currentLetterLeft;
+                        const currentGlyphLeft = currentLineMetrics.width + currentLetterLeft;
                         const currentGlyphTop = currentLineMetrics.yOffset;
                         const currentGlyphWidth = (() => {
                             if (advances[index + 1] === undefined) {
                                 return advances[index] - advances[index - 1];
-                            } else {
+                            }
+                            else {
                                 return advances[index + 1] - advances[index];
                             }
                         })();
                         const currentGlyphHeight = currentLineMetrics.height;
-                        const currentGlyphInfo: GlyphInfo = {
+                        const currentGlyphInfo = {
                             graphemeLayoutBounds: Float32Array.from([
                                 currentGlyphLeft,
                                 currentGlyphTop,
@@ -982,25 +777,21 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
                             isEllipsis: false,
                         };
                         this.glyphInfos.push(currentGlyphInfo);
-
                         if (!canBreak) {
                             continue;
-                        } else if (
-                            !forceBreak &&
-                            currentLineMetrics.width + currentWordWidth <= layoutWidth
-                        ) {
+                        }
+                        else if (!forceBreak &&
+                            currentLineMetrics.width + currentWordWidth <= layoutWidth) {
                             currentLineMetrics.width += currentWordWidth;
                             currentLineMetrics.endIndex += currentWordLength;
                             currentWord = "";
                             currentWordWidth = 0;
                             currentWordLength = 0;
                             canBreak = true;
-                        } else if (
-                            forceBreak ||
-                            currentLineMetrics.width + currentWordWidth > layoutWidth
-                        ) {
-                            const newLineMatrics: LineMetrics =
-                                this.createNewLine(currentLineMetrics);
+                        }
+                        else if (forceBreak ||
+                            currentLineMetrics.width + currentWordWidth > layoutWidth) {
+                            const newLineMatrics = this.createNewLine(currentLineMetrics);
                             lineMetrics.push(currentLineMetrics);
                             currentLineMetrics = newLineMatrics;
                             currentLineMetrics.width += currentWordWidth;
@@ -1011,7 +802,6 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
                             canBreak = true;
                         }
                     }
-
                     if (currentWord.length > 0) {
                         currentLineMetrics.width += currentWordWidth;
                         currentLineMetrics.endIndex += currentWordLength;
@@ -1020,31 +810,26 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
             }
         });
         lineMetrics.push(currentLineMetrics);
-        if (
-            this.style.maxLines &&
-            lineMetrics.length > this.style.maxLines
-        ) {
+        if (this.style.maxLines &&
+            lineMetrics.length > this.style.maxLines) {
             this._didExceedMaxLines = true;
-            lineMetrics = lineMetrics.slice(
-                0,
-                this.style.maxLines
-            );
-        } else {
+            lineMetrics = lineMetrics.slice(0, this.style.maxLines);
+        }
+        else {
             this._didExceedMaxLines = false;
         }
         lineMetrics[lineMetrics.length - 1].isLastLine = true;
         this.lineMetrics = lineMetrics;
     }
-
     /**
      * When called after shaping, returns the glyph IDs which were not matched
      * by any of the provided fonts.
      */
-    unresolvedCodepoints(): number[] {
+    unresolvedCodepoints() {
         return [];
     }
-
-    private createNewLine(currentLineMetrics: LineMetrics): LineMetrics {
+    createNewLine(currentLineMetrics) {
+        var _a;
         return {
             startIndex: currentLineMetrics.endIndex,
             endIndex: currentLineMetrics.endIndex,
@@ -1054,15 +839,11 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
             ascent: currentLineMetrics.ascent,
             descent: currentLineMetrics.descent,
             height: currentLineMetrics.height,
-            heightMultiplier: Math.max(
-                1,
-                (this.style.heightMultiplier ?? 1.5) / 1.5
-            ),
+            heightMultiplier: Math.max(1, ((_a = this.style.heightMultiplier) !== null && _a !== void 0 ? _a : 1.5) / 1.5),
             width: 0,
             justifyWidth: currentLineMetrics.justifyWidth,
             left: 0,
-            yOffset:
-                currentLineMetrics.yOffset +
+            yOffset: currentLineMetrics.yOffset +
                 currentLineMetrics.height * currentLineMetrics.heightMultiplier +
                 currentLineMetrics.height * 0.15, // 行间距
             baseline: currentLineMetrics.baseline,
@@ -1070,81 +851,60 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
             isLastLine: false,
         };
     }
-
-
-    private measureGlyphIfNeeded() {
+    measureGlyphIfNeeded() {
         if (Object.keys(this.glyphInfos).length <= 0) {
             this.layout(-1, true);
         }
     }
 }
-
-class _Paint extends SkEmbindObject<"Paint"> implements Paint {
-
-    private _color: Color = Float32Array.from([0, 0, 0, 255]);
-
-    private _strokeCap = CanvasKit.StrokeCap.Butt;
-
-    private _strokeJoin = CanvasKit.StrokeJoin.Bevel;
-
-    private _strokeMiter = 0;
-
-    private _strokeWidth = 0;
-
-    private _alpha = 1.0;
-
-    private _antiAlias = true;
-
+class _Paint extends SkEmbindObject {
     constructor() {
-        super("Paint")
+        super("Paint");
+        this._color = Float32Array.from([0, 0, 0, 255]);
+        this._strokeCap = CanvasKit.StrokeCap.Butt;
+        this._strokeJoin = CanvasKit.StrokeJoin.Bevel;
+        this._strokeMiter = 0;
+        this._strokeWidth = 0;
+        this._alpha = 1.0;
+        this._antiAlias = true;
     }
-
     /**
      * Returns a copy of this paint.
      */
-    copy(): Paint {
+    copy() {
         const newValue = new _Paint();
         Object.assign(newValue, this);
         return newValue;
     }
-
-    getColor(): Color {
+    getColor() {
         return this._color;
     }
-
-    getStrokeCap(): StrokeCap {
+    getStrokeCap() {
         return this._strokeCap;
     }
-
-    getStrokeJoin(): StrokeJoin {
+    getStrokeJoin() {
         return this._strokeJoin;
     }
-
-    getStrokeMiter(): number {
+    getStrokeMiter() {
         return this._strokeMiter;
     }
-
-    getStrokeWidth(): number {
+    getStrokeWidth() {
         return this._strokeWidth;
     }
-
-    setAlphaf(alpha: number): void {
-        this._alpha = alpha
+    setAlphaf(alpha) {
+        this._alpha = alpha;
     }
-
-    setAntiAlias(aa: boolean): void {
+    setAntiAlias(aa) {
         this._antiAlias = aa;
     }
-
     /**
      * Sets the blend mode that is, the mode used to combine source color
      * with destination color.
      * @param mode
      */
-    setBlendMode(mode: BlendMode): void {
+    setBlendMode(mode) {
         throw new Error("Method not implemented.");
     }
-
     /**
      * Sets the current blender, increasing its refcnt, and if a blender is already
      * present, decreasing that object's refcnt.
@@ -1155,135 +915,110 @@ class _Paint extends SkEmbindObject<"Paint"> implements Paint {
      * as one of those values.
      * @param blender
      */
-    setBlender(blender: Blender): void {
+    setBlender(blender) {
         throw new Error("Method not implemented.");
     }
-
-    setColor(color: InputColor, colorSpace?: ColorSpace): void {
+    setColor(color, colorSpace) {
         this._color = color;
     }
-
-    setColorComponents(r: number, g: number, b: number, a: number, colorSpace?: ColorSpace): void {
+    setColorComponents(r, g, b, a, colorSpace) {
         this.setColor(Float32Array.from([r, g, b, a]));
     }
-
-    setColorFilter(filter: ColorFilter | null): void { }
-
-    setColorInt(color: ColorInt, colorSpace?: ColorSpace): void { }
-
-    setDither(shouldDither: boolean): void {
+    setColorFilter(filter) { }
+    setColorInt(color, colorSpace) { }
+    setDither(shouldDither) {
         throw new Error("Method not implemented.");
     }
-
-    setImageFilter(filter: ImageFilter | null): void {
+    setImageFilter(filter) {
         throw new Error("Method not implemented.");
     }
-
-    setMaskFilter(filter: MaskFilter | null): void {
+    setMaskFilter(filter) {
         throw new Error("Method not implemented.");
     }
-
-    setPathEffect(effect: PathEffect | null): void {
+    setPathEffect(effect) {
         throw new Error("Method not implemented.");
     }
-
-    setShader(shader: Shader | null): void {
+    setShader(shader) {
         throw new Error("Method not implemented.");
     }
-
-    setStrokeCap(cap: StrokeCap): void {
+    setStrokeCap(cap) {
         throw new Error("Method not implemented.");
     }
-
-    setStrokeJoin(join: StrokeJoin): void {
+    setStrokeJoin(join) {
         throw new Error("Method not implemented.");
     }
-
-    setStrokeMiter(limit: number): void {
+    setStrokeMiter(limit) {
         throw new Error("Method not implemented.");
     }
-
-    setStrokeWidth(width: number): void {
+    setStrokeWidth(width) {
         throw new Error("Method not implemented.");
     }
-
-    setStyle(style: PaintStyle): void {
+    setStyle(style) {
         throw new Error("Method not implemented.");
     }
 }
-
-export interface LetterRect {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-}
-
 export class Span {
-    letterBaseline: number = 0;
-    letterHeight: number = 0;
-    lettersBounding: LetterRect[] = [];
+    constructor() {
+        this.letterBaseline = 0;
+        this.letterHeight = 0;
+        this.lettersBounding = [];
+    }
 }
-
 export class TextSpan extends Span {
-    charSequence: string[];
-    originText: string;
-
-    constructor(private readonly text: string, readonly style: TextStyle) {
+    constructor(text, style) {
         super();
+        this.text = text;
+        this.style = style;
         this.charSequence = Array.from(text);
         this.originText = text;
     }
-
     hasLetterSpacing() {
-        return (
-            this.style.letterSpacing !== undefined && this.style.letterSpacing > 1
-        );
+        return (this.style.letterSpacing !== undefined && this.style.letterSpacing > 1);
     }
-
     hasWordSpacing() {
         return this.style.wordSpacing !== undefined && this.style.wordSpacing > 1;
     }
-
-    hasJustifySpacing(paragraphStyle: ParagraphStyle) {
-        return paragraphStyle.textAlign?.value === TextAlign.Justify;
+    hasJustifySpacing(paragraphStyle) {
+        var _a;
+        return ((_a = paragraphStyle.textAlign) === null || _a === void 0 ? void 0 : _a.value) === TextAlign.Justify;
     }
-
-    toBackgroundFillStyle(): string {
+    toBackgroundFillStyle() {
         if (this.style.backgroundColor) {
-            return colorToHex(this.style.backgroundColor as Float32Array);
-        } else {
+            return colorToHex(this.style.backgroundColor);
+        }
+        else {
             return "#000000";
         }
     }
-
-    toTextFillStyle(): string {
+    toTextFillStyle() {
         if (this.style.color) {
-            return colorToHex(this.style.color as Float32Array);
-        } else {
+            return colorToHex(this.style.color);
+        }
+        else {
             return "#000000";
         }
     }
-
-    toDecorationStrokeStyle(): string {
+    toDecorationStrokeStyle() {
         if (this.style.decorationColor) {
-            return colorToHex(this.style.decorationColor as Float32Array);
-        } else {
+            return colorToHex(this.style.decorationColor);
+        }
+        else {
             return "#000000";
         }
     }
-
-    toCanvasFont(): string {
+    toCanvasFont() {
+        var _a, _b, _c, _d;
         let font = `${this.style.fontSize}px system-ui, Roboto`;
-        const fontWeight = this.style.fontStyle?.weight?.value;
+        const fontWeight = (_b = (_a = this.style.fontStyle) === null || _a === void 0 ? void 0 : _a.weight) === null || _b === void 0 ? void 0 : _b.value;
         if (fontWeight && fontWeight !== 400) {
             if (fontWeight >= 900) {
                 font = "900 " + font;
-            } else {
+            }
+            else {
                 font = fontWeight.toFixed(0) + " " + font;
             }
         }
-        const slant = this.style.fontStyle?.slant?.value;
+        const slant = (_d = (_c = this.style.fontStyle) === null || _c === void 0 ? void 0 : _c.slant) === null || _d === void 0 ? void 0 : _d.value;
         if (slant) {
             switch (slant) {
                 case FontSlant.Italic:
@@ -1297,15 +1032,13 @@ export class TextSpan extends Span {
         return font;
     }
 }
-
 export class NewlineSpan extends TextSpan {
     constructor() {
         super("\n", {});
     }
 }
-
-export const spanWithNewline = (spans: Span[]): Span[] => {
-    let result: Span[] = [];
+export const spanWithNewline = (spans) => {
+    let result = [];
     spans.forEach((span) => {
         if (span instanceof TextSpan) {
             if (span.originText.indexOf("\n") >= 0) {
@@ -1324,83 +1057,51 @@ export const spanWithNewline = (spans: Span[]): Span[] => {
     });
     return result;
 };
-
-
-interface LetterMeasureResult {
-    useCount: number;
-    width: number;
-}
-
 class LetterMeasurer {
-    private static LRUConfig = {
-        maxCacheCount: 1000,
-        minCacheCount: 200,
-    };
-
-    private static measureLRUCache: Record<string, LetterMeasureResult> = {};
-
-    static measureLetters(
-        span: TextSpan,
-        context: CanvasRenderingContext2D
-    ): { advances: number[] } {
-        let advances: number[] = [0];
+    static measureLetters(span, context) {
+        let advances = [0];
         let curPosWidth = 0;
         for (let index = 0; index < span.charSequence.length; index++) {
             const letter = span.charSequence[index];
             let wordWidth = (() => {
                 if (isSquareCharacter(letter)) {
                     return this.measureSquareCharacter(context);
-                } else {
+                }
+                else {
                     return this.measureNormalLetter(letter, context);
                 }
             })();
-            if (
-                span.hasWordSpacing() &&
+            if (span.hasWordSpacing() &&
                 letter === " " &&
-                isEnglishWord(span.charSequence[index - 1])
-            ) {
-                wordWidth = span.style.wordSpacing!;
-            } else if (span.hasLetterSpacing()) {
-                wordWidth += span.style.letterSpacing!;
+                isEnglishWord(span.charSequence[index - 1])) {
+                wordWidth = span.style.wordSpacing;
+            }
+            else if (span.hasLetterSpacing()) {
+                wordWidth += span.style.letterSpacing;
             }
             curPosWidth += wordWidth;
             advances.push(curPosWidth);
         }
         return { advances };
     }
-
-    private static measureNormalLetter(
-        letter: string,
-        context: CanvasRenderingContext2D
-    ): number {
-        const width =
-            this.widthFromCache(context, letter) ?? context.measureText(letter).width;
+    static measureNormalLetter(letter, context) {
+        var _a;
+        const width = (_a = this.widthFromCache(context, letter)) !== null && _a !== void 0 ? _a : context.measureText(letter).width;
         this.setWidthToCache(context, letter, width);
         return width;
     }
-
-    private static measureSquareCharacter(
-        context: CanvasRenderingContext2D
-    ): number {
-        const width =
-            this.widthFromCache(context, "测") ?? context.measureText("测").width;
+    static measureSquareCharacter(context) {
+        var _a;
+        const width = (_a = this.widthFromCache(context, "测")) !== null && _a !== void 0 ? _a : context.measureText("测").width;
         this.setWidthToCache(context, "测", width);
         return width;
     }
-
-    private static widthFromCache(
-        context: CanvasRenderingContext2D,
-        word: string
-    ): number | undefined {
+    static widthFromCache(context, word) {
+        var _a;
         const cacheKey = context.font + "_" + word;
-        return this.measureLRUCache[cacheKey]?.width;
+        return (_a = this.measureLRUCache[cacheKey]) === null || _a === void 0 ? void 0 : _a.width;
     }
-
-    private static setWidthToCache(
-        context: CanvasRenderingContext2D,
-        word: string,
-        width: number
-    ) {
+    static setWidthToCache(context, word, width) {
         const cacheKey = context.font + "_" + word;
         if (this.measureLRUCache[cacheKey]) {
             this.measureLRUCache[cacheKey].useCount++;
@@ -1410,14 +1111,11 @@ class LetterMeasurer {
             useCount: 1,
             width: width,
         };
-        if (
-            Object.keys(this.measureLRUCache).length > this.LRUConfig.maxCacheCount
-        ) {
+        if (Object.keys(this.measureLRUCache).length > this.LRUConfig.maxCacheCount) {
             this.clearCache();
         }
     }
-
-    private static clearCache() {
+    static clearCache() {
         const keys = Object.keys(this.measureLRUCache).sort((a, b) => {
             return this.measureLRUCache[a].useCount > this.measureLRUCache[b].useCount
                 ? 1
@@ -1426,23 +1124,23 @@ class LetterMeasurer {
         keys
             .slice(0, this.LRUConfig.maxCacheCount - this.LRUConfig.minCacheCount)
             .forEach((it) => {
-                delete this.measureLRUCache[it];
-            });
+            delete this.measureLRUCache[it];
+        });
     }
 }
-
+LetterMeasurer.LRUConfig = {
+    maxCacheCount: 1000,
+    minCacheCount: 200,
+};
+LetterMeasurer.measureLRUCache = {};
 // export class TextLayout {
 //     static sharedLayoutCanvas: HTMLCanvasElement;
 //     static sharedLayoutContext: CanvasRenderingContext2D;
-
 //     constructor(readonly paragraph: Paragraph) { }
-
 //     glyphInfos: GlyphInfo[] = [];
 //     lineMetrics: LineMetrics[] = [];
 //     didExceedMaxLines: boolean = false;
-
 //     private previousLayoutWidth: number = 0;
-
 //     private initCanvas() {
 //         if (!TextLayout.sharedLayoutCanvas) {
 //             TextLayout.sharedLayoutCanvas = createCanvas(1, 1);
@@ -1452,13 +1150,11 @@ class LetterMeasurer {
 //                 ) as CanvasRenderingContext2D;
 //         }
 //     }
-
 //     measureGlyphIfNeeded() {
 //         if (Object.keys(this.glyphInfos).length <= 0) {
 //             this.layout(-1, true);
 //         }
 //     }
-
 //     layout(layoutWidth: number, forceCalcGlyphInfos: boolean = false): void {
 //         if (layoutWidth < 0) {
 //             layoutWidth = this.previousLayoutWidth;
@@ -1496,7 +1192,6 @@ class LetterMeasurer {
 //             if (span instanceof TextSpan) {
 //                 TextLayout.sharedLayoutContext.font = span.toCanvasFont();
 //                 const matrics = TextLayout.sharedLayoutContext.measureText(span.originText);
-
 //                 let iconFontWidth = 0;
 //                 if (this.paragraph.iconFontData) {
 //                     const fontSize = span.style.fontSize ?? 14;
@@ -1512,24 +1207,20 @@ class LetterMeasurer {
 //                     span.letterBaseline = mHeight * 1.15;
 //                     span.letterHeight = mHeight * 1.15 + mHeight * 0.35;
 //                 }
-
 //                 if (span.style.heightMultiplier && span.style.heightMultiplier > 0) {
 //                     currentLineMetrics.heightMultiplier = Math.max(
 //                         currentLineMetrics.heightMultiplier,
 //                         span.style.heightMultiplier / 1.5
 //                     );
 //                 }
-
 //                 currentLineMetrics.height = Math.max(
 //                     currentLineMetrics.height,
 //                     currentLineMetrics.ascent + currentLineMetrics.descent
 //                 );
-
 //                 currentLineMetrics.baseline = Math.max(
 //                     currentLineMetrics.baseline,
 //                     currentLineMetrics.ascent
 //                 );
-
 //                 if (this.paragraph.iconFontData) {
 //                     const textWidth = span.charSequence.length * iconFontWidth;
 //                     currentLineMetrics.endIndex += span.charSequence.length;
@@ -1559,25 +1250,21 @@ class LetterMeasurer {
 //                         TextLayout.sharedLayoutContext
 //                     );
 //                     let advances: number[] = letterMeasureResult.advances;
-
 //                     if (span instanceof NewlineSpan) {
 //                         advances = [0, 0];
 //                     }
-
 //                     if (
 //                         Math.abs(advances[advances.length - 1] - layoutWidth) < 10 &&
 //                         layoutWidth === this.previousLayoutWidth
 //                     ) {
 //                         layoutWidth = advances[advances.length - 1];
 //                     }
-
 //                     let currentWord = "";
 //                     let currentWordWidth = 0;
 //                     let currentWordLength = 0;
 //                     let nextWordWidth = 0;
 //                     let canBreak = true;
 //                     let forceBreak = false;
-
 //                     for (let index = 0; index < span.charSequence.length; index++) {
 //                         const letter = span.charSequence[index];
 //                         currentWord += letter;
@@ -1598,7 +1285,6 @@ class LetterMeasurer {
 //                         currentWordLength += 1;
 //                         canBreak = true;
 //                         forceBreak = false;
-
 //                         if (spanEnded) {
 //                             canBreak = true;
 //                         } else if (isEnglishWord(nextWord)) {
@@ -1613,7 +1299,6 @@ class LetterMeasurer {
 //                         if (span instanceof NewlineSpan) {
 //                             forceBreak = true;
 //                         }
-
 //                         const currentGlyphLeft =
 //                             currentLineMetrics.width + currentLetterLeft;
 //                         const currentGlyphTop = currentLineMetrics.yOffset;
@@ -1637,7 +1322,6 @@ class LetterMeasurer {
 //                             isEllipsis: false,
 //                         };
 //                         this.glyphInfos.push(currentGlyphInfo);
-
 //                         if (!canBreak) {
 //                             continue;
 //                         } else if (
@@ -1666,7 +1350,6 @@ class LetterMeasurer {
 //                             canBreak = true;
 //                         }
 //                     }
-
 //                     if (currentWord.length > 0) {
 //                         currentLineMetrics.width += currentWordWidth;
 //                         currentLineMetrics.endIndex += currentWordLength;
@@ -1695,7 +1378,6 @@ class LetterMeasurer {
 //         lineMetrics[lineMetrics.length - 1].isLastLine = true;
 //         this.lineMetrics = lineMetrics;
 //     }
-
 //     private createNewLine(currentLineMetrics: LineMetrics): LineMetrics {
 //         return {
 //             startIndex: currentLineMetrics.endIndex,
@@ -1723,15 +1405,10 @@ class LetterMeasurer {
 //         };
 //     }
 // }
-
-
 export class Drawer {
-    static pixelRatio = 1.0;
-    static sharedRenderCanvas: HTMLCanvasElement;
-    static sharedRenderContext: CanvasRenderingContext2D;
-
-    constructor(readonly paragraph: Paragraph) { }
-
+    constructor(paragraph) {
+        this.paragraph = paragraph;
+    }
     // private initCanvas() {
     //     if (!Drawer.sharedRenderCanvas) {
     //         Drawer.sharedRenderCanvas = createCanvas(
@@ -1743,17 +1420,10 @@ export class Drawer {
     //         ) as CanvasRenderingContext2D;
     //     }
     // }
-
-    draw(context: CanvasRenderingContext2D): ImageData {
+    draw(context) {
         // this.initCanvas();
-        const width = convertToUpwardToPixelRatio(
-            this.paragraph.getMaxWidth() * Drawer.pixelRatio,
-            Drawer.pixelRatio
-        );
-        const height = convertToUpwardToPixelRatio(
-            this.paragraph.getHeight() * Drawer.pixelRatio,
-            Drawer.pixelRatio
-        );
+        const width = convertToUpwardToPixelRatio(this.paragraph.getMaxWidth() * Drawer.pixelRatio, Drawer.pixelRatio);
+        const height = convertToUpwardToPixelRatio(this.paragraph.getHeight() * Drawer.pixelRatio, Drawer.pixelRatio);
         if (width <= 0 || height <= 0) {
             const context = Drawer.sharedRenderContext;
             context.clearRect(0, 0, 1, 1);
@@ -1763,127 +1433,93 @@ export class Drawer {
         context.clearRect(0, 0, width, height);
         context.save();
         context.scale(Drawer.pixelRatio, Drawer.pixelRatio);
-
         let didExceedMaxLines = false;
         let spanLetterStartIndex = 0;
-        let linesDrawingRightBounds: Record<number, number> = {};
-
+        let linesDrawingRightBounds = {};
         const spans = spanWithNewline(this.paragraph.spans);
-        let linesUndrawed: Record<number, number> = {};
+        let linesUndrawed = {};
         this.paragraph.getLineMetrics().forEach((it) => {
             linesUndrawed[it.lineNumber] = it.endIndex - it.startIndex;
         });
         spans.forEach((span) => {
-            if (didExceedMaxLines) return;
+            var _a, _b, _c, _d, _e, _f, _g;
+            if (didExceedMaxLines)
+                return;
             if (span instanceof TextSpan) {
                 if (span instanceof NewlineSpan) {
                     spanLetterStartIndex++;
                     return;
                 }
                 let spanUndrawLength = span.charSequence.length;
-                let spanLetterEndIndex =
-                    spanLetterStartIndex + span.charSequence.length;
-                const lineMetrics = this.paragraph.getLineMetricsOfRange(
-                    spanLetterStartIndex,
-                    spanLetterEndIndex
-                );
-
+                let spanLetterEndIndex = spanLetterStartIndex + span.charSequence.length;
+                const lineMetrics = this.paragraph.getLineMetricsOfRange(spanLetterStartIndex, spanLetterEndIndex);
                 context.font = span.toCanvasFont();
-
                 while (spanUndrawLength > 0) {
-                    let currentDrawText: string[] = [];
-                    let currentDrawLine: LineMetrics | undefined;
+                    let currentDrawText = [];
+                    let currentDrawLine;
                     for (let index = 0; index < lineMetrics.length; index++) {
                         const line = lineMetrics[index];
                         if (linesUndrawed[line.lineNumber] > 0) {
-                            const currentDrawLength = Math.min(
-                                linesUndrawed[line.lineNumber],
-                                spanUndrawLength
-                            );
-                            currentDrawText = span.charSequence.slice(
-                                span.charSequence.length - spanUndrawLength,
-                                span.charSequence.length - spanUndrawLength + currentDrawLength
-                            );
+                            const currentDrawLength = Math.min(linesUndrawed[line.lineNumber], spanUndrawLength);
+                            currentDrawText = span.charSequence.slice(span.charSequence.length - spanUndrawLength, span.charSequence.length - spanUndrawLength + currentDrawLength);
                             spanUndrawLength -= currentDrawLength;
                             linesUndrawed[line.lineNumber] -= currentDrawLength;
                             currentDrawLine = line;
                             break;
                         }
                     }
-
-                    if (!currentDrawLine) break;
-
-                    if (
-                        this.paragraph.didExceedMaxLines() &&
+                    if (!currentDrawLine)
+                        break;
+                    if (this.paragraph.didExceedMaxLines() &&
                         this.paragraph.paragraphStyle.maxLines ===
-                        currentDrawLine.lineNumber + 1 &&
-                        linesUndrawed[currentDrawLine.lineNumber] <= 0
-                    ) {
-                        const trimLength = isSquareCharacter(
-                            currentDrawText[currentDrawText.length - 1]
-                        )
+                            currentDrawLine.lineNumber + 1 &&
+                        linesUndrawed[currentDrawLine.lineNumber] <= 0) {
+                        const trimLength = isSquareCharacter(currentDrawText[currentDrawText.length - 1])
                             ? 1
                             : 3;
-                        currentDrawText = currentDrawText.slice(
-                            0,
-                            currentDrawText.length - trimLength
-                        );
-                        currentDrawText.push(
-                            ...Array.from(this.paragraph.paragraphStyle.ellipsis ?? "...")
-                        );
+                        currentDrawText = currentDrawText.slice(0, currentDrawText.length - trimLength);
+                        currentDrawText.push(...Array.from((_a = this.paragraph.paragraphStyle.ellipsis) !== null && _a !== void 0 ? _a : "..."));
                         didExceedMaxLines = true;
                     }
-
                     let drawingLeft = (() => {
-                        if (
-                            linesDrawingRightBounds[currentDrawLine.lineNumber] === undefined
-                        ) {
-                            const textAlign = this.paragraph.paragraphStyle.textAlign?.value;
-                            const textDirection =
-                                this.paragraph.paragraphStyle.textDirection?.value;
+                        var _a, _b;
+                        if (linesDrawingRightBounds[currentDrawLine.lineNumber] === undefined) {
+                            const textAlign = (_a = this.paragraph.paragraphStyle.textAlign) === null || _a === void 0 ? void 0 : _a.value;
+                            const textDirection = (_b = this.paragraph.paragraphStyle.textDirection) === null || _b === void 0 ? void 0 : _b.value;
                             if (textAlign === TextAlign.Center) {
                                 linesDrawingRightBounds[currentDrawLine.lineNumber] =
                                     (this.paragraph.getMaxWidth() - currentDrawLine.width) / 2.0;
-                            } else if (
-                                textAlign === TextAlign.Right ||
+                            }
+                            else if (textAlign === TextAlign.Right ||
                                 (textAlign === TextAlign.End &&
                                     textDirection !== TextDirection.RTL) ||
                                 (textAlign === TextAlign.Start &&
-                                    textDirection === TextDirection.RTL)
-                            ) {
+                                    textDirection === TextDirection.RTL)) {
                                 linesDrawingRightBounds[currentDrawLine.lineNumber] =
                                     this.paragraph.getMaxWidth() - currentDrawLine.width;
-                            } else {
+                            }
+                            else {
                                 linesDrawingRightBounds[currentDrawLine.lineNumber] = 0;
                             }
                         }
                         return linesDrawingRightBounds[currentDrawLine.lineNumber];
                     })();
-
-                    const drawingRight =
-                        drawingLeft +
+                    const drawingRight = drawingLeft +
                         (() => {
                             if (currentDrawText.length === 1 && currentDrawText[0] === "\n") {
                                 return 0;
                             }
                             const extraLetterSpacing = span.hasLetterSpacing()
-                                ? currentDrawText.length * span.style.letterSpacing!
+                                ? currentDrawText.length * span.style.letterSpacing
                                 : 0;
-                            return (
-                                context.measureText(currentDrawText.join("")).width +
-                                extraLetterSpacing
-                            );
+                            return (context.measureText(currentDrawText.join("")).width +
+                                extraLetterSpacing);
                         })();
-
                     linesDrawingRightBounds[currentDrawLine.lineNumber] = drawingRight;
-
-                    const textTop =
-                        currentDrawLine.baseline * currentDrawLine.heightMultiplier -
+                    const textTop = currentDrawLine.baseline * currentDrawLine.heightMultiplier -
                         span.letterBaseline;
-                    const textBaseline =
-                        currentDrawLine.baseline * currentDrawLine.heightMultiplier;
+                    const textBaseline = currentDrawLine.baseline * currentDrawLine.heightMultiplier;
                     const textHeight = span.letterHeight;
-
                     this.drawBackground(span, context, {
                         currentDrawLine,
                         drawingLeft,
@@ -1892,84 +1528,61 @@ export class Drawer {
                         textTop,
                         textHeight,
                     });
-
                     context.save();
                     if (span.style.shadows && span.style.shadows.length > 0) {
                         context.shadowColor = span.style.shadows[0].color
-                            ? colorToHex(span.style.shadows[0].color as Float32Array)
+                            ? colorToHex(span.style.shadows[0].color)
                             : "transparent";
-                        context.shadowOffsetX = span.style.shadows[0].offset?.[0] ?? 0;
-                        context.shadowOffsetY = span.style.shadows[0].offset?.[1] ?? 0;
-                        context.shadowBlur = span.style.shadows[0].blurRadius ?? 0;
+                        context.shadowOffsetX = (_c = (_b = span.style.shadows[0].offset) === null || _b === void 0 ? void 0 : _b[0]) !== null && _c !== void 0 ? _c : 0;
+                        context.shadowOffsetY = (_e = (_d = span.style.shadows[0].offset) === null || _d === void 0 ? void 0 : _d[1]) !== null && _e !== void 0 ? _e : 0;
+                        context.shadowBlur = (_f = span.style.shadows[0].blurRadius) !== null && _f !== void 0 ? _f : 0;
                     }
                     context.fillStyle = span.toTextFillStyle();
                     if (this.paragraph.iconFontData) {
                         for (let index = 0; index < currentDrawText.length; index++) {
                             const currentDrawLetter = currentDrawText[index];
-                            const letterWidth = span.style.fontSize ?? 14;
-                            this.fillIcon(
-                                context,
-                                currentDrawLetter,
-                                letterWidth,
-                                drawingLeft,
-                                textBaseline + currentDrawLine.yOffset
-                            );
+                            const letterWidth = (_g = span.style.fontSize) !== null && _g !== void 0 ? _g : 14;
+                            this.fillIcon(context, currentDrawLetter, letterWidth, drawingLeft, textBaseline + currentDrawLine.yOffset);
                             drawingLeft += letterWidth;
                         }
-                    } else if (
-                        span.hasLetterSpacing() ||
+                    }
+                    else if (span.hasLetterSpacing() ||
                         span.hasWordSpacing() ||
-                        span.hasJustifySpacing(this.paragraph.paragraphStyle)
-                    ) {
+                        span.hasJustifySpacing(this.paragraph.paragraphStyle)) {
                         const letterSpacing = span.hasLetterSpacing()
-                            ? span.style.letterSpacing!
+                            ? span.style.letterSpacing
                             : 0;
-                        const justifySpacing =
-                            span.hasJustifySpacing(this.paragraph.paragraphStyle) &&
-                                !currentDrawLine.isLastLine
-                                ? this.computeJustifySpacing(
-                                    currentDrawText,
-                                    currentDrawLine.width,
-                                    currentDrawLine.justifyWidth!
-                                )
-                                : 0;
+                        const justifySpacing = span.hasJustifySpacing(this.paragraph.paragraphStyle) &&
+                            !currentDrawLine.isLastLine
+                            ? this.computeJustifySpacing(currentDrawText, currentDrawLine.width, currentDrawLine.justifyWidth)
+                            : 0;
                         for (let index = 0; index < currentDrawText.length; index++) {
                             const currentDrawLetter = currentDrawText[index];
-                            context.fillText(
-                                currentDrawLetter,
-                                drawingLeft,
-                                textBaseline + currentDrawLine.yOffset
-                            );
+                            context.fillText(currentDrawLetter, drawingLeft, textBaseline + currentDrawLine.yOffset);
                             const letterWidth = context.measureText(currentDrawLetter).width;
-                            if (
-                                span.hasWordSpacing() &&
+                            if (span.hasWordSpacing() &&
                                 currentDrawLetter === " " &&
-                                isEnglishWord(currentDrawText[index - 1])
-                            ) {
-                                drawingLeft += span.style.wordSpacing!;
-                            } else {
+                                isEnglishWord(currentDrawText[index - 1])) {
+                                drawingLeft += span.style.wordSpacing;
+                            }
+                            else {
                                 drawingLeft += letterWidth + letterSpacing;
                             }
                             if (!isEnglishWord(currentDrawText[index])) {
                                 drawingLeft += justifySpacing;
                             }
                         }
-                    } else {
-                        context.fillText(
-                            currentDrawText.join(""),
-                            drawingLeft,
-                            textBaseline + currentDrawLine.yOffset
-                        );
+                    }
+                    else {
+                        context.fillText(currentDrawText.join(""), drawingLeft, textBaseline + currentDrawLine.yOffset);
                     }
                     context.restore();
-
                     // logger.debug(
                     //   "Drawer.draw.fillText",
                     //   currentDrawText,
                     //   drawingLeft,
                     //   textBaseline + currentDrawLine.yOffset
                     // );
-
                     this.drawDecoration(span, context, {
                         currentDrawLine,
                         drawingLeft,
@@ -1978,34 +1591,26 @@ export class Drawer {
                         textTop,
                         textHeight,
                     });
-
                     if (didExceedMaxLines) {
                         break;
                     }
                 }
-
                 spanLetterStartIndex = spanLetterEndIndex;
             }
         });
-
         context.restore();
         return context.getImageData(0, 0, width, height);
     }
-
-    private fillIcon(
-        context: CanvasRenderingContext2D,
-        text: string,
-        fontSize: number,
-        x: number,
-        y: number
-    ) {
-        const svgPath = this.paragraph.iconFontMap?.[text];
+    fillIcon(context, text, fontSize, x, y) {
+        var _a;
+        const svgPath = (_a = this.paragraph.iconFontMap) === null || _a === void 0 ? void 0 : _a[text];
         if (!svgPath) {
             console.log("fill icon not found", text.charCodeAt(0).toString(16));
             return;
         }
         const pathCommands = svgPath.match(/[A-Za-z]\d+([\.\d,]+)?/g);
-        if (!pathCommands) return;
+        if (!pathCommands)
+            return;
         context.save();
         context.beginPath();
         let lastControlPoint = null;
@@ -2016,44 +1621,37 @@ export class Drawer {
                 .split(",")
                 .map(parseFloat)
                 .map((it, index) => {
-                    let value = it;
-                    if (index % 2 === 1) {
-                        value = 150 - value + 150;
-                    }
-                    return value * (fontSize / 300);
-                });
+                let value = it;
+                if (index % 2 === 1) {
+                    value = 150 - value + 150;
+                }
+                return value * (fontSize / 300);
+            });
             if (type === "M") {
                 context.moveTo(args[0], args[1]);
-            } else if (type === "L") {
+            }
+            else if (type === "L") {
                 context.lineTo(args[0], args[1]);
-            } else if (type === "C") {
-                context.bezierCurveTo(
-                    args[0],
-                    args[1],
-                    args[2],
-                    args[3],
-                    args[4],
-                    args[5]
-                );
+            }
+            else if (type === "C") {
+                context.bezierCurveTo(args[0], args[1], args[2], args[3], args[4], args[5]);
                 lastControlPoint = [args[2], args[3]];
-            } else if (type === "Q") {
+            }
+            else if (type === "Q") {
                 context.quadraticCurveTo(args[0], args[1], args[2], args[3]);
                 lastControlPoint = [args[0], args[1]];
-            } else if (type === "A") {
+            }
+            else if (type === "A") {
                 // no need A
-            } else if (type === "Z") {
+            }
+            else if (type === "Z") {
                 context.closePath();
             }
         });
         context.fill();
         context.restore();
     }
-
-    private computeJustifySpacing(
-        text: string[],
-        lineWidth: number,
-        justifyWidth: number
-    ): number {
+    computeJustifySpacing(text, lineWidth, justifyWidth) {
         let count = 0;
         for (let index = 0; index < text.length; index++) {
             if (!isEnglishWord(text[index])) {
@@ -2062,65 +1660,23 @@ export class Drawer {
         }
         return (justifyWidth - lineWidth) / (count - 1);
     }
-
-    private drawBackground(
-        span: TextSpan,
-        context: CanvasRenderingContext2D,
-        options: {
-            currentDrawLine: LineMetrics;
-            drawingLeft: number;
-            drawingRight: number;
-            textBaseline: number;
-            textTop: number;
-            textHeight: number;
-        }
-    ) {
+    drawBackground(span, context, options) {
         if (span.style.backgroundColor) {
-            const {
-                currentDrawLine,
-                drawingLeft,
-                drawingRight,
-                textTop,
-                textHeight,
-            } = options;
+            const { currentDrawLine, drawingLeft, drawingRight, textTop, textHeight, } = options;
             context.fillStyle = span.toBackgroundFillStyle();
-            context.fillRect(
-                drawingLeft,
-                textTop + currentDrawLine.yOffset,
-                drawingRight - drawingLeft,
-                textHeight
-            );
+            context.fillRect(drawingLeft, textTop + currentDrawLine.yOffset, drawingRight - drawingLeft, textHeight);
         }
     }
-
-    private drawDecoration(
-        span: TextSpan,
-        context: CanvasRenderingContext2D,
-        options: {
-            currentDrawLine: LineMetrics;
-            drawingLeft: number;
-            drawingRight: number;
-            textBaseline: number;
-            textTop: number;
-            textHeight: number;
-        }
-    ) {
-        const {
-            currentDrawLine,
-            drawingLeft,
-            drawingRight,
-            textBaseline,
-            textTop,
-            textHeight,
-        } = options;
+    drawDecoration(span, context, options) {
+        var _a, _b, _c;
+        const { currentDrawLine, drawingLeft, drawingRight, textBaseline, textTop, textHeight, } = options;
         if (span.style.decoration) {
             context.save();
             context.strokeStyle = span.toDecorationStrokeStyle();
             context.lineWidth =
-                (span.style.decorationThickness ?? 1) *
-                Math.max(1, (span.style.fontSize ?? 12) / 14);
-            const decorationStyle = span.style.decorationStyle?.value;
-
+                ((_a = span.style.decorationThickness) !== null && _a !== void 0 ? _a : 1) *
+                    Math.max(1, ((_b = span.style.fontSize) !== null && _b !== void 0 ? _b : 12) / 14);
+            const decorationStyle = (_c = span.style.decorationStyle) === null || _c === void 0 ? void 0 : _c.value;
             switch (decorationStyle) {
                 case DecorationStyle.Dashed:
                     context.lineCap = "butt";
@@ -2131,47 +1687,25 @@ export class Drawer {
                     context.setLineDash([2, 2]);
                     break;
             }
-
             if (span.style.decoration === UnderlineDecoration) {
                 context.beginPath();
                 context.moveTo(drawingLeft, currentDrawLine.yOffset + textBaseline + 1);
-                context.lineTo(
-                    drawingRight,
-                    currentDrawLine.yOffset + textBaseline + 1
-                );
+                context.lineTo(drawingRight, currentDrawLine.yOffset + textBaseline + 1);
                 context.stroke();
                 if (decorationStyle === DecorationStyle.Double) {
                     context.beginPath();
-                    context.moveTo(
-                        drawingLeft,
-                        currentDrawLine.yOffset + textBaseline + 3
-                    );
-                    context.lineTo(
-                        drawingRight,
-                        currentDrawLine.yOffset + textBaseline + 3
-                    );
+                    context.moveTo(drawingLeft, currentDrawLine.yOffset + textBaseline + 3);
+                    context.lineTo(drawingRight, currentDrawLine.yOffset + textBaseline + 3);
                     context.stroke();
                 }
             }
             if (span.style.decoration === LineThroughDecoration || span.style.decoration === 3) {
                 context.beginPath();
-                context.moveTo(
-                    drawingLeft,
-                    currentDrawLine.yOffset + textTop + textHeight / 2.0
-                );
-                context.lineTo(
-                    drawingRight,
-                    currentDrawLine.yOffset + textTop + textHeight / 2.0
-                );
+                context.moveTo(drawingLeft, currentDrawLine.yOffset + textTop + textHeight / 2.0);
+                context.lineTo(drawingRight, currentDrawLine.yOffset + textTop + textHeight / 2.0);
                 if (decorationStyle === DecorationStyle.Double) {
-                    context.moveTo(
-                        drawingLeft,
-                        currentDrawLine.yOffset + textTop + textHeight / 2.0 + 2
-                    );
-                    context.lineTo(
-                        drawingRight,
-                        currentDrawLine.yOffset + textTop + textHeight / 2.0 + 2
-                    );
+                    context.moveTo(drawingLeft, currentDrawLine.yOffset + textTop + textHeight / 2.0 + 2);
+                    context.lineTo(drawingRight, currentDrawLine.yOffset + textTop + textHeight / 2.0 + 2);
                 }
                 context.stroke();
             }
@@ -2179,7 +1713,6 @@ export class Drawer {
                 context.beginPath();
                 context.moveTo(drawingLeft, currentDrawLine.yOffset + textTop);
                 context.lineTo(drawingRight, currentDrawLine.yOffset + textTop);
-
                 if (decorationStyle === DecorationStyle.Double) {
                     context.moveTo(drawingLeft, currentDrawLine.yOffset + textTop + 2);
                     context.lineTo(drawingRight, currentDrawLine.yOffset + textTop + 2);
@@ -2190,10 +1723,8 @@ export class Drawer {
         }
     }
 }
-
-
-let drawParagraphSharedPaint: _Paint | null = null;
-
+Drawer.pixelRatio = 1.0;
+let drawParagraphSharedPaint = null;
 const TextAlignEnums = {
     Left: { value: 0 },
     Right: { value: 1 },
@@ -2201,14 +1732,12 @@ const TextAlignEnums = {
     Justify: { value: 3 },
     Start: { value: 4 },
     End: { value: 5 },
-}
-
+};
 const AlphaTypeEnums = {
     Opaque: { value: 0 },
     Premul: { value: 1 },
     Unpremul: { value: 2 },
-}
-
+};
 const ColorTypeEnums = {
     Alpha_8: { value: 0 },
     RGB_565: { value: 1 },
@@ -2219,20 +1748,13 @@ const ColorTypeEnums = {
     Gray_8: { value: 6 },
     RGBA_F16: { value: 7 },
     RGBA_F32: { value: 8 },
-}
-
-class _ColorSpace extends SkEmbindObject<"ColorSpace"> {
+};
+class _ColorSpace extends SkEmbindObject {
     constructor() {
         super("ColorSpace");
     }
 }
-
-export function install(
-    canvasKit: CanvasKit,
-    pixelRatio: number,
-    embeddingFonts: string[],
-    iconFonts?: Record<string, string>
-) {
+export function install(canvasKit, pixelRatio, embeddingFonts, iconFonts) {
     // if (typeof canvasKit.ParagraphBuilder === "undefined") {
     // installPolyfill(canvasKit);
     canvasKit.ParagraphBuilder = new _ParagraphBuilderFactory();
@@ -2241,21 +1763,18 @@ export function install(
     canvasKit.Typeface = new _TypefaceFactory();
     canvasKit.TypefaceFontProvider = new _TypefaceFontProviderFactory();
     canvasKit.Font = _Font;
-    canvasKit.ParagraphStyle = (ps: ParagraphStyle) => {
+    canvasKit.ParagraphStyle = (ps) => {
         return new _ParagraphStyle(ps);
     };
-    canvasKit.TextStyle = (ts: TextStyle) => {
+    canvasKit.TextStyle = (ts) => {
         return new _TextStyle(ts);
     };
-
     // Paragraph Enums
     canvasKit.TextAlign = TextAlignEnums;
-
     canvasKit.TextDirection = {
         RTL: { value: 0 },
         LTR: { value: 1 },
     };
-
     canvasKit.TextBaseline = {
         Alphabetic: { value: 0 },
         Ideographic: { value: 1 },
@@ -2331,8 +1850,6 @@ export function install(
     canvasKit.UnderlineDecoration = 1;
     canvasKit.OverlineDecoration = 2;
     canvasKit.LineThroughDecoration = 3;
-
-
     Drawer.pixelRatio = pixelRatio;
     // const originMakeFromFontCollectionMethod =
     //     canvasKit.ParagraphBuilder.MakeFromFontCollection;
@@ -2348,61 +1865,39 @@ export function install(
     //         iconFonts
     //     );
     // };
-
-    canvasKit.Canvas.prototype.drawParagraph = function (
-        paragraph: Paragraph,
-        dx: number,
-        dy: number
-    ) {
-        console.log(`drawParagraph ${paragraph} at (${dx}, ${dy})`)
-
+    canvasKit.Canvas.prototype.drawParagraph = function (paragraph, dx, dy) {
+        console.log(`drawParagraph ${paragraph} at (${dx}, ${dy})`);
         let canvasImg = paragraph.skImageCache;
         if (!canvasImg) {
             const drawer = new Drawer(paragraph);
             const imageData = drawer.draw();
-            canvasImg = canvasKit.MakeImage(
-                {
-                    width: imageData.width,
-                    height: imageData.height,
-                    alphaType: AlphaTypeEnums.Unpremul,
-                    colorType: ColorTypeEnums.RGBA_8888,
-                    colorSpace: new _ColorSpace()
-                    // colorSpace: {
-                    //     SRGB:
-                    // }   canvasKit.ColorSpace.SRGB,
-                },
-                imageData.data,
-                4 * imageData.width
-            );
+            canvasImg = canvasKit.MakeImage({
+                width: imageData.width,
+                height: imageData.height,
+                alphaType: AlphaTypeEnums.Unpremul,
+                colorType: ColorTypeEnums.RGBA_8888,
+                colorSpace: new _ColorSpace()
+                // colorSpace: {
+                //     SRGB:
+                // }   canvasKit.ColorSpace.SRGB,
+            }, imageData.data, 4 * imageData.width);
             paragraph.skImageCache = canvasImg;
             paragraph.skImageWidth = imageData.width;
             paragraph.skImageHeight = imageData.height;
         }
-        const srcRect = canvasKit.XYWHRect(
-            0,
-            0,
-            paragraph.skImageWidth!,
-            paragraph.skImageHeight!
-        );
-        const dstRect = canvasKit.XYWHRect(
-            Math.ceil(dx),
-            Math.ceil(dy),
-            paragraph.skImageWidth! / Drawer.pixelRatio,
-            paragraph.skImageHeight! / Drawer.pixelRatio
-        );
+        const srcRect = canvasKit.XYWHRect(0, 0, paragraph.skImageWidth, paragraph.skImageHeight);
+        const dstRect = canvasKit.XYWHRect(Math.ceil(dx), Math.ceil(dy), paragraph.skImageWidth / Drawer.pixelRatio, paragraph.skImageHeight / Drawer.pixelRatio);
         // 明确 drawParagraphSharedPaint 的类型为 _Paint | null
-        const skPaint = drawParagraphSharedPaint ?? new _Paint();
+        const skPaint = drawParagraphSharedPaint !== null && drawParagraphSharedPaint !== void 0 ? drawParagraphSharedPaint : new _Paint();
         drawParagraphSharedPaint = skPaint;
         this.drawImageRect(canvasImg, srcRect, dstRect, skPaint);
     };
 }
-
 function initLayout() {
     const fontStore = new FontStore();
     const instance = fontSubstitution();
-
     const helvetica = fontStore.getFont({ fontFamily: 'Helvetica' }).data;
-    let frag: Fragment = { string: 'Hello' }
+    let frag = { string: 'Hello' };
     let aas = fromFragments([frag]);
     // console.log(aas);
     // let engine = bidi();
@@ -2415,12 +1910,10 @@ function initLayout() {
         fontSubstitution: fontSubstitution,
         scriptItemizer: scriptItemizer,
         textDecoration: textDecoration,
-    })
+    });
     console.log(layout);
-
-    const run2 = { start: 3, end: 5, attributes: { font: [helvetica] } } as any;
-
-    const cccc: AttributedString = instance({ string: 'Lorem\nLorem Lorem', runs: [run2] });
+    const run2 = { start: 3, end: 5, attributes: { font: [helvetica] } };
+    const cccc = instance({ string: 'Lorem\nLorem Lorem', runs: [run2] });
     const reee = layout(cccc, { x: 10, y: 10, width: 100, height: 100 });
     // const aaa = bidi(fromFragments([
     //   { string: 'Hello' },

@@ -1,6 +1,6 @@
-// import {install} from './mitex'
+import {install} from './mitex'
 // import { install } from './mtex/index'
-import {install} from 'mtex'
+// import {install} from 'mtex'
 
 export async function ckload() {
   let m = await (

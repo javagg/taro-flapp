@@ -58,6 +58,15 @@ import {
     colorToHex, convertToUpwardToPixelRatio, isEnglishWord, isPunctuation, isSquareCharacter,
 } from "./mtex/util";
 
+import {
+    default as layoutEngine,
+    bidi, Fragment, AttributedString,
+    fromFragments, linebreaker, justification, scriptItemizer,
+    textDecoration, fontSubstitution,
+} from '@react-pdf/textkit';
+
+import FontStore from '@react-pdf/font';
+
 export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {
     _deleted = false;
     constructor(readonly _type: T) { }
@@ -624,7 +633,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
     getLineMetricsAt(lineNumber: number): LineMetrics | null {
         return this.lineMetrics[lineNumber] ?? null;
     }
-
+    
     getLineMetricsOfRange(start: number, end: number): LineMetrics[] {
         let lineMetrics: LineMetrics[] = [];
         this.lineMetrics.forEach((it) => {
@@ -1746,11 +1755,10 @@ export class Drawer {
             Drawer.pixelRatio
         );
         if (width <= 0 || height <= 0) {
-            const context = Drawer.sharedRenderContext;
+            // const context = Drawer.sharedRenderContext;
             context.clearRect(0, 0, 1, 1);
             return context.getImageData(0, 0, 1, 1);
         }
-        // const context = Drawer.sharedRenderContext;
         context.clearRect(0, 0, width, height);
         context.save();
         context.scale(Drawer.pixelRatio, Drawer.pixelRatio);
@@ -2351,7 +2359,7 @@ export function install(
         let canvasImg = paragraph.skImageCache;
         if (!canvasImg) {
             const drawer = new Drawer(paragraph);
-            const imageData = drawer.draw();
+            const imageData = drawer.draw(context);
             canvasImg = canvasKit.MakeImage(
                 {
                     width: imageData.width,
@@ -2386,4 +2394,36 @@ export function install(
         drawParagraphSharedPaint = skPaint;
         this.drawImageRect(canvasImg, srcRect, dstRect, skPaint);
     };
+}
+
+function initLayout() {
+    const fontStore = new FontStore();
+    const instance = fontSubstitution();
+
+    const helvetica = fontStore.getFont({ fontFamily: 'Helvetica' }).data;
+    let frag: Fragment = { string: 'Hello' }
+    let aas = fromFragments([frag]);
+    // console.log(aas);
+    // let engine = bidi();
+    // let bbb = engine(aas);
+    // console.log(bbb);
+    let layout = layoutEngine({
+        bidi: bidi,
+        linebreaker: linebreaker,
+        justification: justification,
+        fontSubstitution: fontSubstitution,
+        scriptItemizer: scriptItemizer,
+        textDecoration: textDecoration,
+    })
+    console.log(layout);
+
+    const run2 = { start: 3, end: 5, attributes: { font: [helvetica] } } as any;
+
+    const cccc: AttributedString = instance({ string: 'Lorem\nLorem Lorem', runs: [run2] });
+    const reee = layout(cccc, { x: 10, y: 10, width: 100, height: 100 });
+    // const aaa = bidi(fromFragments([
+    //   { string: 'Hello' },
+    // ]));
+    console.log("aaa");
+    console.log(reee);
 }
