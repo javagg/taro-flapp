@@ -1,0 +1,17 @@
+{
+  "name": "mtex",
+  "version": "0.0.1",
+  "description": "Taro小程序端TextLayout",
+  "main": "index.js",
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@react-pdf/font": "^4.0.1",
+    "@react-pdf/textkit": "^6.0.0"
+  }
+}

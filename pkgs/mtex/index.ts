@@ -52,11 +52,20 @@ import {
     StrokeCap,
     StrokeJoin,
     URange,
-} from "./mtex/canvaskit";
+} from "./canvaskit";
 
 import {
     colorToHex, convertToUpwardToPixelRatio, isEnglishWord, isPunctuation, isSquareCharacter,
-} from "./mtex/util";
+} from "./util";
+
+import {
+    default as layoutEngine,
+    bidi, Fragment, AttributedString,
+    fromFragments, linebreaker, justification, scriptItemizer,
+    textDecoration, fontSubstitution,
+} from '@react-pdf/textkit';
+
+import FontStore from '@react-pdf/font';
 
 export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {
     _deleted = false;
@@ -828,7 +837,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         const spans = spanWithNewline(this.spans);
         spans.forEach((span) => {
             if (span instanceof TextSpan) {
-                this.context.font =  span.toCanvasFont();
+                this.context.font = span.toCanvasFont();
                 // TextLayout.sharedLayoutContext.font = span.toCanvasFont();
                 // const matrics = TextLayout.sharedLayoutContext.measureText(span.originText);
                 const matrics = this.context.measureText(span.originText)
@@ -965,8 +974,8 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
                             graphemeLayoutBounds: Float32Array.from([
                                 currentGlyphLeft,
                                 currentGlyphTop,
-                                currentGlyphLeft+currentGlyphWidth,
-                                currentGlyphTop+currentGlyphHeight,
+                                currentGlyphLeft + currentGlyphWidth,
+                                currentGlyphTop + currentGlyphHeight,
                             ]),
                             graphemeClusterTextRange: { start: index, end: index + 1 },
                             dir: { value: TextDirection.LTR },
@@ -2386,4 +2395,36 @@ export function install(
         drawParagraphSharedPaint = skPaint;
         this.drawImageRect(canvasImg, srcRect, dstRect, skPaint);
     };
+}
+
+function initLayout() {
+    const fontStore = new FontStore();
+    const instance = fontSubstitution();
+
+    const helvetica = fontStore.getFont({ fontFamily: 'Helvetica' }).data;
+    let frag: Fragment = { string: 'Hello' }
+    let aas = fromFragments([frag]);
+    // console.log(aas);
+    // let engine = bidi();
+    // let bbb = engine(aas);
+    // console.log(bbb);
+    let layout = layoutEngine({
+        bidi: bidi,
+        linebreaker: linebreaker,
+        justification: justification,
+        fontSubstitution: fontSubstitution,
+        scriptItemizer: scriptItemizer,
+        textDecoration: textDecoration,
+    })
+    console.log(layout);
+
+    const run2 = { start: 3, end: 5, attributes: { font: [helvetica] } } as any;
+
+    const cccc: AttributedString = instance({ string: 'Lorem\nLorem Lorem', runs: [run2] });
+    const reee = layout(cccc, { x: 10, y: 10, width: 100, height: 100 });
+    // const aaa = bidi(fromFragments([
+    //   { string: 'Hello' },
+    // ]));
+    console.log("aaa");
+    console.log(reee);
 }
