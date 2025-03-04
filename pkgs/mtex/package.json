@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@react-pdf/font": "^4.0.1",
-    "@react-pdf/textkit": "^6.0.0"
+    "@react-pdf/textkit": "^6.0.0",
+    "@yuneco/canvas-text-styled": "^0.1.11",
+    "svg2canvas": "^0.0.11"
   }
 }

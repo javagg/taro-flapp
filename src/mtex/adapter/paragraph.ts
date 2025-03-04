@@ -117,6 +117,7 @@ export class Paragraph extends SkEmbindObject {
    * with the top left corner as the origin, and +y direction as down.
    */
   getGlyphPositionAtCoordinate(dx: number, dy: number): PositionWithAffinity {
+    console.log("getGlyphPositionAtCoordinate", dx, dy);
     this._textLayout.measureGlyphIfNeeded();
     for (let index = 0; index < this._textLayout.glyphInfos.length; index++) {
       const glyphInfo = this._textLayout.glyphInfos[index];
@@ -186,7 +187,7 @@ export class Paragraph extends SkEmbindObject {
         height += lineMetrics[i].height * 0.15;
       }
     }
-    // console.log("getHeight", height);
+    console.log("getHeight", height);
     return height;
   }
 
@@ -204,6 +205,7 @@ export class Paragraph extends SkEmbindObject {
   }
 
   getLineMetrics(): LineMetrics[] {
+    // console.log("getLineMetrics");
     return this._textLayout.lineMetrics;
   }
 
@@ -370,6 +372,7 @@ export class Paragraph extends SkEmbindObject {
    * @param offset
    */
   getWordBoundary(offset: number): URange {
+    throw new Error("Not implemented");
     return { start: offset, end: offset };
   }
 
@@ -377,6 +380,7 @@ export class Paragraph extends SkEmbindObject {
    * Returns an array of ShapedLine objects, describing the paragraph.
    */
   getShapedLines(): ShapedLine[] {
+    throw new Error("Not implemented");
     return [];
   }
 
@@ -385,10 +389,10 @@ export class Paragraph extends SkEmbindObject {
    * @param width
    */
   layout(width: number): void {
-    if (this.skImageCache) {
-      this.skImageCache.delete();
-    }
-    this.skImageCache = undefined;
+    // if (this.skImageCache) {
+    //   this.skImageCache.delete();
+    // }
+    // this.skImageCache = undefined;
     this._textLayout.layout(width);
   }
 

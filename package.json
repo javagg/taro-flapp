@@ -92,6 +92,8 @@
     "typescript": "^5.4.5",
     "vue-loader": "^17.4.2",
     "web-streams-polyfill": "^4.0.0",
-    "webpack": "5.91.0"
+    "webpack": "5.91.0",
+    "@yuneco/canvas-text-styled": "^0.1.11",
+    "svg2canvas": "^0.0.11"
   }
 }

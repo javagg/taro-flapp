@@ -90,7 +90,7 @@ export class ParagraphBuilder extends SkEmbindObject {
    * @param str
    */
   addText(str: string): void {
-    // logger.debug("ParagraphBuilder.addText", str);
+    console.log("ParagraphBuilder.addText", str);
     let mergedStyle: TextStyle = {};
     this.styles.forEach((it) => {
       Object.assign(mergedStyle, it);
@@ -104,6 +104,8 @@ export class ParagraphBuilder extends SkEmbindObject {
    * Canvas.
    */
   build(): Paragraph {
+    console.log("ParagraphBuilder.build");
+    console.log("spans:", this.spans.length);
     return new Paragraph(this.spans, this.style, this.iconFontData);
   }
 
@@ -175,18 +177,19 @@ export class ParagraphBuilder extends SkEmbindObject {
    * was produced as a set of addText calls).
    */
   getText(): string {
-    let text = "";
-    this.spans.forEach((it) => {
-      if (it instanceof TextSpan) {
-        text += it.originText;
-      }
-    });
-    if (typeof window === "object" && window.TextEncoder) {
-      const encoder = new window.TextEncoder();
-      const view = encoder.encode(text);
-      return String.fromCharCode(...Array.from(view));
-    }
-    return text;
+    throw new Error("Method not implemented.");
+    // let text = "";
+    // this.spans.forEach((it) => {
+    //   if (it instanceof TextSpan) {
+    //     text += it.originText;
+    //   }
+    // });
+    // if (typeof window === "object" && window.TextEncoder) {
+    //   const encoder = new window.TextEncoder();
+    //   const view = encoder.encode(text);
+    //   return String.fromCharCode(...Array.from(view));
+    // }
+    // return text;
   }
 
   /**
@@ -225,6 +228,7 @@ export class ParagraphBuilder extends SkEmbindObject {
    */
   reset(): void {
     // logger.debug("ParagraphBuilder.reset");
+    throw new Error("Method not implemented.");
     this.spans = [];
     this.styles = [];
   }

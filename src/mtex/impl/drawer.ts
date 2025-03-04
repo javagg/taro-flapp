@@ -233,6 +233,7 @@ export class Drawer {
                 : 0;
             for (let index = 0; index < currentDrawText.length; index++) {
               const currentDrawLetter = currentDrawText[index];
+              console.log("currentDrawLetter:", currentDrawLetter);
               context.fillText(
                 currentDrawLetter,
                 drawingLeft,
