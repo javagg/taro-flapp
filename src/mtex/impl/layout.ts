@@ -392,7 +392,7 @@ export class TextLayout {
     // }
     lineMetrics[lineMetrics.length - 1].isLastLine = true;
     this.lineMetrics = lineMetrics;
-    console.log("TextLayout.layout.lineMetrics", lineMetrics);
+    // console.log("TextLayout.layout.lineMetrics", lineMetrics);
   }
 
   private createNewLine(currentLineMetrics: LineMetrics): LineMetrics {

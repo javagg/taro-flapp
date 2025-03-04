@@ -11,16 +11,3 @@ function App({ children }) {
 }
 
 export default App
-
-// import { createApp } from 'vue'
-// import { polyfill } from '@/src/poly'
-
-// const app = createApp({
-
-//   async onLaunch () {
-//     console.log('App onLaunch.')
-//     await polyfill()
-//   },
-// })
-
-// export default app

@@ -24,6 +24,8 @@ import {
 
 let drawParagraphSharedPaint: any;
 
+// const skPaint = any;
+
 export const drawParagraph = function (
   CanvasKit: any,
   skCanvas: any,
@@ -117,7 +119,6 @@ export class Paragraph extends SkEmbindObject {
    * with the top left corner as the origin, and +y direction as down.
    */
   getGlyphPositionAtCoordinate(dx: number, dy: number): PositionWithAffinity {
-    console.log("getGlyphPositionAtCoordinate", dx, dy);
     this._textLayout.measureGlyphIfNeeded();
     for (let index = 0; index < this._textLayout.glyphInfos.length; index++) {
       const glyphInfo = this._textLayout.glyphInfos[index];
@@ -401,6 +402,7 @@ export class Paragraph extends SkEmbindObject {
    * by any of the provided fonts.
    */
   unresolvedCodepoints(): number[] {
+    throw new Error("Not implemented");
     return [];
   }
 }
