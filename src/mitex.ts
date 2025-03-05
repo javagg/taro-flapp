@@ -66,6 +66,7 @@ import {
 } from '@react-pdf/textkit';
 
 import FontStore from '@react-pdf/font';
+import { drawStyledText, defineText } from '@yuneco/canvas-text-styled'
 
 const layout = layoutEngine({
     bidi: bidi,
@@ -78,6 +79,7 @@ const layout = layoutEngine({
 
 const fontStore = new FontStore();
 const helvetica = fontStore.getFont({ fontFamily: 'Helvetica' }).data;
+
 
 export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {
     _deleted = false;
@@ -349,6 +351,8 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
     private spans: Span[] = [];
     private styles: TextStyle[] = [];
 
+    private textStyles: TextStyle[] = [];
+
     private attrStrings: AttributedString[] = [];
 
     private unstrings: AttributedString[] = [];
@@ -504,6 +508,7 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      */
     pushStyle(text: TextStyle): void {
         this.styles.push(text);
+        this.textStyles.push(text);
     }
 
     /**
@@ -514,6 +519,7 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      */
     pushPaintStyle(textStyle: TextStyle, fg: Paint, bg: Paint): void {
         this.styles.push(textStyle);
+        this.textStyles.push(textStyle);
     }
 
     /**
@@ -2187,3 +2193,36 @@ export function install(
 //     console.log("aaa");
 //     console.log(reee);
 // }
+
+function tees(ctx: CanvasRenderingContext2D) {
+    const sampleText = defineText({
+        // text
+        text: `Hello, world!
+      multiline text is supported.`,
+        initialStyle: {
+            fontFamily: 'Arial',
+            fontSize: 16,
+            fontColor: 'black',
+            fontWeight: 100,
+            fontStyle: 'normal'
+        },
+        setting: {},
+        styles: [
+          // change color to red at 5th character.
+          // other style properties are inherited from initialStyle.
+          {
+            at: 5,
+            style: { fontColor: 'red' },
+          },
+          // change font size to 30px at 10th character.
+          // note that fontColor is inherited from previous style.
+          {
+            at: 10,
+            style: { fontSize: 30 },
+          },
+        ],
+      })
+
+      // Draw the text on the canvas at (0, 0) with a wrap width of 300px
+drawStyledText(ctx, sampleText, 0, 0, 300)
+}
