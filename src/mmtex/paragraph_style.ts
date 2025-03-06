@@ -9,7 +9,7 @@
  * Defines the style for a paragraph of text.
  */
 
-import { TextDirection, TextAlign, TextDirectionEnumValues, FontWeight, FontStyle } from "../mtex/canvaskit"
+import { TextDirection, TextAlign, FontWeight, FontStyle } from "../mtex/canvaskit"
 
 export class ParagraphStyle {
     constructor({

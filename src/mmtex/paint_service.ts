@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import { CanvasParagraph } from './canvas_paragraph';
 import { ParagraphLine } from './layout_service';
 import { LayoutFragment } from './layout_fragmenter';
+import { _Paragraph } from './engine';
 
 
  export class TextPaintService {
-  constructor(public readonly paragraph: CanvasParagraph) {}
+  constructor(public readonly paragraph: _Paragraph) {}
 
   paint(canvas: BitmapCanvas, offset: ui.Offset): void {
     // Loop through all the lines, for each line, loop through all fragments and

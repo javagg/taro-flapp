@@ -2,33 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// import { TextDirection, FontWeight, FontStyle } from '../ui';
-// import { FontFeature, FontVariation } from './font_feature';
-
-/**
- * Defines the style for a span of text within a paragraph.
- */
-export class ParagraphSpan {
-    constructor(
-        readonly start: number,
-        readonly end: number,
-        readonly style: SpanStyle,
-    ) { }
-
-    /**
-     * Returns true if this span contains the given text position.
-     */
-    containsPosition(position: number): boolean {
-        return position >= this.start && position <= this.end;
-    }
-
-    /**
-     * Returns true if this span intersects with the given range.
-     */
-    intersectsRange(start: number, end: number): boolean {
-        return start < this.end && this.start < end;
-    }
-}
 
 /**
  * Defines the style for a span of text.
@@ -229,3 +202,95 @@ export enum TextBaseline {
     alphabetic,
     ideographic,
 }
+
+/**
+ * A span that represents a placeholder in text.
+ */
+export class PlaceholderSpan extends ParagraphSpan {
+    constructor(
+        readonly width: number,
+        readonly height: number,
+        readonly alignment: PlaceholderAlignment,
+        readonly baseline: TextBaseline,
+        readonly baselineOffset: number,
+        style: TextStyle,
+        start: number,
+        end: number,
+    ) {
+        super(start, end, style);
+    }
+
+    /**
+     * The vertical offset of the placeholder relative to the line's baseline.
+     */
+    getVerticalOffset(lineHeight: number, lineBaseline: number): number {
+        switch (this.alignment) {
+            case PlaceholderAlignment.top:
+                return 0;
+
+            case PlaceholderAlignment.middle:
+                return (lineHeight - this.height) / 2;
+
+            case PlaceholderAlignment.bottom:
+                return lineHeight - this.height;
+
+            case PlaceholderAlignment.aboveBaseline:
+                return lineBaseline - this.height;
+
+            case PlaceholderAlignment.belowBaseline:
+                return lineBaseline;
+
+            case PlaceholderAlignment.baseline:
+                if (this.baseline === TextBaseline.alphabetic) {
+                    return lineBaseline - this.baselineOffset;
+                } else {
+                    // For ideographic baseline, we need to adjust the offset
+                    return lineBaseline - this.baselineOffset * baselineRatioHack;
+                }
+
+            default:
+                return 0;
+        }
+    }
+
+    /**
+     * Returns true if this is a placeholder span.
+     */
+    get isPlaceholder(): boolean {
+        return true;
+    }
+}
+
+
+/**
+* The alignment of a placeholder relative to the surrounding text.
+*/
+export enum PlaceholderAlignment {
+    /** Place the placeholder at the top of the line. */
+    top,
+
+    /** Place the placeholder in the middle of the line. */
+    middle,
+
+    /** Place the placeholder at the bottom of the line. */
+    bottom,
+
+    /** Place the placeholder at the baseline of the line. */
+    baseline,
+
+    /** Place the placeholder above the baseline of the line. */
+    aboveBaseline,
+
+    /** Place the placeholder below the baseline of the line. */
+    belowBaseline,
+}
+
+/**
+ * A hack we use to compute ideographic baseline; this number is the ratio
+ * ideographic/alphabetic for font Ahem, which matches the Flutter number.
+ */
+const baselineRatioHack = 1.1662499904632568;
+
+/**
+ * Represents a placeholder object in a paragraph.
+ */

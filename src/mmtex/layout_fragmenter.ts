@@ -4,8 +4,9 @@
 
 // import { TextDirection } from '../ui';
 import { LineBreakType, LineBreaker } from './line_breaker';
-import { ParagraphSpan } from './paragraph_span';
 import { TextLayoutService } from './layout_service';
+import { ParagraphSpan } from './paragraph_span';
+import { _Paragraph } from './engine'
 
 /**
  * A fragment of text that can be measured and painted.
@@ -30,29 +31,62 @@ export class LayoutFragment {
     get baseline(): number { return this._baseline; }
     get textDirection(): TextDirection | null { return this._textDirection; }
 
-    /**
-     * Measures this fragment using the given layout service.
-     */
-    measure(layoutService: TextLayoutService): void {
-        // Update the text context with the current span's style
-        layoutService.updateTextContext(this.span);
-
-        // Measure the fragment's width
-        this._width = layoutService.measureText(
-            this.text,
-            this.start,
-            this.end,
-            { letterSpacing: this.letterSpacing }
-        );
-
-        // Get height and baseline from the ruler
-        const metrics = layoutService.getRulerMetrics(this.span);
-        this._height = metrics.height;
-        this._baseline = metrics.baseline;
-
-        // Determine text direction
-        this._textDirection = this.span.style.textDirection ?? TextDirection.ltr;
+    getText(paragraph: _Paragraph): string {
+        return paragraph.plainText. substring(this.start, this.end);
     }
+
+    split(index: number): Array<LayoutFragment | null> {
+        // In TypeScript we don't have assert, so we can use if statements for checks
+        if (this.start > index || index > this.end) {
+          throw new Error('Index out of bounds');
+        }
+      
+        // If splitting at the start, return [null, this]
+        if (this.start === index) {
+          return [null, this];
+        }
+      
+        // If splitting at the end, return [this, null]
+        if (this.end === index) {
+          return [this, null];
+        }
+      
+        // The length of the second fragment after the split
+        const secondLength: number = this.end - index;
+      
+        // Trailing spaces/new lines go to the second fragment. Any left over goes
+        // to the first fragment
+        const secondTrailingNewlines: number = Math.min(this.trailingNewlines, secondLength);
+        const secondTrailingSpaces: number = Math.min(this.trailingSpaces, secondLength);
+      
+        // Return array of two new fragments
+        return [
+          new LayoutFragment(
+            this.start,
+            index,
+            LineBreakType.prohibited,
+            this.textDirection,
+            this.fragmentFlow,
+            this.span,
+            {
+              trailingNewlines: this.trailingNewlines - secondTrailingNewlines,
+              trailingSpaces: this.trailingSpaces - secondTrailingSpaces,
+            }
+          ),
+          new LayoutFragment(
+            index,
+            this.end,
+            this.type,
+            this.textDirection,
+            this.fragmentFlow, 
+            this.span,
+            {
+              trailingNewlines: secondTrailingNewlines,
+              trailingSpaces: secondTrailingSpaces,
+            }
+          ),
+        ];
+      }
 }
 
 /**
@@ -107,3 +141,73 @@ export class LayoutFragmenter {
         return fragments;
     }
 } 
+
+interface FragmentMetrics {
+    ascent: number;
+    descent: number;
+    widthExcludingTrailingSpaces: number;
+    widthIncludingTrailingSpaces: number;
+    height: number;
+    widthOfTrailingSpaces: number;
+    setMetrics(spanometer: Spanometer, options: {
+      ascent: number;
+      descent: number;
+      widthExcludingTrailingSpaces: number;
+      widthIncludingTrailingSpaces: number;
+    }): void;
+  }
+  
+  /**
+   * Abstract class implementing the metrics functionality
+   */
+  abstract class FragmentMetricsImpl implements FragmentMetrics {
+    protected _spanometer!: Spanometer;
+    protected _ascent!: number;
+    protected _descent!: number;
+    protected _widthExcludingTrailingSpaces!: number;
+    protected _widthIncludingTrailingSpaces!: number;
+    protected _extraWidthForJustification: number = 0.0;
+  
+    /** The rise from the baseline as calculated from the font and style for this text. */
+    get ascent(): number {
+      return this._ascent;
+    }
+  
+    /** The drop from the baseline as calculated from the font and style for this text. */
+    get descent(): number {
+      return this._descent;
+    }
+  
+    /** The width of the measured text, not including trailing spaces. */
+    get widthExcludingTrailingSpaces(): number {
+      return this._widthExcludingTrailingSpaces;
+    }
+  
+    /** The width of the measured text, including any trailing spaces. */
+    get widthIncludingTrailingSpaces(): number {
+      return this._widthIncludingTrailingSpaces + this._extraWidthForJustification;
+    }
+  
+    /** The total height as calculated from the font and style for this text. */
+    get height(): number {
+      return this.ascent + this.descent;
+    }
+  
+    get widthOfTrailingSpaces(): number {
+      return this.widthIncludingTrailingSpaces - this.widthExcludingTrailingSpaces;
+    }
+  
+    /** Set measurement values for the fragment. */
+    setMetrics(spanometer: Spanometer, options: {
+      ascent: number;
+      descent: number;
+      widthExcludingTrailingSpaces: number;
+      widthIncludingTrailingSpaces: number;
+    }): void {
+      this._spanometer = spanometer;
+      this._ascent = options.ascent;
+      this._descent = options.descent;
+      this._widthExcludingTrailingSpaces = options.widthExcludingTrailingSpaces;
+      this._widthIncludingTrailingSpaces = options.widthIncludingTrailingSpaces;
+    }
+  }
