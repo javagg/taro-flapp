@@ -1,23 +1,13 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-// import { TextDirection, Offset, Rect } from '../ui';
-// import { DomCanvasRenderingContext2D, createDomCanvasElement } from '../dom';
 import { LayoutFragment, LayoutFragmenter } from './layout_fragmenter';
 import { LineBreakType } from './line_breaker';
-// import { measureSubstring } from './measurement';
-import { ParagraphSpan, PlaceholderSpan } from './paragraph_span';
-// import { TextPosition, GlyphInfo, } from './paragraph';
-import { Rect } from '@/mtex/canvaskit';
-import { _Paragraph } from './engine';
+import { GlyphInfo, Rect, TextDirection } from '@/mtex/canvaskit';
+import { _Paragraph, ParagraphSpan, PlaceholderSpan } from './engine';
 import { measureSubstring } from './measurement';
-// import { Ruler } from './ruler';
-
+import { createDomCanvasElement } from './dom';
 
 
 /** A single canvas2d context to use for all text measurements. */
-export const textContext: CanvasRenderingContext2D = createDomCanvasElement(0, 0).getContext('2d')!;
+const textContext: CanvasRenderingContext2D =  createDomCanvasElement(0, 0).getContext('2d')!;
 
 /** The last font used in the textContext. */
 let _lastContextFont: string | null = null;
@@ -65,7 +55,7 @@ export class TextLayoutService {
   }
 
   get paintBounds(): Rect {
-    return Rect.fromLTWH(0, 0, this._width, this._height);
+    return new Float32Array([0, 0, this._width, this._height])
   }
 
   /**
@@ -488,7 +478,7 @@ export class TextLayoutService {
 /**
  * Represents a line of text in a paragraph.
  */
-class ParagraphLine {
+export class ParagraphLine {
   constructor(
     readonly fragments: LayoutFragment[],
     readonly startIndex: number,
@@ -517,7 +507,7 @@ class ParagraphLine {
   /**
    * Gets the x coordinate for the given text position within this line.
    */
-  getXForOffset(textContext: DomCanvasRenderingContext2D, position: number): number {
+  getXForOffset(textContext: CanvasRenderingContext2D, position: number): number {
     let x = this.left;
     for (const fragment of this.fragments) {
       if (position <= fragment.end) {
@@ -540,37 +530,12 @@ class ParagraphLine {
   }
 }
 
-enum TextAlign {
-  center,
-  right,
-  start,
-  end,
-  justify,
-}
-
-enum TextDirection {
-  ltr,
-  rtl,
-}
-
-enum PlaceholderAlignment {
-  top,
-  bottom,
-  middle,
-  aboveBaseline,
-  belowBaseline,
-  baseline,
-}
-
-enum TextHeightStyle {
-  // 可以根据实际情况补充
-}
 
 export class LineBuilder {
   private _fragments: LayoutFragment[];
   private _fragmentsForNextLine: LayoutFragment[] | null = null;
   readonly maxWidth: number;
-  readonly paragraph: CanvasParagraph;
+  readonly paragraph: _Paragraph;
   readonly spanometer: Spanometer;
   readonly lineNumber: number;
   readonly accumulatedHeight: number;
@@ -584,7 +549,7 @@ export class LineBuilder {
   private _trailingSpaces: number = 0;
 
   private constructor(
-    paragraph: CanvasParagraph,
+    paragraph: _Paragraph,
     spanometer: Spanometer,
     maxWidth: number,
     lineNumber: number,
@@ -601,7 +566,7 @@ export class LineBuilder {
   }
 
   static first(
-    paragraph: CanvasParagraph,
+    paragraph: _Paragraph,
     spanometer: Spanometer,
     maxWidth: number
   ): LineBuilder {
@@ -968,10 +933,10 @@ enum TextAlign {
   justify,
 }
 
-enum TextDirection {
-  ltr,
-  rtl,
-}
+// enum TextDirection {
+//   ltr,
+//   rtl,
+// }
 
 enum PlaceholderAlignment {
   top,

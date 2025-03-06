@@ -52,10 +52,12 @@ import {
     StrokeJoin,
     URange,
     Rect,
+    FontWeight,
 } from "../mtex/canvaskit";
+import { LayoutFragment } from "./layout_fragmenter";
 import { TextLayoutService, } from "./layout_service";
 import { TextPaintService } from "./paint_service";
-import { EngineParagraphStyle, EngineTextStyle, RootStyleNode, StyleNode } from "./paragraph";
+import { RootStyleNode, StyleNode } from "./paragraph";
 import { WordBreaker } from "./word_breaker";
 
 export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {
@@ -327,8 +329,8 @@ const placeholderChar = String.fromCharCode(0xFFFC);
 
 export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implements ParagraphBuilder {
 
-    private _plainTextBuffer: string = '' // = new StringBuffer();
-    private readonly _paragraphStyle: EngineParagraphStyle;
+    private _plainTextBuffer: string = ''
+    private readonly _paragraphStyle: ParagraphStyle;
 
     private readonly _spans: ParagraphSpan[] = [];
     private readonly _styleStack: StyleNode[] = [];
@@ -352,7 +354,6 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
 
     private _canDrawOnCanvas = true;
 
-
     constructor(style: ParagraphStyle) {
         super("ParagraphBuilder")
         this._paragraphStyle = style;
@@ -367,26 +368,23 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      * @param baseline
      * @param offset
      */
-    addPlaceholder(width?: number, height?: number, alignment?: PlaceholderAlignment, baseline?: TextBaseline, offset?: number): void {
-        // const {
-        //     scale = 1.0,
-        //     baselineOffset,
-        //     baseline
-        // } = options;
+    addPlaceholder(width?: number, height?: number,
+        alignment?: PlaceholderAlignment,
+        baseline?: TextBaseline, offset?: number): void {
         const scale = 1.0;
         // Require a baseline to be specified if using a baseline-based alignment.
-        if ((alignment === ui.PlaceholderAlignment.aboveBaseline ||
-            alignment === ui.PlaceholderAlignment.belowBaseline ||
-            alignment === ui.PlaceholderAlignment.baseline) && baseline == null) {
-            throw new Error('Baseline must be specified for baseline-based alignment');
-        }
+        // if ((alignment === ui.PlaceholderAlignment.aboveBaseline ||
+        //     alignment === ui.PlaceholderAlignment.belowBaseline ||
+        //     alignment === ui.PlaceholderAlignment.baseline) && baseline == null) {
+        //     throw new Error('Baseline must be specified for baseline-based alignment');
+        // }
 
         const start = this._plainTextBuffer.length;
         this._plainTextBuffer += placeholderChar;
         const end = this._plainTextBuffer.length;
 
         const style = this._currentStyleNode.resolveStyle();
-        this._updateCanDrawOnCanvas(style);
+        // this._updateCanDrawOnCanvas(style);
 
         this._placeholderCount++;
         this._placeholderScales.push(scale);
@@ -394,13 +392,11 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
             style,
             start,
             end,
-            width * scale,
-            height * scale,
-            alignment,
-            {
-                baselineOffset: (baselineOffset ?? height) * scale,
-                baseline: baseline ?? ui.TextBaseline.alphabetic,
-            }
+            (width ?? 0) * scale,
+            (height ?? 0) * scale,
+            { value: 0 },  //alignment,
+            baseline ?? { value: 0 },//TextBaseline.alphabetic,
+            (offset ?? height ?? 0) * scale,
         ));
     }
 
@@ -415,7 +411,7 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
         const end = this._plainTextBuffer.length;
 
         const style = this._currentStyleNode.resolveStyle();
-        this._updateCanDrawOnCanvas(style);
+        // this._updateCanDrawOnCanvas(style);
 
         this._spans.push(new ParagraphSpan(
             style,
@@ -424,35 +420,35 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
         ));
     }
 
-    private _updateCanDrawOnCanvas(style: EngineTextStyle): void {
-        if (!this._canDrawOnCanvas) {
-            return;
-        }
+    // private _updateCanDrawOnCanvas(style: TextStyle): void {
+    //     if (!this._canDrawOnCanvas) {
+    //         return;
+    //     }
 
-        const letterSpacing = style.letterSpacing;
-        if (letterSpacing != null && letterSpacing !== 0.0) {
-            this._canDrawOnCanvas = false;
-            return;
-        }
+    //     const letterSpacing = style.letterSpacing;
+    //     if (letterSpacing != null && letterSpacing !== 0.0) {
+    //         this._canDrawOnCanvas = false;
+    //         return;
+    //     }
 
-        const decoration = style.decoration;
-        if (decoration != null && decoration !== TextDecoration.none) {
-            this._canDrawOnCanvas = false;
-            return;
-        }
+    //     const decoration = style.decoration;
+    //     if (decoration != null && decoration !== TextDecoration.none) {
+    //         this._canDrawOnCanvas = false;
+    //         return;
+    //     }
 
-        const fontFeatures = style.fontFeatures;
-        if (fontFeatures != null && fontFeatures.length > 0) {
-            this._canDrawOnCanvas = false;
-            return;
-        }
+    //     const fontFeatures = style.fontFeatures;
+    //     if (fontFeatures != null && fontFeatures.length > 0) {
+    //         this._canDrawOnCanvas = false;
+    //         return;
+    //     }
 
-        const fontVariations = style.fontVariations;
-        if (fontVariations != null && fontVariations.length > 0) {
-            this._canDrawOnCanvas = false;
-            return;
-        }
-    }
+    //     const fontVariations = style.fontVariations;
+    //     if (fontVariations != null && fontVariations.length > 0) {
+    //         this._canDrawOnCanvas = false;
+    //         return;
+    //     }
+    // }
 
 
     /**
@@ -550,6 +546,7 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      */
     getText(): string {
         throw new Error("getText not implemented.");
+        return this._plainTextBuffer
     }
 
     /**
@@ -568,9 +565,7 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
      * @param textStyle
      */
     pushStyle(text: TextStyle): void {
-        this._styleStack.push(
-            this._currentStyleNode.createChild(style as EngineTextStyle)
-        );
+        this._styleStack.push(this._currentStyleNode.createChild(text));
     }
 
     /**
@@ -595,9 +590,8 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
 
 export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph {
 
-
     /** General styling information for this paragraph */
-    readonly paragraphStyle: EngineParagraphStyle;
+    readonly paragraphStyle: ParagraphStyle;
 
     /** The full textual content of the paragraph */
     readonly plainText: string;
@@ -651,13 +645,14 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
 
     //   private _lastUsedConstraints?: ui.ParagraphConstraints;
     private _lastUsedWidth?: number;
+
     private readonly _layoutService = new TextLayoutService(this);
     private readonly _paintService = new TextPaintService(this);
 
     constructor(
         readonly spans: ParagraphSpan[],
         options: {
-            paragraphStyle: EngineParagraphStyle;
+            paragraphStyle: ParagraphStyle;
             plainText: string;
             canDrawOnCanvas: boolean;
         }
@@ -672,17 +667,17 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         }
     }
 
-    // constructor(
-    //     readonly plainText: string,
-    //     private style: ParagraphStyle,
-    //     readonly spans: ParagraphSpan[],
+    getLineMetrics(): LineMetrics[] {
+        throw new Error("Method not implemented.");
+    }
 
-    // ) {
-    //     super("Paragraph")
-    //     this._layoutService = new LayoutService(this);
-    //     this._paintService = new TextPaintService(this);
-    // }
+    getRectsForRange(start: number, end: number, hStyle: RectHeightStyle, wStyle: RectWidthStyle): RectWithDirection[] {
+        throw new Error("Method not implemented.");
+    }
 
+    getShapedLines(): ShapedLine[] {
+        throw new Error("Method not implemented.");
+    }
 
     getAlphabeticBaseline(): number {
         return 0;
@@ -693,7 +688,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
      * with the top left corner as the origin, and +y direction as down.
      */
     getGlyphPositionAtCoordinate(dx: number, dy: number): PositionWithAffinity {
-
+        throw new Error("Method not implemented.");
     }
 
     /**
@@ -734,17 +729,16 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
                 // don't combine), use the layout box of the first base character as its
                 // layout box has a better chance to be not that far-off.
                 const textBox = fragment.toTextBox({ start: range.start, end: range.end });
-                return new ui.GlyphInfo(textBox.toRect(), range, textBox.direction);
+                return new GlyphInfo(textBox.toRect(), range, textBox.direction);
             }
         }
 
         throw new Error('This should not be reachable');
     }
 
-
     getHeight(): number {
-
-        throw new Error("getHeight not implemented.");
+        throw new Error("Method not implemented.");
+        return this.height;
     }
 
     getIdeographicBaseline(): number {
@@ -791,6 +785,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         // console.log("getMaxIntrinsicWidth", maxWidth);
         return maxWidth;
     }
+
     getMaxWidth(): number {
         const lineMetrics = this.getLineMetrics();
         let maxWidth = 0;
@@ -825,100 +820,6 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         return [];
     }
 
-    /**
-     * Returns bounding boxes that enclose all text in the range of glpyh indexes [start, end).
-     * @param start
-     * @param end
-     * @param hStyle
-     * @param wStyle
-     */
-    // getRectsForRange(start: number, end: number, hStyle: RectHeightStyle, wStyle: RectWidthStyle): RectWithDirection[] {
-    //     this.measureGlyphIfNeeded();
-    //     let result: RectWithDirection[] = [];
-    //     this.lineMetrics.forEach((it) => {
-    //         const range0 = [start, end];
-    //         const range1 = [it.startIndex, it.endIndex];
-    //         const hasIntersection = range0[1] > range1[0] && range1[1] > range0[0];
-    //         if (hasIntersection) {
-    //             const intersecRange = [
-    //                 Math.max(range0[0], range1[0]),
-    //                 Math.min(range0[1], range1[1]),
-    //             ];
-    //             let currentLineLeft = -1;
-    //             let currentLineTop = -1;
-    //             let currentLineWidth = 0;
-    //             let currentLineHeight = 0;
-    //             for (let index = intersecRange[0]; index < intersecRange[1]; index++) {
-    //                 const glyphInfo = this.glyphInfos[index];
-    //                 if (glyphInfo) {
-    //                     if (currentLineLeft < 0) {
-    //                         currentLineLeft = glyphInfo.graphemeLayoutBounds[0];
-    //                     }
-    //                     if (currentLineTop < 0) {
-    //                         currentLineTop = glyphInfo.graphemeLayoutBounds[1];
-    //                     }
-    //                     currentLineTop = Math.min(
-    //                         currentLineTop,
-    //                         glyphInfo.graphemeLayoutBounds[1]
-    //                     );
-    //                     currentLineWidth =
-    //                         glyphInfo.graphemeLayoutBounds[2] - currentLineLeft;
-    //                     currentLineHeight = Math.max(
-    //                         currentLineHeight,
-    //                         glyphInfo.graphemeLayoutBounds[3] - currentLineTop
-    //                     );
-    //                 }
-    //             }
-    //             result.push({
-    //                 rect: new Float32Array([
-    //                     currentLineLeft,
-    //                     currentLineTop,
-    //                     currentLineLeft + currentLineWidth,
-    //                     currentLineTop + currentLineHeight,
-    //                 ]),
-    //                 dir: { value: TextDirection.LTR },
-    //             });
-    //         }
-    //     });
-    //     if (result.length === 0) {
-    //         const lastSpan = this.spans[this.spans.length - 1];
-    //         const lastLine =
-    //             this.lineMetrics[this.lineMetrics.length - 1];
-    //         if (
-    //             end > lastLine.endIndex &&
-    //             lastSpan instanceof TextSpan &&
-    //             lastSpan.originText.endsWith("\n")
-    //         ) {
-    //             return [
-    //                 {
-    //                     rect: new Float32Array([
-    //                         0,
-    //                         lastLine.yOffset,
-    //                         0,
-    //                         lastLine.yOffset + lastLine.height,
-    //                     ]),
-    //                     dir: { value: TextDirection.LTR },
-    //                 },
-    //             ];
-    //         }
-    //     }
-    //     return result;
-    // }
-
-    /**
-     * Finds the first and last glyphs that define a word containing the glyph at index offset.
-     * @param offset
-     */
-    // getWordBoundary(offset: number): URange {
-    //     return { start: offset, end: offset };
-    // }
-
-    /**
-     * Returns an array of ShapedLine objects, describing the paragraph.
-     */
-    // getShapedLines(): ShapedLine[] {
-    //     return [];
-    // }
 
     /**
      * Lays out the text in the paragraph so it is wrapped to the given width.
@@ -961,77 +862,72 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         return true;
     }
 
-
     paint(canvas: BitmapCanvas, offset: Offset): void {
         this._paintService.paint(canvas, offset);
     }
 
+    // toDomElement(): HTMLElement {
+    //     if (!this.isLaidOut) {
+    //         throw new Error('Paragraph must be laid out before converting to DOM element');
+    //     }
 
-    toDomElement(): HTMLElement {
-        if (!this.isLaidOut) {
-            throw new Error('Paragraph must be laid out before converting to DOM element');
-        }
+    //     const domElement = this._cachedDomElement;
+    //     if (domElement) {
+    //         return domElement.cloneNode(true) as DomElement;
+    //     }
+    //     return this._cachedDomElement = this._createDomElement();
+    // }
 
-        const domElement = this._cachedDomElement;
-        if (domElement) {
-            return domElement.cloneNode(true) as DomElement;
-        }
-        return this._cachedDomElement = this._createDomElement();
-    }
+    // private _createDomElement(): HTMLElement {
+    //     const rootElement = document.createElement('flt-paragraph') as HTMLElement;
 
+    //     // 1. Set paragraph-level styles
+    //     const cssStyle = rootElement.style;
+    //     cssStyle.position = 'absolute';
+    //     // Prevent the browser from doing any line breaks in the paragraph. We want
+    //     // to have full control of the paragraph layout.
+    //     cssStyle.whiteSpace = 'pre';
 
+    //     // 2. Append all spans to the paragraph
+    //     for (let i = 0; i < this.lines.length; i++) {
+    //         const line = this.lines[i];
+    //         for (const fragment of line.fragments) {
+    //             if (fragment.isPlaceholder) {
+    //                 continue;
+    //             }
 
-    private _createDomElement(): HTMLElement {
-        const rootElement = document.createElement('flt-paragraph') as HTMLElement;
+    //             const text = fragment.getText(this);
+    //             if (!text) {
+    //                 continue;
+    //             }
 
-        // 1. Set paragraph-level styles
-        const cssStyle = rootElement.style;
-        cssStyle.position = 'absolute';
-        // Prevent the browser from doing any line breaks in the paragraph. We want
-        // to have full control of the paragraph layout.
-        cssStyle.whiteSpace = 'pre';
+    //             const spanElement = document.createElement('flt-span') as DomElement;
+    //             if (fragment.textDirection === ui.TextDirection.rtl) {
+    //                 spanElement.setAttribute('dir', 'rtl');
+    //             }
 
-        // 2. Append all spans to the paragraph
-        for (let i = 0; i < this.lines.length; i++) {
-            const line = this.lines[i];
-            for (const fragment of line.fragments) {
-                if (fragment.isPlaceholder) {
-                    continue;
-                }
+    //             applyTextStyleToElement({
+    //                 element: spanElement,
+    //                 style: fragment.style
+    //             });
 
-                const text = fragment.getText(this);
-                if (!text) {
-                    continue;
-                }
+    //             this._positionSpanElement(spanElement, line, fragment);
 
-                const spanElement = document.createElement('flt-span') as DomElement;
-                if (fragment.textDirection === ui.TextDirection.rtl) {
-                    spanElement.setAttribute('dir', 'rtl');
-                }
+    //             spanElement.textContent = text;
+    //             rootElement.appendChild(spanElement);
+    //         }
+    //     }
 
-                applyTextStyleToElement({
-                    element: spanElement,
-                    style: fragment.style
-                });
+    //     return rootElement;
+    // }
 
-                this._positionSpanElement(spanElement, line, fragment);
-
-                spanElement.textContent = text;
-                rootElement.appendChild(spanElement);
-            }
-        }
-
-        return rootElement;
-    }
-
-    getBoxesForPlaceholders(): ui.TextBox[] {
+    getBoxesForPlaceholders(): TextBox[] {
         return this._layoutService.getBoxesForPlaceholders();
     }
 
     getPositionForOffset(offset: Offset): TextPosition {
         return this._layoutService.getPositionForOffset(offset);
     }
-
 
     getBoxesForRange(
         start: number,
@@ -1040,7 +936,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
             boxHeightStyle?: BoxHeightStyle;
             boxWidthStyle?: BoxWidthStyle;
         } = {}
-    ): ui.TextBox[] {
+    ): TextBox[] {
         const {
             boxHeightStyle = BoxHeightStyle.tight,
             boxWidthStyle = BoxWidthStyle.tight
@@ -1054,31 +950,30 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         );
     }
 
-
-    getClosestGlyphInfoForOffset(offset: ui.Offset): ui.GlyphInfo | null {
+    getClosestGlyphInfoForOffset(offset: Offset): GlyphInfo | null {
         return this._layoutService.getClosestGlyphInfo(offset);
     }
 
-
-    getWordBoundary(position: ui.TextPosition): ui.TextRange {
+    getWordBoundary(offset: number /*position: ui.TextPosition*/): URange /* ui.TextRange*/ {
         const characterPosition = position.affinity === ui.TextAffinity.upstream
-            ? position.offset - 1
-            : position.offset;
+            ? offset - 1 //position.offset - 1
+            : offset; //position.offset;
 
         const start = WordBreaker.prevBreakIndex(this.plainText, characterPosition + 1);
         const end = WordBreaker.nextBreakIndex(this.plainText, characterPosition);
-        return new ui.TextRange(start, end);
+        return { start, end } //new ui.TextRange(start, end);
     }
 
-    getLineBoundary(position: ui.TextPosition): ui.TextRange {
+    getLineBoundary(position: TextPosition): URange /* ui.TextRange*/ {
         if (!this.lines.length) {
-            return ui.TextRange.empty;
+            return {start:0, end:0}
+            // return TextRange.empty;
         }
-
         const lineNumber = this.getLineNumberAt(position.offset);
         // Fallback to the last line for backward compatibility
         const line = lineNumber != null ? this.lines[lineNumber] : this.lines[this.lines.length - 1];
-        return new ui.TextRange(line.startIndex, line.endIndex - line.trailingNewlines);
+        // return new ui.TextRange(line.startIndex, line.endIndex - line.trailingNewlines);
+        return { start: line.startIndex, end: line.endIndex - line.trailingNewlines }
     }
 
     computeLineMetrics(): LineMetrics[] {
@@ -1109,12 +1004,11 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         return this._findLine(codeUnitOffset, midIndex, endLine) ??
             this._findLine(codeUnitOffset, startLine, midIndex);
     }
-
 }
 
 export class ParagraphSpan {
     constructor(
-        readonly style: EngineTextStyle,
+        readonly style: TextStyle,
         readonly start: number,
         readonly end: number,
     ) { }
@@ -1126,18 +1020,201 @@ export class ParagraphSpan {
  */
 export class PlaceholderSpan extends ParagraphSpan {
     constructor(
+        style: TextStyle,
+        start: number,
+        end: number,
         readonly width: number,
         readonly height: number,
         readonly alignment: PlaceholderAlignment,
         readonly baseline: TextBaseline,
         readonly baselineOffset: number,
-        style: TextStyle,
-        start: number,
-        end: number,
+
     ) {
-        super(start, end, style);
+        super(style, start, end);
     }
 
+}
+
+/**
+ * Metrics for a line of text in the engine.
+ */
+export class EngineLineMetrics implements LineMetrics {
+    constructor(
+        readonly startIndex: number,
+        readonly endIndex: number,
+        readonly hardBreak: boolean,
+        readonly ascent: number,
+        readonly descent: number,
+        readonly unscaledAscent: number,
+        readonly height: number,
+        readonly width: number,
+        readonly left: number,
+        readonly baseline: number,
+        readonly lineNumber: number,
+    ) { }
+    endExcludingWhitespaces: number;
+    endIncludingNewline: number;
+    isHardBreak: boolean;
+
+    /**
+     * Creates a copy of this metrics with the given fields replaced.
+     */
+    copyWith(fields: Partial<LineMetrics>): EngineLineMetrics {
+        return new EngineLineMetrics(
+            fields.startIndex ?? this.startIndex,
+            fields.endIndex ?? this.endIndex,
+            fields.hardBreak ?? this.hardBreak,
+            fields.ascent ?? this.ascent,
+            fields.descent ?? this.descent,
+            fields.unscaledAscent ?? this.unscaledAscent,
+            fields.height ?? this.height,
+            fields.width ?? this.width,
+            fields.left ?? this.left,
+            fields.baseline ?? this.baseline,
+            fields.lineNumber ?? this.lineNumber,
+        );
+    }
+}
+
+
+/**
+ * A text style with engine-specific features.
+ */
+export class EngineTextStyle implements TextStyle {
+    /**
+     * Creates a text style with the given properties.
+     */
+    static create(props: {
+        color?: number;
+        decoration?: TextDecoration;
+        decorationColor?: Color;
+        decorationStyle?: TextDecorationStyle;
+        decorationThickness?: number;
+        fontWeight?: FontWeight;
+        fontStyle?: FontStyle;
+        textBaseline?: TextBaseline;
+        fontFamily?: string;
+        fontSize?: number;
+        letterSpacing?: number;
+        wordSpacing?: number;
+        height?: number;
+        leadingDistribution?: TextLeadingDistribution;
+        locale?: string;
+        background?: Paint;
+        foreground?: Paint;
+        shadows?: Shadow[];
+        fontFeatures?: FontFeature[];
+        fontVariations?: FontVariation[];
+    }): EngineTextStyle {
+        return new EngineTextStyle(props);
+    }
+
+    /**
+     * Applies this style to a DOM element.
+     */
+    applyToDomElement(element: HTMLElement): void {
+        applyTextStyleToElement(this, element);
+    }
+}
+
+/**
+ * A strut style with engine-specific features.
+ */
+export class EngineStrutStyle {
+    constructor(
+        readonly fontFamily?: string,
+        readonly fontSize?: number,
+        readonly height?: number,
+        readonly leading?: number,
+        readonly fontWeight?: FontWeight,
+        readonly fontStyle?: FontStyle,
+        readonly forceStrutHeight?: boolean,
+    ) { }
+
+    /**
+     * Creates a copy of this style with the given fields replaced.
+     */
+    copyWith(fields: Partial<EngineStrutStyle>): EngineStrutStyle {
+        return new EngineStrutStyle(
+            fields.fontFamily ?? this.fontFamily,
+            fields.fontSize ?? this.fontSize,
+            fields.height ?? this.height,
+            fields.leading ?? this.leading,
+            fields.fontWeight ?? this.fontWeight,
+            fields.fontStyle ?? this.fontStyle,
+            fields.forceStrutHeight ?? this.forceStrutHeight,
+        );
+    }
+}
+
+/**
+ * A placeholder in a paragraph.
+ */
+export class ParagraphPlaceholder {
+    constructor(
+        readonly width: number,
+        readonly height: number,
+        readonly alignment: PlaceholderAlignment,
+        readonly baseline?: number,
+        readonly offset?: number,
+    ) { }
+}
+
+/**
+ * A line of text with additional layout information.
+ */
+export class ParagraphLine {
+    private readonly _fragments: LayoutFragment[] = [];
+    private _width = 0;
+    private _height = 0;
+    private _baseline = 0;
+    private _left = 0;
+    private _y = 0;
+
+    constructor(
+        readonly start: number,
+        readonly end: number,
+        readonly hardBreak: boolean = false,
+    ) { }
+
+    get fragments(): LayoutFragment[] { return this._fragments; }
+    get width(): number { return this._width; }
+    get height(): number { return this._height; }
+    get baseline(): number { return this._baseline; }
+    get left(): number { return this._left; }
+
+    addFragment(fragment: LayoutFragment): void {
+        this._fragments.push(fragment);
+        this._width += fragment.width;
+        this._height = Math.max(this._height, fragment.height);
+        this._baseline = Math.max(this._baseline, fragment.baseline);
+    }
+
+    layout(y: number): void {
+        this._y = y;
+        let x = this._left;
+
+        for (const fragment of this._fragments) {
+            fragment.position(x, y + this._baseline - fragment.baseline);
+            x += fragment.width;
+        }
+    }
+
+    toMetrics(lineNumber: number): EngineLineMetrics {
+        return new EngineLineMetrics(
+            this.start,
+            this.end,
+            this.hardBreak,
+            this._baseline,
+            this._height - this._baseline,
+            this._baseline,
+            this._height,
+            this._width,
+            this._left,
+            this._baseline,
+            lineNumber,
+        );
+    }
 }
 
 
@@ -1292,8 +1369,6 @@ class _ColorSpace extends SkEmbindObject<"ColorSpace"> {
         super("ColorSpace");
     }
 }
-
-const defaultPaint = new _Paint();
 
 export function install(
     canvasKit: CanvasKit,

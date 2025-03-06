@@ -2,11 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// import { TextDirection } from '../ui';
 import { LineBreakType, LineBreaker } from './line_breaker';
-import { TextLayoutService } from './layout_service';
-import { ParagraphSpan } from './paragraph_span';
-import { _Paragraph } from './engine'
+import { _Paragraph, ParagraphSpan } from './engine'
+import { TextDirection } from '@/mtex/canvaskit';
 
 /**
  * A fragment of text that can be measured and painted.
@@ -32,61 +30,61 @@ export class LayoutFragment {
     get textDirection(): TextDirection | null { return this._textDirection; }
 
     getText(paragraph: _Paragraph): string {
-        return paragraph.plainText. substring(this.start, this.end);
+        return paragraph.plainText.substring(this.start, this.end);
     }
 
     split(index: number): Array<LayoutFragment | null> {
         // In TypeScript we don't have assert, so we can use if statements for checks
         if (this.start > index || index > this.end) {
-          throw new Error('Index out of bounds');
+            throw new Error('Index out of bounds');
         }
-      
+
         // If splitting at the start, return [null, this]
         if (this.start === index) {
-          return [null, this];
+            return [null, this];
         }
-      
+
         // If splitting at the end, return [this, null]
         if (this.end === index) {
-          return [this, null];
+            return [this, null];
         }
-      
+
         // The length of the second fragment after the split
         const secondLength: number = this.end - index;
-      
+
         // Trailing spaces/new lines go to the second fragment. Any left over goes
         // to the first fragment
         const secondTrailingNewlines: number = Math.min(this.trailingNewlines, secondLength);
         const secondTrailingSpaces: number = Math.min(this.trailingSpaces, secondLength);
-      
+
         // Return array of two new fragments
         return [
-          new LayoutFragment(
-            this.start,
-            index,
-            LineBreakType.prohibited,
-            this.textDirection,
-            this.fragmentFlow,
-            this.span,
-            {
-              trailingNewlines: this.trailingNewlines - secondTrailingNewlines,
-              trailingSpaces: this.trailingSpaces - secondTrailingSpaces,
-            }
-          ),
-          new LayoutFragment(
-            index,
-            this.end,
-            this.type,
-            this.textDirection,
-            this.fragmentFlow, 
-            this.span,
-            {
-              trailingNewlines: secondTrailingNewlines,
-              trailingSpaces: secondTrailingSpaces,
-            }
-          ),
+            new LayoutFragment(
+                this.start,
+                index,
+                LineBreakType.prohibited,
+                this.textDirection,
+                this.fragmentFlow,
+                this.span,
+                {
+                    trailingNewlines: this.trailingNewlines - secondTrailingNewlines,
+                    trailingSpaces: this.trailingSpaces - secondTrailingSpaces,
+                }
+            ),
+            new LayoutFragment(
+                index,
+                this.end,
+                this.type,
+                this.textDirection,
+                this.fragmentFlow,
+                this.span,
+                {
+                    trailingNewlines: secondTrailingNewlines,
+                    trailingSpaces: secondTrailingSpaces,
+                }
+            ),
         ];
-      }
+    }
 }
 
 /**
@@ -140,7 +138,7 @@ export class LayoutFragmenter {
 
         return fragments;
     }
-} 
+}
 
 interface FragmentMetrics {
     ascent: number;
@@ -150,64 +148,102 @@ interface FragmentMetrics {
     height: number;
     widthOfTrailingSpaces: number;
     setMetrics(spanometer: Spanometer, options: {
-      ascent: number;
-      descent: number;
-      widthExcludingTrailingSpaces: number;
-      widthIncludingTrailingSpaces: number;
+        ascent: number;
+        descent: number;
+        widthExcludingTrailingSpaces: number;
+        widthIncludingTrailingSpaces: number;
     }): void;
-  }
-  
-  /**
-   * Abstract class implementing the metrics functionality
-   */
-  abstract class FragmentMetricsImpl implements FragmentMetrics {
+}
+
+/**
+ * Abstract class implementing the metrics functionality
+ */
+abstract class FragmentMetricsImpl implements FragmentMetrics {
     protected _spanometer!: Spanometer;
     protected _ascent!: number;
     protected _descent!: number;
     protected _widthExcludingTrailingSpaces!: number;
     protected _widthIncludingTrailingSpaces!: number;
     protected _extraWidthForJustification: number = 0.0;
-  
+
     /** The rise from the baseline as calculated from the font and style for this text. */
     get ascent(): number {
-      return this._ascent;
+        return this._ascent;
     }
-  
+
     /** The drop from the baseline as calculated from the font and style for this text. */
     get descent(): number {
-      return this._descent;
+        return this._descent;
     }
-  
+
     /** The width of the measured text, not including trailing spaces. */
     get widthExcludingTrailingSpaces(): number {
-      return this._widthExcludingTrailingSpaces;
+        return this._widthExcludingTrailingSpaces;
     }
-  
+
     /** The width of the measured text, including any trailing spaces. */
     get widthIncludingTrailingSpaces(): number {
-      return this._widthIncludingTrailingSpaces + this._extraWidthForJustification;
+        return this._widthIncludingTrailingSpaces + this._extraWidthForJustification;
     }
-  
+
     /** The total height as calculated from the font and style for this text. */
     get height(): number {
-      return this.ascent + this.descent;
+        return this.ascent + this.descent;
     }
-  
+
     get widthOfTrailingSpaces(): number {
-      return this.widthIncludingTrailingSpaces - this.widthExcludingTrailingSpaces;
+        return this.widthIncludingTrailingSpaces - this.widthExcludingTrailingSpaces;
     }
-  
+
     /** Set measurement values for the fragment. */
     setMetrics(spanometer: Spanometer, options: {
-      ascent: number;
-      descent: number;
-      widthExcludingTrailingSpaces: number;
-      widthIncludingTrailingSpaces: number;
+        ascent: number;
+        descent: number;
+        widthExcludingTrailingSpaces: number;
+        widthIncludingTrailingSpaces: number;
     }): void {
-      this._spanometer = spanometer;
-      this._ascent = options.ascent;
-      this._descent = options.descent;
-      this._widthExcludingTrailingSpaces = options.widthExcludingTrailingSpaces;
-      this._widthIncludingTrailingSpaces = options.widthIncludingTrailingSpaces;
+        this._spanometer = spanometer;
+        this._ascent = options.ascent;
+        this._descent = options.descent;
+        this._widthExcludingTrailingSpaces = options.widthExcludingTrailingSpaces;
+        this._widthIncludingTrailingSpaces = options.widthIncludingTrailingSpaces;
+    }
+}
+
+export class EllipsisFragment extends LayoutFragment {
+    constructor(
+      index: number,
+      span: ParagraphSpan
+    ) {
+      super(
+        index,
+        index,
+        LineBreakType.endOfText,
+        null,
+        // The ellipsis is always at the end of the line, so it can't be
+        // sandwiched. This means it'll always follow the paragraph direction.
+        FragmentFlow.sandwich,
+        span,
+        { trailingNewlines: 0, trailingSpaces: 0 }
+      );
+    }
+  
+    get isSpaceOnly(): boolean {
+      return false;
+    }
+  
+    get isPlaceholder(): boolean {
+      return false;
+    }
+  
+    getText(paragraph: CanvasParagraph): string {
+      if (!paragraph.paragraphStyle.ellipsis) {
+        throw new Error('Paragraph style ellipsis is not defined');
+      }
+      return paragraph.paragraphStyle.ellipsis;
+    }
+  
+    split(index: number): LayoutFragment[] {
+      throw new Error('Cannot split an EllipsisFragment');
     }
   }
