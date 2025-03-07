@@ -54,11 +54,13 @@ import {
     Rect,
     FontWeight,
 } from "../mtex/canvaskit";
-import { LayoutFragment } from "./layout_fragmenter";
+import { createDomCanvasElement } from "./dom";
 import { TextLayoutService, } from "./layout_service";
 import { TextPaintService } from "./paint_service";
-import { RootStyleNode, StyleNode } from "./paragraph";
+import { ParagraphLine, RootStyleNode, StyleNode } from "./paragraph";
 import { WordBreaker } from "./word_breaker";
+
+import { AlphaType, ColorType } from "./dom"
 
 export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {
     _deleted = false;
@@ -631,7 +633,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         return this._layoutService.didExceedMaxLines;
     }
 
-    get lines() {
+    get lines(): ParagraphLine[] {
         return this._layoutService.lines;
     }
 
@@ -966,7 +968,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
 
     getLineBoundary(position: TextPosition): URange /* ui.TextRange*/ {
         if (!this.lines.length) {
-            return {start:0, end:0}
+            return { start: 0, end: 0 }
             // return TextRange.empty;
         }
         const lineNumber = this.getLineNumberAt(position.offset);
@@ -1160,63 +1162,6 @@ export class ParagraphPlaceholder {
     ) { }
 }
 
-/**
- * A line of text with additional layout information.
- */
-export class ParagraphLine {
-    private readonly _fragments: LayoutFragment[] = [];
-    private _width = 0;
-    private _height = 0;
-    private _baseline = 0;
-    private _left = 0;
-    private _y = 0;
-
-    constructor(
-        readonly start: number,
-        readonly end: number,
-        readonly hardBreak: boolean = false,
-    ) { }
-
-    get fragments(): LayoutFragment[] { return this._fragments; }
-    get width(): number { return this._width; }
-    get height(): number { return this._height; }
-    get baseline(): number { return this._baseline; }
-    get left(): number { return this._left; }
-
-    addFragment(fragment: LayoutFragment): void {
-        this._fragments.push(fragment);
-        this._width += fragment.width;
-        this._height = Math.max(this._height, fragment.height);
-        this._baseline = Math.max(this._baseline, fragment.baseline);
-    }
-
-    layout(y: number): void {
-        this._y = y;
-        let x = this._left;
-
-        for (const fragment of this._fragments) {
-            fragment.position(x, y + this._baseline - fragment.baseline);
-            x += fragment.width;
-        }
-    }
-
-    toMetrics(lineNumber: number): EngineLineMetrics {
-        return new EngineLineMetrics(
-            this.start,
-            this.end,
-            this.hardBreak,
-            this._baseline,
-            this._height - this._baseline,
-            this._baseline,
-            this._height,
-            this._width,
-            this._left,
-            this._baseline,
-            lineNumber,
-        );
-    }
-}
-
 
 const StrokeCapEnums = {
     Butt: { value: 0 },
@@ -1391,95 +1336,68 @@ export function install(
         return new _TextStyle(ts);
     };
 
-    // Paragraph Enums
-    // canvasKit.TextAlign = TextAlignEnums;
-
-    // canvasKit.TextDirection = {
-    //     RTL: { value: 0 },
-    //     LTR: { value: 1 },
-    // };
-
-    // canvasKit.TextBaseline = {
-    //     Alphabetic: { value: 0 },
-    //     Ideographic: { value: 1 },
-    // };
-    // canvasKit.RectHeightStyle = {
-    //     Tight: { value: 0 },
-    //     Max: { value: 1 },
-    //     IncludeLineSpacingMiddle: { value: 2 },
-    //     IncludeLineSpacingTop: { value: 3 },
-    //     IncludeLineSpacingBottom: { value: 4 },
-    //     Strut: { value: 5 },
-    // };
-    // canvasKit.RectWidthStyle = {
-    //     Tight: { value: 0 },
-    //     Max: { value: 1 },
-    // };
-    // canvasKit.Affinity = {
-    //     Upstream: { value: 0 },
-    //     Downstream: { value: 1 },
-    // };
-    // canvasKit.FontWeight = {
-    //     Invisible: { value: 0 },
-    //     Thin: { value: 100 },
-    //     ExtraLight: { value: 200 },
-    //     Light: { value: 300 },
-    //     Normal: { value: 400 },
-    //     Medium: { value: 500 },
-    //     SemiBold: { value: 600 },
-    //     Bold: { value: 700 },
-    //     ExtraBold: { value: 800 },
-    //     Black: { value: 900 },
-    //     ExtraBlack: { value: 1000 },
-    // };
-    // canvasKit.FontWidth = {
-    //     UltraCondensed: { value: 0 },
-    //     ExtraCondensed: { value: 1 },
-    //     Condensed: { value: 2 },
-    //     SemiCondensed: { value: 3 },
-    //     Normal: { value: 4 },
-    //     SemiExpanded: { value: 5 },
-    //     Expanded: { value: 6 },
-    //     ExtraExpanded: { value: 7 },
-    //     UltraExpanded: { value: 8 },
-    // };
-    // canvasKit.FontSlant = {
-    //     Upright: { value: 0 },
-    //     Italic: { value: 1 },
-    //     Oblique: { value: 2 },
-    // };
-    // canvasKit.DecorationStyle = {
-    //     Solid: { value: 0 },
-    //     Double: { value: 1 },
-    //     Dotted: { value: 2 },
-    //     Dashed: { value: 3 },
-    //     Wavy: { value: 4 },
-    // };
-    // canvasKit.TextHeightBehavior = {
-    //     All: { value: 0 },
-    //     DisableFirstAscent: { value: 1 },
-    //     DisableLastDescent: { value: 2 },
-    //     DisableAll: { value: 3 },
-    // };
-    // canvasKit.PlaceholderAlignment = {
-    //     Baseline: { value: 0 },
-    //     AboveBaseline: { value: 1 },
-    //     BelowBaseline: { value: 2 },
-    //     Top: { value: 3 },
-    //     Bottom: { value: 4 },
-    //     Middle: { value: 5 },
-    // };
-    // // Paragraph Constants
-    // canvasKit.NoDecoration = 0;
-    // canvasKit.UnderlineDecoration = 1;
-    // canvasKit.OverlineDecoration = 2;
-    // canvasKit.LineThroughDecoration = 3;
-
     canvasKit.Canvas.prototype.drawParagraph = function (
         paragraph: Paragraph,
         dx: number,
         dy: number
     ) {
         console.log(`drawParagraph ${paragraph} at (${dx}, ${dy})`)
+
+        const context = createDomCanvasElement(4096, 4096).getContext('2d')!;
+
+        new TextPaintService(paragraph as _Paragraph).paint(context, dx, dy);
+
+        const imageData = context.getImageData(0, 0, 4096, 4096);
+        const canvasImg = canvasKit.MakeImage(
+            {
+                width: imageData.width,
+                height: imageData.height,
+                alphaType: AlphaType.Unpremul,
+                colorType: ColorType.RGBA_8888,
+                colorSpace: new _ColorSpace()
+                // colorSpace: {
+                //     SRGB:
+                // }   canvasKit.ColorSpace.SRGB,
+            },
+            imageData.data,
+            4 * imageData.width
+        );
+        const w = imageData.width
+        const h = imageData.height
+        const pixelRatio = 1.0;
+        const srcRect = canvasKit.XYWHRect(0, 0, w, h);
+        const dstRect = canvasKit.XYWHRect(Math.ceil(dx), Math.ceil(dy), w / pixelRatio, h / pixelRatio)
+        // let canvasImg = paragraph.skImageCache;
+        // if (!canvasImg) {
+        //     const drawer = new Drawer(paragraph);
+        //     const imageData = drawer.draw(context);
+        //     canvasImg = canvasKit.MakeImage(
+        //         {
+        //             width: imageData.width,
+        //             height: imageData.height,
+        //             alphaType: AlphaTypeEnums.Unpremul,
+        //             colorType: ColorTypeEnums.RGBA_8888,
+        //             colorSpace: new _ColorSpace()
+        //             // colorSpace: {
+        //             //     SRGB:
+        //             // }   canvasKit.ColorSpace.SRGB,
+        //         },
+        //         imageData.data,
+        //         4 * imageData.width
+        //     );
+        //     paragraph.skImageCache = canvasImg;
+        //     paragraph.skImageWidth = imageData.width;
+        //     paragraph.skImageHeight = imageData.height;
+        // }
+
+        // const dstRect = canvasKit.XYWHRect(
+        //     Math.ceil(dx),
+        //     Math.ceil(dy),
+        //     paragraph.skImageWidth! / Drawer.pixelRatio,
+        //     paragraph.skImageHeight! / Drawer.pixelRatio
+        // );
+        const skPaint = /*drawParagraphSharedPaint ??*/ new _Paint();
+        // drawParagraphSharedPaint = skPaint;
+        this.drawImageRect(canvasImg, srcRect, dstRect, skPaint);
     };
 }

@@ -235,15 +235,17 @@ export class LineBreaker {
 /**
  * Splits text into fragments based on line breaks.
  */
-export abstract class LineBreakFragmenter extends TextFragmenter {
+export class LineBreakFragmenter extends TextFragmenter {
     static create(text: string): LineBreakFragmenter {
-        if (DomIntl.v8BreakIterator != null) {
-            return new V8LineBreakFragmenter(text);
-        }
+        // if (Intl.v8BreakIterator != null) {
+        //     return new V8LineBreakFragmenter(text);
+        // }
         return new FWLineBreakFragmenter(text);
     }
 
-    abstract fragment(): LineBreakFragment[];
+    fragment(): LineBreakFragment[] {
+        throw new Error('Method not implemented.');
+    }
 }
 
 /**
@@ -263,22 +265,22 @@ export class FWLineBreakFragmenter extends LineBreakFragmenter {
  * An implementation of LineBreakFragmenter that uses V8's
  * v8BreakIterator API to find line breaks in the given text.
  */
-export class V8LineBreakFragmenter extends LineBreakFragmenter {
-    private readonly _v8BreakIterator: DomV8BreakIterator;
+// export class V8LineBreakFragmenter extends LineBreakFragmenter {
+//     private readonly _v8BreakIterator: DomV8BreakIterator;
 
-    constructor(text: string) {
-        super(text);
-        this._v8BreakIterator = createV8BreakIterator();
-    }
+//     constructor(text: string) {
+//         super(text);
+//         this._v8BreakIterator = createV8BreakIterator();
+//     }
 
-    fragment(): LineBreakFragment[] {
-        return breakLinesUsingV8BreakIterator(
-            this.text,
-            this.text as any, // toJS
-            this._v8BreakIterator
-        );
-    }
-}
+//     fragment(): LineBreakFragment[] {
+//         return breakLinesUsingV8BreakIterator(
+//             this.text,
+//             this.text as any, // toJS
+//             this._v8BreakIterator
+//         );
+//     }
+// }
 
 export class LineBreakFragment extends TextFragment {
     constructor(
@@ -296,6 +298,24 @@ export class LineBreakFragment extends TextFragment {
     }
 }
 
+/// Finds the next line break in the given [text] starting from [index].
+///
+/// We think about indices as pointing between characters, and they go all the
+/// way from 0 to the string length. For example, here are the indices for the
+/// string "foo bar":
+///
+/// ```none
+///   f   o   o       b   a   r
+/// ^   ^   ^   ^   ^   ^   ^   ^
+/// 0   1   2   3   4   5   6   7
+/// ```
+///
+/// This way the indices work well with [String.substring].
+///
+/// Useful resources:
+///
+/// * https://www.unicode.org/reports/tr14/tr14-45.html#Algorithm
+/// * https://www.unicode.org/Public/11.0.0/ucd/LineBreak.txt
 /**
  * Computes line break fragments for the given text using Flutter Web's
  * implementation of the line breaking algorithm.
@@ -350,105 +370,81 @@ function computeLineBreakFragments(text: string): LineBreakFragment[] {
 /**
  * Creates a V8 break iterator for line breaks.
  */
-function createV8BreakIterator(): DomV8BreakIterator {
-    // @ts-ignore: V8BreakIterator is not in standard lib
-    return new Intl.v8BreakIterator(['en'], { type: 'line' });
-}
+// function createV8BreakIterator(): DomV8BreakIterator {
+//     // @ts-ignore: V8BreakIterator is not in standard lib
+//     return new Intl.v8BreakIterator(['en'], { type: 'line' });
+// }
 
 /**
  * Uses V8's break iterator to find line breaks in text.
  */
-function breakLinesUsingV8BreakIterator(
-    text: string,
-    jsText: string,
-    iterator: DomV8BreakIterator
-): LineBreakFragment[] {
-    const fragments: LineBreakFragment[] = [];
-    iterator.adoptText(jsText);
+// function breakLinesUsingV8BreakIterator(
+//     text: string,
+//     jsText: string,
+//     iterator: DomV8BreakIterator
+// ): LineBreakFragment[] {
+//     const fragments: LineBreakFragment[] = [];
+//     iterator.adoptText(jsText);
 
-    let start = 0;
-    let pos = iterator.first();
-    let lastType = LineBreakType.prohibited;
+//     let start = 0;
+//     let pos = iterator.first();
+//     let lastType = LineBreakType.prohibited;
 
-    while (pos !== -1) {
-        const next = iterator.next();
-        if (next === -1) {
-            // End of text
-            if (pos > start) {
-                fragments.push(createFragment(text, start, pos, lastType));
-            }
-            break;
-        }
+//     while (pos !== -1) {
+//         const next = iterator.next();
+//         if (next === -1) {
+//             // End of text
+//             if (pos > start) {
+//                 fragments.push(createFragment(text, start, pos, lastType));
+//             }
+//             break;
+//         }
 
-        // Create fragment if we have accumulated any text
-        if (pos > start) {
-            fragments.push(createFragment(text, start, pos, lastType));
-        }
+//         // Create fragment if we have accumulated any text
+//         if (pos > start) {
+//             fragments.push(createFragment(text, start, pos, lastType));
+//         }
 
-        start = pos;
-        pos = next;
-        lastType = determineBreakType(text, pos);
-    }
+//         start = pos;
+//         pos = next;
+//         lastType = determineBreakType(text, pos);
+//     }
 
-    return fragments;
-}
+//     return fragments;
+// }
 
-/**
- * Creates a line break fragment with computed trailing spaces and newlines.
- */
-function createFragment(
-    text: string,
-    start: number,
-    end: number,
-    type: LineBreakType
-): LineBreakFragment {
-    let trailingNewlines = 0;
-    let trailingSpaces = 0;
+// /**
+//  * Creates a line break fragment with computed trailing spaces and newlines.
+//  */
+// function createFragment(
+//     text: string,
+//     start: number,
+//     end: number,
+//     type: LineBreakType
+// ): LineBreakFragment {
+//     let trailingNewlines = 0;
+//     let trailingSpaces = 0;
 
-    for (let i = end - 1; i >= start; i--) {
-        const charCode = text.charCodeAt(i);
-        if (_kNewlines.has(charCode)) {
-            trailingNewlines++;
-        } else if (_kSpaces.has(charCode)) {
-            trailingSpaces++;
-        } else {
-            break;
-        }
-    }
+//     for (let i = end - 1; i >= start; i--) {
+//         const charCode = text.charCodeAt(i);
+//         if (_kNewlines.has(charCode)) {
+//             trailingNewlines++;
+//         } else if (_kSpaces.has(charCode)) {
+//             trailingSpaces++;
+//         } else {
+//             break;
+//         }
+//     }
 
-    return new LineBreakFragment(
-        start,
-        end,
-        type,
-        trailingNewlines,
-        trailingSpaces
-    );
-}
+//     return new LineBreakFragment(
+//         start,
+//         end,
+//         type,
+//         trailingNewlines,
+//         trailingSpaces
+//     );
+// }
 
-/**
- * Determines the type of break at a given position.
- */
-function determineBreakType(text: string, position: number): LineBreakType {
-    if (position >= text.length) {
-        return LineBreakType.endOfText;
-    }
 
-    const charCode = text.charCodeAt(position);
-    if (_kNewlines.has(charCode)) {
-        return LineBreakType.mandatory;
-    }
-
-    return LineBreakType.opportunity;
-}
-
-/**
- * Interface for V8's break iterator.
- * This is not part of the standard library, so we need to define it.
- */
-interface DomV8BreakIterator {
-    adoptText(text: string): void;
-    first(): number;
-    next(): number;
-}
 
 // ... rest of implementation including helper functions 

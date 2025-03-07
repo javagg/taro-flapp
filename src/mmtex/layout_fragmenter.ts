@@ -2,9 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import { LineBreakType, LineBreaker } from './line_breaker';
+import { LineBreakFragmenter, LineBreakType, } from './line_breaker';
 import { _Paragraph, ParagraphSpan } from './engine'
 import { TextDirection } from '@/mtex/canvaskit';
+import { Spanometer } from './layout_service';
+import { BidiFragmenter, FragmentFlow } from './text_direction';
+import { clampInt } from './dom';
 
 /**
  * A fragment of text that can be measured and painted.
@@ -24,10 +27,10 @@ export class LayoutFragment {
         readonly letterSpacing?: number,
     ) { }
 
-    get width(): number { return this._width; }
-    get height(): number { return this._height; }
-    get baseline(): number { return this._baseline; }
-    get textDirection(): TextDirection | null { return this._textDirection; }
+    // get width(): number { return this._width; }
+    // get height(): number { return this._height; }
+    // get baseline(): number { return this._baseline; }
+    // get textDirection(): TextDirection | null { return this._textDirection; }
 
     getText(paragraph: _Paragraph): string {
         return paragraph.plainText.substring(this.start, this.end);
@@ -104,41 +107,76 @@ export class LayoutFragmenter {
      */
     fragment(): LayoutFragment[] {
         const fragments: LayoutFragment[] = [];
-        const lineBreaker = new LineBreaker(this._text);
-        let spanIndex = 0;
         let fragmentStart = 0;
-
-        while (fragmentStart < this._text.length) {
-            // Find the next line break
-            const breakpoint = lineBreaker.nextBreak();
-            if (!breakpoint) break;
-
-            // Find the span that contains this fragment
-            while (spanIndex < this._spans.length &&
-                this._spans[spanIndex].end <= fragmentStart) {
-                spanIndex++;
-            }
-
-            if (spanIndex >= this._spans.length) break;
-
-            const span = this._spans[spanIndex];
-            const fragmentEnd = Math.min(breakpoint.position, span.end);
-
+    
+        // Initialize fragment iterators
+        const lineBreakIterator = new LineBreakFragmenter(this._text).fragment()[Symbol.iterator]();
+        let lineBreakNext = lineBreakIterator.next();
+        const bidiIterator = new BidiFragmenter(this._text).fragment()[Symbol.iterator]();
+        let bidiNext = bidiIterator.next();
+        const spanIterator = this._spans[Symbol.iterator]();
+        let spanNext = spanIterator.next();
+    
+        // Current fragments
+        let currentLineBreak = lineBreakNext.value;
+        let currentBidi = bidiNext.value;
+        let currentSpan = spanNext.value;
+    
+        while (true) {
+            // Calculate fragment end based on the smallest end position
+            const fragmentEnd = Math.min(
+                currentLineBreak.end,
+                Math.min(currentBidi.end, currentSpan.end)
+            );
+    
+            // Calculate line break properties
+            const distanceFromLineBreak = currentLineBreak.end - fragmentEnd;
+            const lineBreakType = distanceFromLineBreak === 0 
+                ? currentLineBreak.type 
+                : LineBreakType.prohibited;
+    
+            // Calculate trailing whitespace
+            const trailingNewlines = currentLineBreak.trailingNewlines - distanceFromLineBreak;
+            const trailingSpaces = currentLineBreak.trailingSpaces - distanceFromLineBreak;
+            const fragmentLength = fragmentEnd - fragmentStart;
+    
+            // Add new fragment
             fragments.push(new LayoutFragment(
-                this._text,
                 fragmentStart,
                 fragmentEnd,
-                breakpoint.type,
-                span,
-                span.style.letterSpacing,
+                lineBreakType,
+                currentBidi.textDirection,
+                currentBidi.fragmentFlow,
+                currentSpan,
+                trailingNewlines: clampInt(trailingNewlines, 0, fragmentLength),
+                trailingSpaces: clampInt(trailingSpaces, 0, fragmentLength)
             ));
-
+    
             fragmentStart = fragmentEnd;
+    
+            // Move iterators if needed
+            let moved = false;
+            if (currentLineBreak.end === fragmentEnd && !(lineBreakNext = lineBreakIterator.next()).done) {
+                currentLineBreak = lineBreakNext.value;
+                moved = true;
+            }
+            if (currentBidi.end === fragmentEnd && !(bidiNext = bidiIterator.next()).done) {
+                currentBidi = bidiNext.value;
+                moved = true;
+            }
+            if (currentSpan.end === fragmentEnd && !(spanNext = spanIterator.next()).done) {
+                currentSpan = spanNext.value;
+                moved = true;
+            }
+    
+            // Exit if no more fragments
+            if (!moved) break;
         }
-
+    
         return fragments;
     }
 }
+
 
 interface FragmentMetrics {
     ascent: number;
@@ -236,7 +274,7 @@ export class EllipsisFragment extends LayoutFragment {
       return false;
     }
   
-    getText(paragraph: CanvasParagraph): string {
+    getText(paragraph: _Paragraph): string {
       if (!paragraph.paragraphStyle.ellipsis) {
         throw new Error('Paragraph style ellipsis is not defined');
       }

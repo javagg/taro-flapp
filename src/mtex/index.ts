@@ -39,6 +39,7 @@ export function install(
   embeddingFonts: string[],
   iconFonts?: Record<string, string>
 ) {
+  // console.log(globalThis)
   // if (typeof canvasKit.ParagraphBuilder === "undefined") {
   // installPolyfill(canvasKit);
   canvasKit.ParagraphBuilder = new _ParagraphBuilderFactory();

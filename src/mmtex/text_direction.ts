@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 // import { TextDirection } from '../ui';
+import { TextDirection } from '@/mtex/canvaskit';
 import { TextFragmenter, TextFragment } from './fragmenter';
 import { UnicodePropertyLookup, UnicodeRange, getCodePoint } from './unicode_range';
 

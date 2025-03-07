@@ -2,12 +2,13 @@ import { LayoutFragment, LayoutFragmenter } from './layout_fragmenter';
 import { LineBreakType } from './line_breaker';
 import { GlyphInfo, Rect, TextDirection } from '@/mtex/canvaskit';
 import { _Paragraph, ParagraphSpan, PlaceholderSpan } from './engine';
-import { measureSubstring } from './measurement';
 import { createDomCanvasElement } from './dom';
+import { ParagraphLine } from './paragraph';
+import { FragmentFlow } from './text_direction';
 
 
 /** A single canvas2d context to use for all text measurements. */
-const textContext: CanvasRenderingContext2D =  createDomCanvasElement(0, 0).getContext('2d')!;
+const textContext: CanvasRenderingContext2D = createDomCanvasElement(0, 0).getContext('2d')!;
 
 /** The last font used in the textContext. */
 let _lastContextFont: string | null = null;
@@ -26,12 +27,19 @@ export class TextLayoutService {
   private _maxIntrinsicWidth = 0.0;
   private _minIntrinsicWidth = 0.0;
   private _lines: ParagraphLine[] = [];
-  private _fragments: LayoutFragment[] = [];
+  // private _fragments: LayoutFragment[] = [];
   // private _ruler: Ruler | null = null;
+  _paintBounds: Rect
   private _longestLine: ParagraphLine | null = null;
   private _didExceedMaxLines = false;
 
-  constructor(private readonly paragraph: _Paragraph) { }
+  spanometer: Spanometer;
+  layoutFragmenter: LayoutFragmenter;
+
+  constructor(private readonly paragraph: _Paragraph) {
+    this.spanometer = new Spanometer(paragraph);
+    this.layoutFragmenter = new LayoutFragmenter(paragraph.plainText, paragraph.spans);
+  }
 
   get width(): number { return this._width; }
   get height(): number { return this._height; }
@@ -61,204 +69,278 @@ export class TextLayoutService {
   /**
    * Performs the layout on the paragraph given the constraints.
    */
-  performLayout(width: number /*   constraints: ParagraphConstraints*/): void {
-    // Reset layout state
-    this._width = 0.0;
+  // performLayout(width: number /*   constraints: ParagraphConstraints*/): void {
+  //   // Reset layout state
+  //   this._width = 0.0;
+  //   this._height = 0.0;
+  //   this._alphabeticBaseline = 0.0;
+  //   this._ideographicBaseline = 0.0;
+  //   this._maxIntrinsicWidth = 0.0;
+  //   this._minIntrinsicWidth = 0.0;
+  //   this._lines = [];
+  //   this._longestLine = null;
+  //   this._didExceedMaxLines = false;
+
+  //   let currentLine = LineBuilder.first(this.paragraph, this.spanometer, width);
+
+  //   // Find fragments in the paragraph
+  //   this._fragments = this.layoutFragmenter.fragment();
+  //   this._fragments.forEach(fragment => this.spanometer.measureFragment(fragment));
+
+  //   // Measure text
+  //   this._measureText();
+
+  //   // Layout the fragments
+  //   this._layoutFragments(width);
+  // }
+
+  performLayout(width: number): void {
+    // Reset results from previous layout
     this._height = 0.0;
-    this._alphabeticBaseline = 0.0;
-    this._ideographicBaseline = 0.0;
-    this._maxIntrinsicWidth = 0.0;
-    this._minIntrinsicWidth = 0.0;
-    this._lines = [];
     this._longestLine = null;
+    this._minIntrinsicWidth = 0.0;
+    this._maxIntrinsicWidth = 0.0;
     this._didExceedMaxLines = false;
+    this._lines = [];
 
-    // Find fragments in the paragraph
-    this._fragments = new LayoutFragmenter(
-      this.paragraph.plainText,
-      this.paragraph.spans
-    ).fragment();
+    let currentLine = LineBuilder.first(this.paragraph, this.spanometer, width);
 
-    // Measure text
-    this._measureText();
+    const fragments = this.layoutFragmenter.fragment();
+    fragments.forEach(fragment => this.spanometer.measureFragment(fragment));
 
-    // Layout the fragments
-    this._layoutFragments(width);
-  }
+    outerLoop:
+    for (let i = 0; i < fragments.length; i++) {
+      const fragment = fragments[i];
 
-  /**
-   * Measures text in the paragraph and sets up the initial state.
-   */
-  private _measureText(): void {
-    if (this.paragraph.spans.length === 0) {
-      return;
+      currentLine.addFragment(fragment);
+
+      while (currentLine.isOverflowing) {
+        if (currentLine.canHaveEllipsis) {
+          currentLine.insertEllipsis();
+          this.lines.push(currentLine.build());
+          this._didExceedMaxLines = true;
+          break outerLoop;
+        }
+
+        if (currentLine.isBreakable) {
+          currentLine.revertToLastBreakOpportunity();
+        } else {
+          currentLine.forceBreakLastFragment();
+        }
+
+        i += currentLine.appendZeroWidthFragments(fragments, i + 1);
+        this.lines.push(currentLine.build());
+        currentLine = currentLine.nextLine();
+      }
+
+      if (currentLine.isHardBreak) {
+        this.lines.push(currentLine.build());
+        currentLine = currentLine.nextLine();
+      }
     }
 
-    // Initialize the first span
-    this._currentSpan = this.paragraph.spans[0];
-    this._updateTextContext();
-
-    // Create a ruler for the paragraph
-    this._ruler = new Ruler(this.paragraph.paragraphStyle);
-
-    // Measure each fragment
-    for (const fragment of this._fragments) {
-      fragment.measure(this);
-      this._maxIntrinsicWidth = Math.max(
-        this._maxIntrinsicWidth,
-        fragment.width
-      );
-    }
-  }
-
-  /**
-   * Updates the text context with the current span's style.
-   */
-  private _updateTextContext(): void {
-    const font = this.currentSpan.style.cssFontString;
-    if (font !== _lastContextFont) {
-      textContext.font = font;
-      _lastContextFont = font;
-    }
-  }
-
-  /**
-   * Lays out the fragments according to the constraints.
-   */
-  private _layoutFragments(width: number /*constraints: ParagraphConstraints*/): void {
     const maxLines = this.paragraph.paragraphStyle.maxLines;
-    let lineCount = 0;
-    let y = 0.0;
-    let currentLineFragments: LayoutFragment[] = [];
-    let currentLineWidth = 0.0;
-    let currentLineHeight = 0.0;
-    let currentLineBaseline = 0.0;
+    if (maxLines !== null && this.lines.length > maxLines) {
+      this._didExceedMaxLines = true;
+      this._lines.splice(maxLines);
+    }
 
-    for (let i = 0; i < this._fragments.length; i++) {
-      const fragment = this._fragments[i];
+    // Paragraph baseline, height, longest line, and paint bounds
+    let boundsLeft = Infinity;
+    let boundsRight = -Infinity;
+    for (const line of this.lines) {
+      this._height += line.height;
+      if (this._alphabeticBaseline === -1.0) {
+        this._alphabeticBaseline = line.baseline;
+        this._ideographicBaseline = this.alphabeticBaseline * this._baselineRatioHack;
+      }
+      const longestLineWidth = this.longestLine?.width ?? 0.0;
+      if (longestLineWidth < line.width) {
+        this._longestLine = line;
+      }
 
-      // Check if we need to start a new line
-      if (currentLineWidth + fragment.width > width /*constraints.width*/ ||
-        fragment.type === LineBreakType.mandatory) {
-        // Create a new line with current fragments
-        if (currentLineFragments.length > 0) {
-          this._addLine(
-            currentLineFragments,
-            currentLineWidth,
-            currentLineHeight,
-            currentLineBaseline,
-            y
-          );
-          lineCount++;
-          y += currentLineHeight;
+      const left = line.left;
+      if (left < boundsLeft) {
+        boundsLeft = left;
+      }
+      const right = left + line.width;
+      if (right > boundsRight) {
+        boundsRight = right;
+      }
+    }
+    this._paintBounds = new Float32Array([boundsLeft, 0, boundsRight, this.height]);
 
-          // Check if we've exceeded max lines
-          if (maxLines !== null && lineCount >= maxLines) {
-            this._didExceedMaxLines = i < this._fragments.length - 1;
-            break;
+    // Fragment positioning
+    if (this.lines.length > 0) {
+      const shouldJustifyParagraph = Number.isFinite(this.width) &&
+        this.paragraph.paragraphStyle.textAlign === TextAlign.justify;
+
+      if (shouldJustifyParagraph) {
+        for (let i = 0; i < this.lines.length - 1; i++) {
+          for (const fragment of this.lines[i].fragments) {
+            fragment.justifyTo(this.width);
           }
+        }
+      }
+    }
 
-          // Reset line state
-          currentLineFragments = [];
-          currentLineWidth = 0.0;
-          currentLineHeight = 0.0;
-          currentLineBaseline = 0.0;
+    this.lines.forEach(line => this._positionLineFragments(line));
+
+    // Max/min intrinsic widths
+    let runningMinIntrinsicWidth = 0;
+    let runningMaxIntrinsicWidth = 0;
+
+    for (const fragment of fragments) {
+      runningMinIntrinsicWidth += fragment.widthExcludingTrailingSpaces;
+      runningMaxIntrinsicWidth += fragment.widthIncludingTrailingSpaces;
+
+      switch (fragment.type) {
+        case LineBreakType.prohibited:
+          break;
+
+        case LineBreakType.opportunity:
+          this._minIntrinsicWidth = Math.max(this.minIntrinsicWidth, runningMinIntrinsicWidth);
+          runningMinIntrinsicWidth = 0;
+          break;
+
+        case LineBreakType.mandatory:
+        case LineBreakType.endOfText:
+          this._minIntrinsicWidth = Math.max(this.minIntrinsicWidth, runningMinIntrinsicWidth);
+          this._maxIntrinsicWidth = Math.max(this.maxIntrinsicWidth, runningMaxIntrinsicWidth);
+          runningMinIntrinsicWidth = 0;
+          runningMaxIntrinsicWidth = 0;
+          break;
+      }
+    }
+  }
+
+  get _paragraphDirection() {
+    return this.paragraph.paragraphStyle.effectiveTextDirection;
+  }
+
+  private _positionLineFragments(line: ParagraphLine): void {
+    let previousDirection = this._paragraphDirection;
+    let startOffset = 0.0;
+    let sandwichStart: number | null = null;
+    let sequenceStart = 0;
+
+    for (let i = 0; i <= line.fragments.length; i++) {
+      if (i < line.fragments.length) {
+        const fragment = line.fragments[i];
+
+        if (fragment.fragmentFlow === FragmentFlow.previous) {
+          sandwichStart = null;
+          continue;
+        }
+        if (fragment.fragmentFlow === FragmentFlow.sandwich) {
+          sandwichStart = sandwichStart ?? i;
+          continue;
+        }
+
+        if (fragment.fragmentFlow !== FragmentFlow.ltr &&
+          fragment.fragmentFlow !== FragmentFlow.rtl) {
+          throw new Error('Invalid fragment flow');
+        }
+
+        const currentDirection = fragment.fragmentFlow === FragmentFlow.ltr
+          ? TextDirection.ltr
+          : TextDirection.rtl;
+
+        if (currentDirection === previousDirection) {
+          sandwichStart = null;
+          continue;
         }
       }
 
-      // Add fragment to current line
-      currentLineFragments.push(fragment);
-      currentLineWidth += fragment.width;
-      currentLineHeight = Math.max(currentLineHeight, fragment.height);
-      currentLineBaseline = Math.max(currentLineBaseline, fragment.baseline);
-    }
+      // Position the sequence we've been traversing
+      if (sandwichStart === null) {
+        startOffset += this._positionFragmentRange(
+          line,
+          sequenceStart,
+          i,
+          previousDirection,
+          startOffset
+        );
+      } else {
+        startOffset += this._positionFragmentRange(
+          line,
+          sequenceStart,
+          sandwichStart,
+          previousDirection,
+          startOffset
+        );
+        startOffset += this._positionFragmentRange(
+          line,
+          sandwichStart,
+          i,
+          this._paragraphDirection,
+          startOffset
+        );
+      }
 
-    // Add the last line if there are remaining fragments
-    if (currentLineFragments.length > 0) {
-      this._addLine(
-        currentLineFragments,
-        currentLineWidth,
-        currentLineHeight,
-        currentLineBaseline,
-        y
-      );
-      y += currentLineHeight;
-    }
+      sequenceStart = i;
+      sandwichStart = null;
 
-    // Update paragraph metrics
-    this._width = width //constraints.width;
-    this._height = y;
-  }
-
-  /**
-   * Adds a new line to the paragraph.
-   */
-  private _addLine(
-    fragments: LayoutFragment[],
-    width: number,
-    height: number,
-    baseline: number,
-    y: number
-  ): void {
-    const startIndex = fragments[0].start;
-    const endIndex = fragments[fragments.length - 1].end;
-
-    // Determine line's text direction
-    const textDirection = this._computeLineDirection(fragments);
-
-    // Compute left offset based on text alignment
-    const left = this._computeLineLeft(width, textDirection);
-
-    const line = new ParagraphLine(
-      fragments,
-      startIndex,
-      endIndex,
-      width,
-      height,
-      baseline,
-      left,
-      textDirection
-    );
-
-    this._lines.push(line);
-
-    // Update longest line
-    if (!this._longestLine || line.width > this._longestLine.width) {
-      this._longestLine = line;
+      if (i < line.fragments.length) {
+        previousDirection = line.fragments[i].textDirection!;
+      }
     }
   }
 
-  /**
-   * Computes the dominant text direction for a line.
-   */
-  private _computeLineDirection(fragments: LayoutFragment[]): TextDirection {
-    // Implementation of text direction computation
-    // This would involve analyzing the fragments' text direction
-    // and determining the dominant direction for the line
-    return TextDirection.ltr; // Default to LTR for now
-  }
 
-  /**
-   * Computes the left offset for a line based on text alignment.
-   */
-  private _computeLineLeft(lineWidth: number, textDirection: TextDirection): number {
-    const align = this.paragraph.paragraphStyle.textAlign;
-    const maxWidth = this._width;
+  private _positionFragmentRange({
+    line,
+    start,
+    end,
+    direction,
+    startOffset
+  }: {
+    line: ParagraphLine;
+    start: number;
+    end: number;
+    direction: TextDirection;
+    startOffset: number;
+  }): number {
+    if (start > end) throw new Error("Start must be less than or equal to end");
 
-    switch (align) {
-      case 'right':
-        return maxWidth - lineWidth;
-      case 'center':
-        return (maxWidth - lineWidth) / 2;
-      case 'justify':
-      case 'left':
-      default:
-        return 0;
+    let cumulativeWidth = 0.0;
+
+    if (direction === this._paragraphDirection) {
+      for (let i = start; i < end; i++) {
+        cumulativeWidth += this._positionOneFragment(
+          line,
+          i,
+          startOffset + cumulativeWidth,
+          direction
+        );
+      }
+    } else {
+      for (let i = end - 1; i >= start; i--) {
+        cumulativeWidth += this._positionOneFragment(
+          line,
+          i,
+          startOffset + cumulativeWidth,
+          direction
+        );
+      }
     }
+
+    return cumulativeWidth;
   }
 
-  getBoxesForPlaceholders(): ui.TextBox[] {
-    const boxes: ui.TextBox[] = [];
+  private _positionOneFragment(
+    line: ParagraphLine,
+    i: number,
+    startOffset: number,
+    direction: TextDirection
+  ): number {
+    const fragment = line.fragments[i];
+    fragment.setPosition(startOffset, direction);
+    return fragment.widthIncludingTrailingSpaces;
+  }
+
+  getBoxesForPlaceholders(): TextBox[] {
+    const boxes: TextBox[] = [];
     for (const line of this.lines) {
       for (const fragment of line.fragments) {
         if (fragment.isPlaceholder) {
@@ -268,265 +350,119 @@ export class TextLayoutService {
     }
     return boxes;
   }
-  
-  /**
-   * Gets the position in the text for the given pixel offset.
-   */
+
   getPositionForOffset(offset: Offset): TextPosition {
-    // Handle empty paragraph
-    if (this._lines.length === 0) {
-      return new TextPosition(offset: 0);
+    const line = this._findLineForY(offset.dy);
+    if (!line) {
+      return new TextPosition(0);
+    }
+    // [offset] is to the left of the line
+    if (offset.dx <= line.left) {
+      return new TextPosition(line.startIndex);
     }
 
-    // Find the line that contains the offset
-    const y = offset.y;
-    let lineIndex = 0;
-    let lineTop = 0;
-
-    for (let i = 0; i < this._lines.length; i++) {
-      const line = this._lines[i];
-      if (lineTop + line.height > y || i === this._lines.length - 1) {
-        lineIndex = i;
-        break;
-      }
-      lineTop += line.height;
+    // [offset] is to the right of the line
+    if (offset.dx >= line.left + line.widthWithTrailingSpaces) {
+      return new TextPosition(
+        line.endIndex - line.trailingNewlines,
+        TextAffinity.upstream
+      );
     }
 
-    const line = this._lines[lineIndex];
-    const lineOffset = offset.x - line.left;
-
-    // Find the fragment that contains the offset
-    let currentX = 0;
+    const dx = offset.dx - line.left;
     for (const fragment of line.fragments) {
-      if (currentX + fragment.width >= lineOffset ||
-        fragment === line.fragments[line.fragments.length - 1]) {
-        // Found the fragment, now find the exact character position
-        const localOffset = lineOffset - currentX;
-        const position = this._getPositionInFragment(fragment, localOffset);
-        return new TextPosition(offset: position);
+      if (fragment.left <= dx && dx <= fragment.right) {
+        return fragment.getPositionForX(dx - fragment.left);
       }
-      currentX += fragment.width;
     }
-
-    // Fallback to end of line
-    return new TextPosition(offset: line.endIndex);
+    // Is this ever reachable?
+    return new TextPosition(line.startIndex);
   }
 
-  /**
-   * Gets the closest glyph information for the given offset.
-   */
   getClosestGlyphInfo(offset: Offset): GlyphInfo | null {
-    const position = this.getPositionForOffset(offset);
-    if (position.offset >= this.paragraph.plainText.length) {
+    const line = this._findLineForY(offset.dy);
+    if (!line) {
       return null;
     }
+    const fragment = line.closestFragmentAtOffset(offset.dx - line.left);
+    if (!fragment) {
+      return null;
+    }
+    const dx = offset.dx;
+    const closestGraphemeStartInFragment = !fragment.hasLeadingBrokenGrapheme
+      || dx <= fragment.line.left
+      || fragment.line.left + fragment.line.width <= dx
+      || (fragment.textDirection === TextDirection.ltr
+        ? dx >= line.left + (fragment.left + fragment.right) / 2
+        : dx <= line.left + (fragment.left + fragment.right) / 2);
 
-    // Find the line containing this position
-    const line = this._findLineForOffset(position.offset);
-    if (!line) return null;
+    const candidate1 = fragment.getClosestCharacterBox(dx);
+    if (closestGraphemeStartInFragment) {
+      return candidate1;
+    }
 
-    // Find the fragment containing this position
-    const fragment = this._findFragmentForOffset(line, position.offset);
-    if (!fragment) return null;
+    const searchLeft = fragment.textDirection === TextDirection.ltr;
+    const candidate2 = fragment.line.closestFragmentTo(fragment, searchLeft)?.getClosestCharacterBox(dx);
+    if (!candidate2) {
+      return candidate1;
+    }
 
-    return {
-      graphemeClusterLength: 1, // Simplified for now
-      directionality: fragment.textDirection ?? TextDirection.ltr,
-    };
+    const distance1 = Math.min(
+      Math.abs(candidate1.graphemeClusterLayoutBounds.left - dx),
+      Math.abs(candidate1.graphemeClusterLayoutBounds.right - dx)
+    );
+    const distance2 = Math.min(
+      Math.abs(candidate2.graphemeClusterLayoutBounds.left - dx),
+      Math.abs(candidate2.graphemeClusterLayoutBounds.right - dx)
+    );
+    return distance2 > distance1 ? candidate1 : candidate2;
   }
 
-  /**
-   * Gets text boxes for the given range.
-   */
   getBoxesForRange(
     start: number,
     end: number,
-    boxHeightStyle: BoxHeightStyle = BoxHeightStyle.tight,
-    boxWidthStyle: BoxWidthStyle = BoxWidthStyle.tight,
+    boxHeightStyle: BoxHeightStyle,
+    boxWidthStyle: BoxWidthStyle
   ): TextBox[] {
-    const boxes: TextBox[] = [];
-    if (this._lines.length === 0) return boxes;
-
-    // Clamp range to text length
-    start = Math.max(0, Math.min(start, this.paragraph.plainText.length));
-    end = Math.max(0, Math.min(end, this.paragraph.plainText.length));
-    if (start >= end) return boxes;
-
-    let y = 0;
-    for (const line of this._lines) {
-      // Skip lines before the range
-      if (line.endIndex <= start) {
-        y += line.height;
-        continue;
-      }
-
-      // Stop if we're past the range
-      if (line.startIndex >= end) break;
-
-      // Calculate intersection of line range and selection range
-      const lineStart = Math.max(start, line.startIndex);
-      const lineEnd = Math.min(end, line.endIndex);
-
-      if (lineStart < lineEnd) {
-        // Find fragments that contain the range
-        let x = line.left;
-        for (const fragment of line.fragments) {
-          if (fragment.end <= lineStart) {
-            x += fragment.width;
-            continue;
-          }
-          if (fragment.start >= lineEnd) break;
-
-          const fragStart = Math.max(lineStart, fragment.start);
-          const fragEnd = Math.min(lineEnd, fragment.end);
-
-          if (fragStart < fragEnd) {
-            const box = this._getBoxForFragment(
-              fragment,
-              fragStart,
-              fragEnd,
-              x,
-              y,
-              line.height,
-              boxHeightStyle,
-              boxWidthStyle
-            );
-            if (box) boxes.push(box);
-          }
-          x += fragment.width;
-        }
-      }
-      y += line.height;
+    // Zero-length ranges and invalid ranges return an empty list
+    if (start >= end || start < 0 || end < 0) {
+      return [];
     }
 
+    const length = this.paragraph.plainText.length;
+    // Ranges that are out of bounds should return an empty list
+    if (start > length || end > length) {
+      return [];
+    }
+
+    const boxes: TextBox[] = [];
+
+    for (const line of this.lines) {
+      if (line.overlapsWith(start, end)) {
+        for (const fragment of line.fragments) {
+          if (!fragment.isPlaceholder && fragment.overlapsWith(start, end)) {
+            boxes.push(fragment.toTextBox(start, end));
+          }
+        }
+      }
+    }
     return boxes;
   }
 
-  private _getPositionInFragment(fragment: LayoutFragment, localOffset: number): number {
-    // Binary search to find the closest character boundary
-    let start = fragment.start;
-    let end = fragment.end;
-    let bestOffset = start;
-    let bestDistance = Number.POSITIVE_INFINITY;
-
-    while (start < end) {
-      const mid = (start + end) >> 1;
-      const width = measureSubstring(
-        textContext,
-        this.paragraph.plainText,
-        fragment.start,
-        mid,
-        { letterSpacing: this.letterSpacing }
-      );
-
-      const distance = Math.abs(width - localOffset);
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestOffset = mid;
-      }
-
-      if (width < localOffset) {
-        start = mid + 1;
-      } else {
-        end = mid;
-      }
+  private _findLineForY(y: number): ParagraphLine | null {
+    if (this.lines.length === 0) {
+      return null;
     }
-
-    return bestOffset;
-  }
-
-  private _findLineForOffset(offset: number): ParagraphLine | null {
-    return this._lines.find(line =>
-      offset >= line.startIndex && offset <= line.endIndex
-    ) ?? null;
-  }
-
-  private _findFragmentForOffset(line: ParagraphLine, offset: number): LayoutFragment | null {
-    return line.fragments.find(fragment =>
-      offset >= fragment.start && offset <= fragment.end
-    ) ?? null;
-  }
-
-  private _getBoxForFragment(
-    fragment: LayoutFragment,
-    start: number,
-    end: number,
-    x: number,
-    y: number,
-    lineHeight: number,
-    heightStyle: BoxHeightStyle,
-    widthStyle: BoxWidthStyle
-  ): TextBox | null {
-    const width = measureSubstring(
-      textContext,
-      this.paragraph.plainText,
-      start,
-      end,
-      { letterSpacing: this.letterSpacing }
-    );
-
-    if (width <= 0) return null;
-
-    return new TextBox(
-      Rect.fromLTWH(x, y, width, lineHeight),
-      fragment.textDirection ?? TextDirection.ltr
-    );
-  }
-}
-
-
-/**
- * Represents a line of text in a paragraph.
- */
-export class ParagraphLine {
-  constructor(
-    readonly fragments: LayoutFragment[],
-    readonly startIndex: number,
-    readonly endIndex: number,
-    readonly width: number,
-    readonly height: number,
-    readonly baseline: number,
-    readonly left: number,
-    readonly textDirection: TextDirection,
-  ) { }
-
-  /**
-   * Whether this line contains the given text position.
-   */
-  containsTextPosition(position: number): boolean {
-    return position >= this.startIndex && position <= this.endIndex;
-  }
-
-  /**
-   * Whether this line contains any part of the given text range.
-   */
-  intersectsTextRange(start: number, end: number): boolean {
-    return start < this.endIndex && this.startIndex < end;
-  }
-
-  /**
-   * Gets the x coordinate for the given text position within this line.
-   */
-  getXForOffset(textContext: CanvasRenderingContext2D, position: number): number {
-    let x = this.left;
-    for (const fragment of this.fragments) {
-      if (position <= fragment.end) {
-        if (position >= fragment.start) {
-          // Position is within this fragment
-          const width = measureSubstring(
-            textContext,
-            fragment.text,
-            fragment.start,
-            position,
-            { letterSpacing: fragment.letterSpacing }
-          );
-          return x + width;
-        }
-        break;
+    // We could do a binary search here but it's not worth it because the number
+    // of line is typically low, and each iteration is a cheap comparison of
+    // doubles.
+    for (const line of this.lines) {
+      if (y <= line.height) {
+        return line;
       }
-      x += fragment.width;
+      y -= line.height;
     }
-    return x;
+    return this.lines[this.lines.length - 1];
   }
 }
 
@@ -951,7 +887,7 @@ export class Spanometer {
   private static _rulerHost: RulerHost = new (class RulerHost { })();
   private static _rulers: Map<TextHeightStyle, TextHeightRuler> = new Map();
 
-  constructor(public readonly paragraph: CanvasParagraph) { }
+  constructor(public readonly paragraph: _Paragraph) { }
 
   static get rulers(): Map<TextHeightStyle, TextHeightRuler> {
     return this._rulers;

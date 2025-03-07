@@ -13,7 +13,6 @@ export async function ckload() {
   const CanvasKitInit = m.default
   // const kit = await CanvasKitInit({ locateFile: (file) => `${wasm_dir}/${file}` })
   const kit = await CanvasKitInit() // used when canvaskit shipped with flutter, good for h5
-
   if (process.env.TARO_ENV !== 'h5') {
     const oldGetWebGLContext = kit.GetWebGLContext
     kit.GetWebGLContext = function (canvas, attrs) {
@@ -25,7 +24,6 @@ export async function ckload() {
   window.flutterCanvasKit = kit
   window.flutterCanvasKitLoaded = await Promise.resolve(kit)
   console.log("ck loaded")
-
   if (process.env.TARO_APP_NOFONT === 'true') {
     // install(kit, 1)
     install(kit, 1, [], {})
