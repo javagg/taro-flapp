@@ -1,4 +1,10 @@
-import type { AlphaTypeEnumValues, ColorTypeEnumValues, StrokeCapEnumValues, TextDirectionEnumValues } from "@/mtex/canvaskit";
+import type {
+    FontWeightEnumValues,
+    AlphaTypeEnumValues, ColorTypeEnumValues, StrokeCapEnumValues,
+    TextAlignEnumValues,
+    TextDirectionEnumValues,
+    PlaceholderAlignmentEnumValues
+} from "@/mtex/canvaskit";
 
 export function createDomCanvasElement(width?: number, height?: number): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
@@ -81,3 +87,42 @@ export enum TextDirectionEnum {
 }
 
 export const TextDirection = makeEnum<TextDirectionEnumValues>(TextDirectionEnum);
+
+export enum FontWeightEnum {
+    Invisible = 0,
+    Thin = 100,
+    ExtraLight = 200,
+    Light = 300,
+    Normal = 400,
+    Medium = 500,
+    SemiBold = 600,
+    Bold = 700,
+    ExtraBold = 800,
+    Black = 900,
+    ExtraBlack = 1000,
+}
+
+export const FontWeight = makeEnum<FontWeightEnumValues>(FontWeightEnum);
+
+export enum TextAlignEnum {
+    Left,
+    Right,
+    Center,
+    Justify,
+    Start,
+    End,
+}
+
+export const TextAlign = makeEnum<TextAlignEnumValues>(TextAlignEnum);
+
+
+export enum PlaceholderAlignmentEnum {
+    Baseline,
+    AboveBaseline,
+    BelowBaseline,
+    Top,
+    Bottom,
+    Middle,
+}
+
+export const PlaceholderAlignment = makeEnum<PlaceholderAlignmentEnumValues>(PlaceholderAlignmentEnum);

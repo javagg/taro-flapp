@@ -1,14 +1,10 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import { LineBreakFragmenter, LineBreakType, } from './line_breaker';
 import { _Paragraph, ParagraphSpan, PlaceholderSpan } from './engine'
 import { Spanometer } from './layout_service';
 import { BidiFragmenter, FragmentFlow } from './text_direction';
-import { clampInt, } from './dom';
+import { clampInt, TextDirection } from './dom';
 import { TextFragment } from './fragmenter';
-import type { TextDirection, TextStyle } from '@/mtex/canvaskit';
+import type { GlyphInfo, TextDirection as TextDirectionType, TextStyle } from '@/mtex/canvaskit';
 import { ParagraphLine } from './paragraph';
 
 class _CombinedFragment extends TextFragment {
@@ -16,7 +12,7 @@ class _CombinedFragment extends TextFragment {
         start: number,
         end: number,
         public readonly type: LineBreakType,
-        public _textDirection: TextDirection,
+        public _textDirection: TextDirectionType,
         public readonly fragmentFlow: FragmentFlow,
         public readonly span: ParagraphSpan,
         public readonly trailingNewlines: number,
@@ -45,17 +41,18 @@ export class LayoutFragment extends _CombinedFragment {
     line: ParagraphLine;
 
     constructor(
-        readonly text: string,
         readonly start: number,
         readonly end: number,
         readonly type: LineBreakType,
+        textDirection: TextDirectionType,
+        fragmentFlow: FragmentFlow,
         readonly span: ParagraphSpan,
-        readonly letterSpacing?: number,
+        trailingNewlines: number,
+        trailingSpaces: number,
     ) {
-        super(start, end, type, null, FragmentFlow.sandwich, span, 0, 0);
+        super(start, end, type, textDirection, fragmentFlow, span, trailingNewlines, trailingSpaces);
     }
 
-    // ... existing class code ...
     get length(): number {
         return this.end - this.start;
     }
@@ -118,10 +115,8 @@ export class LayoutFragment extends _CombinedFragment {
                 this.textDirection,
                 this.fragmentFlow,
                 this.span,
-                {
-                    trailingNewlines: this.trailingNewlines - secondTrailingNewlines,
-                    trailingSpaces: this.trailingSpaces - secondTrailingSpaces,
-                }
+                this.trailingNewlines - secondTrailingNewlines,
+                this.trailingSpaces - secondTrailingSpaces,
             ),
             new LayoutFragment(
                 index,
@@ -130,10 +125,9 @@ export class LayoutFragment extends _CombinedFragment {
                 this.textDirection,
                 this.fragmentFlow,
                 this.span,
-                {
-                    trailingNewlines: secondTrailingNewlines,
-                    trailingSpaces: secondTrailingSpaces,
-                }
+                secondTrailingNewlines,
+                secondTrailingSpaces,
+     
             ),
         ];
     }
@@ -157,12 +151,12 @@ export class LayoutFragment extends _CombinedFragment {
     }
 
     get right(): number {
-        return this.line.textDirection === TextDirection.ltr
+        return this.line.textDirection === TextDirection.LTR
             ? this.endOffset
             : this.line.width - this.startOffset;
     }
 
-    setPosition(config: { startOffset: number; textDirection: TextDirection }): void {
+    setPosition(config: { startOffset: number; textDirection: TextDirectionType }): void {
         this._startOffset = config.startOffset;
         this._textDirection ??= config.textDirection;
     }
@@ -200,7 +194,7 @@ export class LayoutFragment extends _CombinedFragment {
 
     toPaintingTextBox():  TextBox {
         if (this._isPartOfTrailingSpacesInLine) {
-            return this.textDirection ===  TextDirection.ltr
+            return this.textDirection ===  TextDirection.LTR
                 ?  TextBox.fromLTRBD(
                     this.line.left + this.left,
                     this.top,
@@ -245,7 +239,7 @@ export class LayoutFragment extends _CombinedFragment {
         }
 
         let left: number, right: number;
-        if (this.textDirection ===  TextDirection.ltr) {
+        if (this.textDirection ===  TextDirection.LTR) {
             left = this.left + before;
             right = this.right - after;
         } else {
@@ -287,7 +281,7 @@ export class LayoutFragment extends _CombinedFragment {
     // ... existing code ...
 
     private _makeXDirectionAgnostic(x: number): number {
-        return this.textDirection ===  TextDirection.rtl
+        return this.textDirection ===  TextDirection.LTR
             ? this.widthIncludingTrailingSpaces - x
             : x;
     }
@@ -358,8 +352,8 @@ export class LayoutFragment extends _CombinedFragment {
             return distanceToFirst > distanceToSecond ? firstHalf : secondHalf;
         }
 
-        const range = (fullBox.direction ===  TextDirection.ltr && x <= left) ||
-            (fullBox.direction ===  TextDirection.rtl && x > left)
+        const range = (fullBox.direction ===  TextDirection.LTR && x <= left) ||
+            (fullBox.direction ===  TextDirection.LTR && x > left)
             ? new  TextRange(graphemeStartIndices[startIndex], graphemeStartIndices[startIndex + 1])
             : new  TextRange(graphemeStartIndices[endIndex - 1], graphemeStartIndices[endIndex]);
 
@@ -491,8 +485,8 @@ export class LayoutFragmenter {
                 currentBidi.textDirection,
                 currentBidi.fragmentFlow,
                 currentSpan,
-                trailingNewlines: clampInt(trailingNewlines, 0, fragmentLength),
-                trailingSpaces: clampInt(trailingSpaces, 0, fragmentLength)
+                clampInt(trailingNewlines, 0, fragmentLength),
+                clampInt(trailingSpaces, 0, fragmentLength)
             ));
 
             fragmentStart = fragmentEnd;
@@ -521,75 +515,75 @@ export class LayoutFragmenter {
 }
 
 
-interface FragmentMetrics {
-    ascent: number;
-    descent: number;
-    widthExcludingTrailingSpaces: number;
-    widthIncludingTrailingSpaces: number;
-    height: number;
-    widthOfTrailingSpaces: number;
-    setMetrics(spanometer: Spanometer, options: {
-        ascent: number;
-        descent: number;
-        widthExcludingTrailingSpaces: number;
-        widthIncludingTrailingSpaces: number;
-    }): void;
-}
+// interface FragmentMetrics {
+//     ascent: number;
+//     descent: number;
+//     widthExcludingTrailingSpaces: number;
+//     widthIncludingTrailingSpaces: number;
+//     height: number;
+//     widthOfTrailingSpaces: number;
+//     setMetrics(spanometer: Spanometer, options: {
+//         ascent: number;
+//         descent: number;
+//         widthExcludingTrailingSpaces: number;
+//         widthIncludingTrailingSpaces: number;
+//     }): void;
+// }
 
-/**
- * Abstract class implementing the metrics functionality
- */
-abstract class FragmentMetricsImpl implements FragmentMetrics {
-    protected _spanometer!: Spanometer;
-    protected _ascent!: number;
-    protected _descent!: number;
-    protected _widthExcludingTrailingSpaces!: number;
-    protected _widthIncludingTrailingSpaces!: number;
-    protected _extraWidthForJustification: number = 0.0;
+// /**
+//  * Abstract class implementing the metrics functionality
+//  */
+// abstract class FragmentMetricsImpl implements FragmentMetrics {
+//     protected _spanometer!: Spanometer;
+//     protected _ascent!: number;
+//     protected _descent!: number;
+//     protected _widthExcludingTrailingSpaces!: number;
+//     protected _widthIncludingTrailingSpaces!: number;
+//     protected _extraWidthForJustification: number = 0.0;
 
-    /** The rise from the baseline as calculated from the font and style for this text. */
-    get ascent(): number {
-        return this._ascent;
-    }
+//     /** The rise from the baseline as calculated from the font and style for this text. */
+//     get ascent(): number {
+//         return this._ascent;
+//     }
 
-    /** The drop from the baseline as calculated from the font and style for this text. */
-    get descent(): number {
-        return this._descent;
-    }
+//     /** The drop from the baseline as calculated from the font and style for this text. */
+//     get descent(): number {
+//         return this._descent;
+//     }
 
-    /** The width of the measured text, not including trailing spaces. */
-    get widthExcludingTrailingSpaces(): number {
-        return this._widthExcludingTrailingSpaces;
-    }
+//     /** The width of the measured text, not including trailing spaces. */
+//     get widthExcludingTrailingSpaces(): number {
+//         return this._widthExcludingTrailingSpaces;
+//     }
 
-    /** The width of the measured text, including any trailing spaces. */
-    get widthIncludingTrailingSpaces(): number {
-        return this._widthIncludingTrailingSpaces + this._extraWidthForJustification;
-    }
+//     /** The width of the measured text, including any trailing spaces. */
+//     get widthIncludingTrailingSpaces(): number {
+//         return this._widthIncludingTrailingSpaces + this._extraWidthForJustification;
+//     }
 
-    /** The total height as calculated from the font and style for this text. */
-    get height(): number {
-        return this.ascent + this.descent;
-    }
+//     /** The total height as calculated from the font and style for this text. */
+//     get height(): number {
+//         return this.ascent + this.descent;
+//     }
 
-    get widthOfTrailingSpaces(): number {
-        return this.widthIncludingTrailingSpaces - this.widthExcludingTrailingSpaces;
-    }
+//     get widthOfTrailingSpaces(): number {
+//         return this.widthIncludingTrailingSpaces - this.widthExcludingTrailingSpaces;
+//     }
 
-    /** Set measurement values for the fragment. */
-    setMetrics(spanometer: Spanometer, options: {
-        ascent: number;
-        descent: number;
-        widthExcludingTrailingSpaces: number;
-        widthIncludingTrailingSpaces: number;
-    }): void {
-        this._spanometer = spanometer;
-        this._ascent = options.ascent;
-        this._descent = options.descent;
-        this._widthExcludingTrailingSpaces = options.widthExcludingTrailingSpaces;
-        this._widthIncludingTrailingSpaces = options.widthIncludingTrailingSpaces;
-    }
-}
+//     /** Set measurement values for the fragment. */
+//     setMetrics(spanometer: Spanometer, options: {
+//         ascent: number;
+//         descent: number;
+//         widthExcludingTrailingSpaces: number;
+//         widthIncludingTrailingSpaces: number;
+//     }): void {
+//         this._spanometer = spanometer;
+//         this._ascent = options.ascent;
+//         this._descent = options.descent;
+//         this._widthExcludingTrailingSpaces = options.widthExcludingTrailingSpaces;
+//         this._widthIncludingTrailingSpaces = options.widthIncludingTrailingSpaces;
+//     }
+// }
 
 export class EllipsisFragment extends LayoutFragment {
     constructor(
@@ -600,12 +594,11 @@ export class EllipsisFragment extends LayoutFragment {
             index,
             index,
             LineBreakType.endOfText,
-            null,
+            TextDirection.LTR, // null
             // The ellipsis is always at the end of the line, so it can't be
             // sandwiched. This means it'll always follow the paragraph direction.
             FragmentFlow.sandwich,
-            span,
-            { trailingNewlines: 0, trailingSpaces: 0 }
+            span, 0, 0,
         );
     }
 

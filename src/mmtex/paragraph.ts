@@ -1,5 +1,5 @@
-import { TextDirection, ParagraphStyle, TextHeightBehavior, FontWeight, FontStyle, StrutStyle, TextAlign, TextStyle } from "@/mtex/canvaskit";
-import { _Paragraph, EngineLineMetrics, EngineStrutStyle, EngineTextStyle } from "./engine";
+import { TextDirection, ParagraphStyle, TextHeightBehavior, FontWeight, FontStyle, StrutStyle, TextAlign, TextStyle, URange } from "@/mtex/canvaskit";
+import { _Paragraph, EngineLineMetrics, EngineStrutStyle } from "./engine";
 import { EllipsisFragment, LayoutFragment } from "./layout_fragmenter";
 
 
@@ -409,7 +409,7 @@ export class ParagraphLine {
     return low;
   }
 
-  getCharacterRangeAt(codeUnitOffset: number): TextRange | null {
+  getCharacterRangeAt(codeUnitOffset: number): URange/*TextRange*/ | null {
     console.assert(codeUnitOffset >= this.startIndex);
     if (codeUnitOffset >= this.visibleEndIndex || this.graphemeStarts.length === 0) {
       return null;
@@ -484,42 +484,42 @@ export class ParagraphLine {
     return closestFragment?.fragment || null;
   }
 
-  get hashCode(): number {
-    return Object.hash(
-      this.lineMetrics,
-      this.startIndex,
-      this.endIndex,
-      this.trailingNewlines,
-      this.trailingSpaces,
-      this.spaceCount,
-      this.widthWithTrailingSpaces,
-      this.fragments,
-      this.textDirection,
-      this.displayText
-    );
-  }
+  // get hashCode(): number {
+  //   return Object.hash(
+  //     this.lineMetrics,
+  //     this.startIndex,
+  //     this.endIndex,
+  //     this.trailingNewlines,
+  //     this.trailingSpaces,
+  //     this.spaceCount,
+  //     this.widthWithTrailingSpaces,
+  //     this.fragments,
+  //     this.textDirection,
+  //     this.displayText
+  //   );
+  // }
 
-  equals(other: any): boolean {
-    if (this === other) {
-      return true;
-    }
-    if (other.constructor.name !== this.constructor.name) {
-      return false;
-    }
-    return (
-      other instanceof ParagraphLine &&
-      other.lineMetrics.equals(this.lineMetrics) &&
-      other.startIndex === this.startIndex &&
-      other.endIndex === this.endIndex &&
-      other.trailingNewlines === this.trailingNewlines &&
-      other.trailingSpaces === this.trailingSpaces &&
-      other.spaceCount === this.spaceCount &&
-      other.widthWithTrailingSpaces === this.widthWithTrailingSpaces &&
-      other.fragments === this.fragments &&
-      other.textDirection === this.textDirection &&
-      other.displayText === this.displayText
-    );
-  }
+  // equals(other: any): boolean {
+  //   if (this === other) {
+  //     return true;
+  //   }
+  //   if (other.constructor.name !== this.constructor.name) {
+  //     return false;
+  //   }
+  //   return (
+  //     other instanceof ParagraphLine &&
+  //     other.lineMetrics.equals(this.lineMetrics) &&
+  //     other.startIndex === this.startIndex &&
+  //     other.endIndex === this.endIndex &&
+  //     other.trailingNewlines === this.trailingNewlines &&
+  //     other.trailingSpaces === this.trailingSpaces &&
+  //     other.spaceCount === this.spaceCount &&
+  //     other.widthWithTrailingSpaces === this.widthWithTrailingSpaces &&
+  //     other.fragments === this.fragments &&
+  //     other.textDirection === this.textDirection &&
+  //     other.displayText === this.displayText
+  //   );
+  // }
 
   toString(): string {
     return `${this.constructor.name}(${this.startIndex}, ${this.endIndex}, ${this.lineMetrics})`;

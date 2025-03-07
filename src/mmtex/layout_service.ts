@@ -1,11 +1,12 @@
 import { LayoutFragment, LayoutFragmenter } from './layout_fragmenter';
 import { LineBreakType } from './line_breaker';
-import { GlyphInfo, Rect, TextDirection } from '@/mtex/canvaskit';
+import { GlyphInfo, Rect, TextDirection as TextDirectionType } from '@/mtex/canvaskit';
+import { TextDirection, TextAlign, PlaceholderAlignment } from './dom';
 import { _Paragraph, ParagraphSpan, PlaceholderSpan } from './engine';
 import { createDomCanvasElement } from './dom';
 import { ParagraphLine } from './paragraph';
 import { FragmentFlow } from './text_direction';
-
+import { measureSubstring } from './measurement';
 
 /** A single canvas2d context to use for all text measurements. */
 const textContext: CanvasRenderingContext2D = createDomCanvasElement(0, 0).getContext('2d')!;
@@ -66,34 +67,6 @@ export class TextLayoutService {
     return new Float32Array([0, 0, this._width, this._height])
   }
 
-  /**
-   * Performs the layout on the paragraph given the constraints.
-   */
-  // performLayout(width: number /*   constraints: ParagraphConstraints*/): void {
-  //   // Reset layout state
-  //   this._width = 0.0;
-  //   this._height = 0.0;
-  //   this._alphabeticBaseline = 0.0;
-  //   this._ideographicBaseline = 0.0;
-  //   this._maxIntrinsicWidth = 0.0;
-  //   this._minIntrinsicWidth = 0.0;
-  //   this._lines = [];
-  //   this._longestLine = null;
-  //   this._didExceedMaxLines = false;
-
-  //   let currentLine = LineBuilder.first(this.paragraph, this.spanometer, width);
-
-  //   // Find fragments in the paragraph
-  //   this._fragments = this.layoutFragmenter.fragment();
-  //   this._fragments.forEach(fragment => this.spanometer.measureFragment(fragment));
-
-  //   // Measure text
-  //   this._measureText();
-
-  //   // Layout the fragments
-  //   this._layoutFragments(width);
-  // }
-
   performLayout(width: number): void {
     // Reset results from previous layout
     this._height = 0.0;
@@ -140,9 +113,9 @@ export class TextLayoutService {
     }
 
     const maxLines = this.paragraph.paragraphStyle.maxLines;
-    if (maxLines !== null && this.lines.length > maxLines) {
+    if (maxLines !== null && this.lines.length > maxLines!) {
       this._didExceedMaxLines = true;
-      this._lines.splice(maxLines);
+      this._lines.splice(maxLines!);
     }
 
     // Paragraph baseline, height, longest line, and paint bounds
@@ -173,7 +146,7 @@ export class TextLayoutService {
     // Fragment positioning
     if (this.lines.length > 0) {
       const shouldJustifyParagraph = Number.isFinite(this.width) &&
-        this.paragraph.paragraphStyle.textAlign === TextAlign.justify;
+        this.paragraph.paragraphStyle.textAlign === TextAlign.Justify;
 
       if (shouldJustifyParagraph) {
         for (let i = 0; i < this.lines.length - 1; i++) {
@@ -243,8 +216,8 @@ export class TextLayoutService {
         }
 
         const currentDirection = fragment.fragmentFlow === FragmentFlow.ltr
-          ? TextDirection.ltr
-          : TextDirection.rtl;
+          ? TextDirection.LTR
+          : TextDirection.RTL;
 
         if (currentDirection === previousDirection) {
           sandwichStart = null;
@@ -298,7 +271,7 @@ export class TextLayoutService {
     line: ParagraphLine;
     start: number;
     end: number;
-    direction: TextDirection;
+    direction: TextDirectionType;
     startOffset: number;
   }): number {
     if (start > end) throw new Error("Start must be less than or equal to end");
@@ -332,7 +305,7 @@ export class TextLayoutService {
     line: ParagraphLine,
     i: number,
     startOffset: number,
-    direction: TextDirection
+    direction: TextDirectionType
   ): number {
     const fragment = line.fragments[i];
     fragment.setPosition(startOffset, direction);
@@ -392,7 +365,7 @@ export class TextLayoutService {
     const closestGraphemeStartInFragment = !fragment.hasLeadingBrokenGrapheme
       || dx <= fragment.line.left
       || fragment.line.left + fragment.line.width <= dx
-      || (fragment.textDirection === TextDirection.ltr
+      || (fragment.textDirection === TextDirection.LTR
         ? dx >= line.left + (fragment.left + fragment.right) / 2
         : dx <= line.left + (fragment.left + fragment.right) / 2);
 
@@ -401,7 +374,7 @@ export class TextLayoutService {
       return candidate1;
     }
 
-    const searchLeft = fragment.textDirection === TextDirection.ltr;
+    const searchLeft = fragment.textDirection === TextDirection.LTR;
     const candidate2 = fragment.line.closestFragmentTo(fragment, searchLeft)?.getClosestCharacterBox(dx);
     if (!candidate2) {
       return candidate1;
@@ -580,9 +553,9 @@ export class LineBuilder {
       case TextAlign.right:
         return emptySpace;
       case TextAlign.start:
-        return this._paragraphDirection === TextDirection.rtl ? emptySpace : 0.0;
+        return this._paragraphDirection === TextDirection.LTR ? emptySpace : 0.0;
       case TextAlign.end:
-        return this._paragraphDirection === TextDirection.rtl ? 0.0 : emptySpace;
+        return this._paragraphDirection === TextDirection.RTL ? 0.0 : emptySpace;
       default:
         return 0.0;
     }
@@ -610,7 +583,7 @@ export class LineBuilder {
     return true;
   }
 
-  private get _paragraphDirection(): TextDirection {
+  private get _paragraphDirection(): TextDirectionType {
     return this.paragraph.paragraphStyle.effectiveTextDirection;
   }
 
@@ -645,30 +618,30 @@ export class LineBuilder {
     const placeholder = fragment.span as PlaceholderSpan;
     let ascent: number, descent: number;
     switch (placeholder.alignment) {
-      case PlaceholderAlignment.top:
+      case PlaceholderAlignment.Top:
         ascent = this.ascent;
         descent = placeholder.height - this.ascent;
         break;
-      case PlaceholderAlignment.bottom:
+      case PlaceholderAlignment.Bottom:
         ascent = placeholder.height - this.descent;
         descent = this.descent;
         break;
-      case PlaceholderAlignment.middle:
+      case PlaceholderAlignment.Middle:
         const textMidPoint = this.height / 2;
         const placeholderMidPoint = placeholder.height / 2;
         const diff = placeholderMidPoint - textMidPoint;
         ascent = this.ascent + diff;
         descent = this.descent + diff;
         break;
-      case PlaceholderAlignment.aboveBaseline:
+      case PlaceholderAlignment.AboveBaseline:
         ascent = placeholder.height;
         descent = 0.0;
         break;
-      case PlaceholderAlignment.belowBaseline:
+      case PlaceholderAlignment.BelowBaseline:
         ascent = 0.0;
         descent = placeholder.height;
         break;
-      case PlaceholderAlignment.baseline:
+      case PlaceholderAlignment.Baseline:
         ascent = placeholder.baselineOffset;
         descent = placeholder.height - ascent;
         break;
@@ -847,44 +820,105 @@ export class LineBuilder {
 }
 
 
-
-
-interface TextHeightStyle {
-  // 这里可以根据实际情况补充属性
-}
-
-interface TextHeightRuler {
-  alphabeticBaseline: number;
-  height: number;
-  dispose(): void;
-}
-
-
-
-enum TextAlign {
-  center,
-  right,
-  start,
-  end,
-  justify,
-}
-
-// enum TextDirection {
-//   ltr,
-//   rtl,
+// // 假设这些类型在其他地方定义
+// interface TextHeightStyle {
+//   // 这里根据实际情况补充属性
 // }
 
-enum PlaceholderAlignment {
-  top,
-  bottom,
-  middle,
-  aboveBaseline,
-  belowBaseline,
-  baseline,
+// interface RulerHost {
+//   addElement(element: HTMLElement): void;
+// }
+
+class TextDimensions {
+  constructor(public _element: HTMLElement) {}
+
+  applyHeightStyle(style: TextHeightStyle) {
+      // 这里需要根据实际情况实现
+  }
+
+  updateTextToSpace() {
+      this._element.textContent = ' ';
+  }
+
+  appendToHost(host: HTMLElement) {
+      host.appendChild(this._element);
+  }
+
+  get height(): number {
+      return this._element.offsetHeight;
+  }
 }
 
+function createDomHTMLDivElement(): HTMLDivElement {
+  return document.createElement('div');
+}
+
+class TextHeightRuler {
+  textHeightStyle: TextHeightStyle;
+  rulerHost: RulerHost;
+  _probe: HTMLElement;
+  _host: HTMLElement;
+  _dimensions: TextDimensions;
+  alphabeticBaseline: number;
+  height: number;
+
+  constructor(textHeightStyle: TextHeightStyle, rulerHost: RulerHost) {
+      this.textHeightStyle = textHeightStyle;
+      this.rulerHost = rulerHost;
+      this._dimensions = new TextDimensions(document.createElement('flt-paragraph'));
+      this._host = this._createHost();
+      this._probe = this._createProbe();
+      this.alphabeticBaseline = this._probe.getBoundingClientRect().bottom;
+      this.height = this._dimensions.height;
+  }
+
+  dispose() {
+      this._host.remove();
+  }
+
+  private _createHost(): HTMLElement {
+      const host = createDomHTMLDivElement();
+      host.style.visibility = 'hidden';
+      host.style.position = 'absolute';
+      host.style.top = '0';
+      host.style.left = '0';
+      host.style.display = 'flex';
+      host.style.flexDirection = 'row';
+      host.style.alignItems = 'baseline';
+      host.style.margin = '0';
+      host.style.border = '0';
+      host.style.padding = '0';
+
+      // 模拟 assert 功能
+      if (process.env.NODE_ENV === 'development') {
+          host.setAttribute('data-ruler', 'line-height');
+      }
+
+      this._dimensions.applyHeightStyle(this.textHeightStyle);
+      this._dimensions._element.style.whiteSpace = 'pre';
+      this._dimensions.updateTextToSpace();
+      this._dimensions.appendToHost(host);
+      this.rulerHost.addElement(host);
+      return host;
+  }
+
+  private _createProbe(): HTMLElement {
+      const probe = createDomHTMLDivElement();
+      this._host.appendChild(probe);
+      return probe;
+  }
+}
+
+/// Responsible for taking measurements within spans of a paragraph.
+///
+/// Can't perform measurements across spans. To measure across spans, multiple
+/// measurements have to be taken.
+///
+/// Before performing any measurement, the [currentSpan] has to be set. Once
+/// it's set, the [Spanometer] updates the underlying [context] so that
+/// subsequent measurements use the correct styles.
 export class Spanometer {
-  private static _rulerHost: RulerHost = new (class RulerHost { })();
+  // private static _rulerHost: RulerHost = new (class RulerHost { })();
   private static _rulers: Map<TextHeightStyle, TextHeightRuler> = new Map();
 
   constructor(public readonly paragraph: _Paragraph) { }
@@ -915,9 +949,9 @@ export class Spanometer {
   set currentSpan(span: ParagraphSpan | null) {
     if (span) {
       const newCssFontString = span.style.cssFontString;
-      if (window._lastContextFont !== newCssFontString) {
-        window._lastContextFont = newCssFontString;
-        window.textContext.font = newCssFontString;
+      if (_lastContextFont !== newCssFontString) {
+        _lastContextFont = newCssFontString;
+        textContext.font = newCssFontString;
       }
     }
 
@@ -967,7 +1001,7 @@ export class Spanometer {
   }
 
   measureText(text: string): number {
-    return this._measureSubstring(window.textContext, text, 0, text.length);
+    return measureSubstring(textContext, text, 0, text.length);
   }
 
   measureRange(start: number, end: number): number {
@@ -1041,11 +1075,6 @@ export class Spanometer {
     if (start < this.currentSpan.start || start > this.currentSpan.end || end < this.currentSpan.start || end > this.currentSpan.end) {
       throw new Error('Range is out of current span');
     }
-    return this._measureSubstring(window.textContext, this.paragraph.plainText, start, end, this.letterSpacing);
-  }
-
-  private _measureSubstring(context: any, text: string, start: number, end: number, letterSpacing?: number): number {
-    // 这里需要根据实际情况实现测量子字符串宽度的逻辑
-    return 0;
+    return measureSubstring(textContext, this.paragraph.plainText, start, end, this.letterSpacing);
   }
 }
