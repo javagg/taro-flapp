@@ -864,9 +864,13 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         return true;
     }
 
-    paint(canvas: BitmapCanvas, offset: Offset): void {
-        this._paintService.paint(canvas, offset);
+    draw(canvas: CanvasRenderingContext2D, dx: number, dy: number): void {
+        this._paintService.paint(canvas, dx, dy);
     }
+
+    // paint(canvas: BitmapCanvas, offset: Offset): void {
+    //     this._paintService.paint(canvas, offset);
+    // }
 
     // toDomElement(): HTMLElement {
     //     if (!this.isLaidOut) {
@@ -1345,7 +1349,7 @@ export function install(
 
         const context = createDomCanvasElement(4096, 4096).getContext('2d')!;
 
-        new TextPaintService(paragraph as _Paragraph).paint(context, dx, dy);
+        (paragraph as _Paragraph).draw(context, dx, dy);
 
         const imageData = context.getImageData(0, 0, 4096, 4096);
         const canvasImg = canvasKit.MakeImage(

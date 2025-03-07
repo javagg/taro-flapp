@@ -5,7 +5,7 @@
 import { LayoutFragment } from './layout_fragmenter';
 import { _Paragraph, } from './engine';
 import { ParagraphLine } from './paragraph';
-import { Rect, } from '@/mtex/canvaskit';
+import { TextDirection } from './dom';
 
 
  export class TextPaintService {
@@ -40,13 +40,18 @@ import { Rect, } from '@/mtex/canvaskit';
     }
 
     // Paint the background of the box, if the span has a background.
-    const background: SurfacePaint | null = fragment.style.background as SurfacePaint | null;
+    // const background: SurfacePaint | null = fragment.style.backgroundColor as SurfacePaint | null;
+
+    const background = fragment.style.backgroundColor 
     if (background) {
-      const rect: Rect = fragment.toPaintingTextBox().toRect();
-      if (!rect.isEmpty) {
-        canvas.drawRect(rect.shift(offset), background.paintData);
-      }
+      // const rect: Rect = fragment.toPaintingTextBox().toRect();
+      // if (!rect.isEmpty) {
+      //   context.drawRect(rect.shift(offset), background.paintData);
+      //   context.fillStyle
+      //   context.fillRect(rect.shift(offset), background.paintData);
+      // }
     }
+
   }
 
   private _paintText(
@@ -69,7 +74,7 @@ import { Rect, } from '@/mtex/canvaskit';
     }
 
     // this._prepareCanvasForFragment(canvas, fragment);
-    const fragmentX: number = fragment.textDirection === TextDirection.ltr
+    const fragmentX: number = fragment.textDirection === TextDirection.LTR
       ? fragment.left
       : fragment.right;
 

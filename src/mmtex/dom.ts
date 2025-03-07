@@ -1,4 +1,4 @@
-import type { AlphaTypeEnumValues, ColorTypeEnumValues, StrokeCapEnumValues } from "@/mtex/canvaskit";
+import type { AlphaTypeEnumValues, ColorTypeEnumValues, StrokeCapEnumValues, TextDirectionEnumValues } from "@/mtex/canvaskit";
 
 export function createDomCanvasElement(width?: number, height?: number): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
@@ -11,6 +11,7 @@ export function clampInt(value: number, min: number, max: number): number {
     if (min > max) throw new Error("min must be less than or equal to max");
     return Math.min(Math.max(value, min), max);
 }
+
 export const mapKeys = <T extends object>(obj: T) =>
     Object.keys(obj) as (keyof T)[];
 
@@ -70,5 +71,13 @@ export enum ColorTypeEnum {
     //R16G16_unorm = 19,
     //R16G16B16A16_unorm = 20,
     //SRGBA_8888 = 21,
-  }
-  export const ColorType = makeEnum<ColorTypeEnumValues>(ColorTypeEnum);
+}
+export const ColorType = makeEnum<ColorTypeEnumValues>(ColorTypeEnum);
+
+
+export enum TextDirectionEnum {
+    RTL,
+    LTR,
+}
+
+export const TextDirection = makeEnum<TextDirectionEnumValues>(TextDirectionEnum);
