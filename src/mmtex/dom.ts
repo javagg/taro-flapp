@@ -3,7 +3,8 @@ import type {
     AlphaTypeEnumValues, ColorTypeEnumValues, StrokeCapEnumValues,
     TextAlignEnumValues,
     TextDirectionEnumValues,
-    PlaceholderAlignmentEnumValues
+    PlaceholderAlignmentEnumValues,
+    AffinityEnumValues
 } from "@/mtex/canvaskit";
 
 export function createDomCanvasElement(width?: number, height?: number): HTMLCanvasElement {
@@ -126,3 +127,10 @@ export enum PlaceholderAlignmentEnum {
 }
 
 export const PlaceholderAlignment = makeEnum<PlaceholderAlignmentEnumValues>(PlaceholderAlignmentEnum);
+
+export enum AffinityEnum {
+    Upstream,
+    Downstream,
+}
+
+export const Affinity = makeEnum<AffinityEnumValues>(AffinityEnum);

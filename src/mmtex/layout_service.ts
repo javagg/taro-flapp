@@ -1,12 +1,12 @@
-import { LayoutFragment, LayoutFragmenter } from './layout_fragmenter';
+import { EllipsisFragment, LayoutFragment, LayoutFragmenter } from './layout_fragmenter';
 import { LineBreakType } from './line_breaker';
-import { GlyphInfo, Rect, TextDirection as TextDirectionType } from '@/mtex/canvaskit';
-import { TextDirection, TextAlign, PlaceholderAlignment } from './dom';
+import { GlyphInfo, PositionWithAffinity, Rect, RectWithDirection, TextDirection as TextDirectionType } from '@/mtex/canvaskit';
+import { TextDirection, TextAlign, PlaceholderAlignment, Affinity } from './dom';
 import { _Paragraph, ParagraphSpan, PlaceholderSpan } from './engine';
 import { createDomCanvasElement } from './dom';
 import { ParagraphLine } from './paragraph';
 import { FragmentFlow } from './text_direction';
-import { measureSubstring } from './measurement';
+import { baselineRatioHack, measureSubstring } from './measurement';
 
 /** A single canvas2d context to use for all text measurements. */
 const textContext: CanvasRenderingContext2D = createDomCanvasElement(0, 0).getContext('2d')!;
@@ -27,12 +27,14 @@ export class TextLayoutService {
   private _ideographicBaseline = 0.0;
   private _maxIntrinsicWidth = 0.0;
   private _minIntrinsicWidth = 0.0;
-  private _lines: ParagraphLine[] = [];
+
   // private _fragments: LayoutFragment[] = [];
   // private _ruler: Ruler | null = null;
-  _paintBounds: Rect
+  _paintBounds: Rect = Float32Array.of(0, 0, 0, 0);
   private _longestLine: ParagraphLine | null = null;
   private _didExceedMaxLines = false;
+
+  lines: ParagraphLine[] = [];
 
   spanometer: Spanometer;
   layoutFragmenter: LayoutFragmenter;
@@ -48,7 +50,6 @@ export class TextLayoutService {
   get ideographicBaseline(): number { return this._ideographicBaseline; }
   get maxIntrinsicWidth(): number { return this._maxIntrinsicWidth; }
   get minIntrinsicWidth(): number { return this._minIntrinsicWidth; }
-  get lines(): ParagraphLine[] { return this._lines; }
   get longestLine(): ParagraphLine | null { return this._longestLine; }
   get didExceedMaxLines(): boolean { return this._didExceedMaxLines; }
 
@@ -63,10 +64,22 @@ export class TextLayoutService {
     return this.currentSpan.style.letterSpacing;
   }
 
-  get paintBounds(): Rect {
-    return new Float32Array([0, 0, this._width, this._height])
-  }
+  get paintBounds(): Rect { return this._paintBounds; }
 
+  /// Performs the layout on a paragraph given the [constraints].
+  ///
+  /// The function starts by resetting all layout-related properties. Then it
+  /// starts looping through the paragraph to calculate all layout metrics.
+  ///
+  /// It uses a [Spanometer] to perform measurements within spans of the
+  /// paragraph. It also uses [LineBuilders] to generate [ParagraphLine]s as
+  /// it iterates through the paragraph.
+  ///
+  /// The main loop keeps going until:
+  ///
+  /// 1. The end of the paragraph is reached (i.e. LineBreakType.endOfText).
+  /// 2. Enough lines have been computed to satisfy [maxLines].
+  /// 3. An ellipsis is appended because of an overflow.
   performLayout(width: number): void {
     // Reset results from previous layout
     this._height = 0.0;
@@ -74,7 +87,7 @@ export class TextLayoutService {
     this._minIntrinsicWidth = 0.0;
     this._maxIntrinsicWidth = 0.0;
     this._didExceedMaxLines = false;
-    this._lines = [];
+    this.lines = [];
 
     let currentLine = LineBuilder.first(this.paragraph, this.spanometer, width);
 
@@ -98,6 +111,8 @@ export class TextLayoutService {
         if (currentLine.isBreakable) {
           currentLine.revertToLastBreakOpportunity();
         } else {
+          // The line can't be legally broken, so the last fragment (that caused
+          // the line to overflow) needs to be force-broken.
           currentLine.forceBreakLastFragment();
         }
 
@@ -115,17 +130,19 @@ export class TextLayoutService {
     const maxLines = this.paragraph.paragraphStyle.maxLines;
     if (maxLines !== null && this.lines.length > maxLines!) {
       this._didExceedMaxLines = true;
-      this._lines.splice(maxLines!);
+      this.lines.splice(maxLines!);
     }
 
-    // Paragraph baseline, height, longest line, and paint bounds
+    // ***************************************************************** //
+    // *** PARAGRAPH BASELINE & HEIGHT & LONGEST LINE & PAINT BOUNDS *** //
+    // ***************************************************************** //
     let boundsLeft = Infinity;
     let boundsRight = -Infinity;
     for (const line of this.lines) {
       this._height += line.height;
       if (this._alphabeticBaseline === -1.0) {
         this._alphabeticBaseline = line.baseline;
-        this._ideographicBaseline = this.alphabeticBaseline * this._baselineRatioHack;
+        this._ideographicBaseline = this.alphabeticBaseline * baselineRatioHack;
       }
       const longestLineWidth = this.longestLine?.width ?? 0.0;
       if (longestLineWidth < line.width) {
@@ -141,14 +158,20 @@ export class TextLayoutService {
         boundsRight = right;
       }
     }
-    this._paintBounds = new Float32Array([boundsLeft, 0, boundsRight, this.height]);
+    this._paintBounds = Float32Array.of(boundsLeft, 0, boundsRight, this.height);
 
-    // Fragment positioning
+    // **************************** //
+    // *** FRAGMENT POSITIONING *** //
+    // **************************** //
+
+    // We have to perform justification alignment first so that we can position
+    // fragments correctly later. 
     if (this.lines.length > 0) {
       const shouldJustifyParagraph = Number.isFinite(this.width) &&
         this.paragraph.paragraphStyle.textAlign === TextAlign.Justify;
 
       if (shouldJustifyParagraph) {
+        // Don't apply justification to the last line.
         for (let i = 0; i < this.lines.length - 1; i++) {
           for (const fragment of this.lines[i].fragments) {
             fragment.justifyTo(this.width);
@@ -159,12 +182,18 @@ export class TextLayoutService {
 
     this.lines.forEach(line => this._positionLineFragments(line));
 
-    // Max/min intrinsic widths
+    // ******************************** //
+    // *** MAX/MIN INTRINSIC WIDTHS *** //
+    // ******************************** //
+
+    // TODO(mdebbar): Handle maxLines https://github.com/flutter/flutter/issues/91254
     let runningMinIntrinsicWidth = 0;
     let runningMaxIntrinsicWidth = 0;
 
     for (const fragment of fragments) {
       runningMinIntrinsicWidth += fragment.widthExcludingTrailingSpaces;
+      // Max intrinsic width includes the width of trailing spaces.
+
       runningMaxIntrinsicWidth += fragment.widthIncludingTrailingSpaces;
 
       switch (fragment.type) {
@@ -191,6 +220,8 @@ export class TextLayoutService {
     return this.paragraph.paragraphStyle.effectiveTextDirection;
   }
 
+  /// Positions the fragments taking into account their directions and the
+  /// paragraph's direction.
   private _positionLineFragments(line: ParagraphLine): void {
     let previousDirection = this._paragraphDirection;
     let startOffset = 0.0;
@@ -225,8 +256,10 @@ export class TextLayoutService {
         }
       }
 
-      // Position the sequence we've been traversing
+      // We've reached a fragment that'll flip the text direction. Let's
+      // position the sequence that we've been traversing.
       if (sandwichStart === null) {
+        // Position fragments in range [sequenceStart:i)
         startOffset += this._positionFragmentRange(
           line,
           sequenceStart,
@@ -235,6 +268,7 @@ export class TextLayoutService {
           startOffset
         );
       } else {
+        // Position fragments in range [sequenceStart:sandwichStart)
         startOffset += this._positionFragmentRange(
           line,
           sequenceStart,
@@ -242,6 +276,7 @@ export class TextLayoutService {
           previousDirection,
           startOffset
         );
+        // Position fragments in range [sandwichStart:i)
         startOffset += this._positionFragmentRange(
           line,
           sandwichStart,
@@ -261,23 +296,17 @@ export class TextLayoutService {
   }
 
 
-  private _positionFragmentRange({
-    line,
-    start,
-    end,
-    direction,
-    startOffset
-  }: {
-    line: ParagraphLine;
-    start: number;
-    end: number;
-    direction: TextDirectionType;
-    startOffset: number;
-  }): number {
+  private _positionFragmentRange(line: ParagraphLine,
+    start: number,
+    end: number,
+    direction: TextDirectionType,
+    startOffset: number,
+  ): number {
     if (start > end) throw new Error("Start must be less than or equal to end");
 
     let cumulativeWidth = 0.0;
 
+    // The bodies of the two for loops below must remain identical. The only
     if (direction === this._paragraphDirection) {
       for (let i = start; i < end; i++) {
         cumulativeWidth += this._positionOneFragment(
@@ -312,8 +341,8 @@ export class TextLayoutService {
     return fragment.widthIncludingTrailingSpaces;
   }
 
-  getBoxesForPlaceholders(): TextBox[] {
-    const boxes: TextBox[] = [];
+  getBoxesForPlaceholders(): RectWithDirection[] /*TextBox[]*/ {
+    const boxes: RectWithDirection[]  /*TextBox[]*/ = [];
     for (const line of this.lines) {
       for (const fragment of line.fragments) {
         if (fragment.isPlaceholder) {
@@ -324,22 +353,57 @@ export class TextLayoutService {
     return boxes;
   }
 
-  getPositionForOffset(offset: Offset): TextPosition {
+  
+  getBoxesForRange(
+    start: number,
+    end: number,
+    boxHeightStyle: BoxHeightStyle,
+    boxWidthStyle: BoxWidthStyle  
+  ): TextBox[] {
+    // Zero-length ranges and invalid ranges return an empty list
+    if (start >= end || start < 0 || end < 0) {
+      return [];
+    }
+
+    const length = this.paragraph.plainText.length;
+    // Ranges that are out of bounds should return an empty list
+    if (start > length || end > length) {
+      return [];
+    }
+
+    const boxes: TextBox[] = [];
+
+    for (const line of this.lines) {
+      if (line.overlapsWith(start, end)) {
+        for (const fragment of line.fragments) {
+          if (!fragment.isPlaceholder && fragment.overlapsWith(start, end)) {
+            boxes.push(fragment.toTextBox(start, end));
+          }
+        }
+      }
+    }
+    return boxes;
+  }
+
+  getPositionForOffset(offset: Offset): PositionWithAffinity /*TextPosition*/ {
+    // After layout, each line has boxes that contain enough information to make
+    // it possible to do hit testing. Once we find the box, we look inside that
+    // box to find where exactly the `offset` is located.
     const line = this._findLineForY(offset.dy);
     if (!line) {
-      return new TextPosition(0);
+        return { pos: 0, affinity: Affinity.Upstream };  /*new TextPosition(0);*/
     }
     // [offset] is to the left of the line
     if (offset.dx <= line.left) {
-      return new TextPosition(line.startIndex);
+      return { pos: line.startIndex, affinity: Affinity.Upstream };  /*new TextPosition(line.startIndex);*/
     }
 
     // [offset] is to the right of the line
     if (offset.dx >= line.left + line.widthWithTrailingSpaces) {
-      return new TextPosition(
+      return { pos: line.endIndex - line.trailingNewlines, affinity: Affinity.Upstream };  /*new TextPosition(
         line.endIndex - line.trailingNewlines,
         TextAffinity.upstream
-      );
+      );*/
     }
 
     const dx = offset.dx - line.left;
@@ -349,7 +413,7 @@ export class TextLayoutService {
       }
     }
     // Is this ever reachable?
-    return new TextPosition(line.startIndex);
+    return { pos: line.startIndex, affinity: Affinity.Upstream };  /*new TextPosition(line.startIndex);*/ 
   }
 
   getClosestGlyphInfo(offset: Offset): GlyphInfo | null {
@@ -391,37 +455,6 @@ export class TextLayoutService {
     return distance2 > distance1 ? candidate1 : candidate2;
   }
 
-  getBoxesForRange(
-    start: number,
-    end: number,
-    boxHeightStyle: BoxHeightStyle,
-    boxWidthStyle: BoxWidthStyle
-  ): TextBox[] {
-    // Zero-length ranges and invalid ranges return an empty list
-    if (start >= end || start < 0 || end < 0) {
-      return [];
-    }
-
-    const length = this.paragraph.plainText.length;
-    // Ranges that are out of bounds should return an empty list
-    if (start > length || end > length) {
-      return [];
-    }
-
-    const boxes: TextBox[] = [];
-
-    for (const line of this.lines) {
-      if (line.overlapsWith(start, end)) {
-        for (const fragment of line.fragments) {
-          if (!fragment.isPlaceholder && fragment.overlapsWith(start, end)) {
-            boxes.push(fragment.toTextBox(start, end));
-          }
-        }
-      }
-    }
-    return boxes;
-  }
-
   private _findLineForY(y: number): ParagraphLine | null {
     if (this.lines.length === 0) {
       return null;
@@ -439,19 +472,43 @@ export class TextLayoutService {
   }
 }
 
-
+/// Builds instances of [ParagraphLine] for the given [paragraph].
+///
+/// Usage of this class starts by calling [LineBuilder.first] to start building
+/// the first line of the paragraph.
+///
+/// Then fragments can be added by calling [addFragment].
+///
+/// After adding a fragment, one can use [isOverflowing] to determine whether
+/// the added fragment caused the line to overflow or not.
+///
+/// Once the line is complete, it can be built by calling [build] to generate
+/// a [ParagraphLine] instance.
+///
+/// To start building the next line, simply call [nextLine] to get a new
+/// [LineBuilder] for the next line.
 export class LineBuilder {
   private _fragments: LayoutFragment[];
   private _fragmentsForNextLine: LayoutFragment[] | null = null;
+  
   readonly maxWidth: number;
   readonly paragraph: _Paragraph;
   readonly spanometer: Spanometer;
   readonly lineNumber: number;
+  /// The accumulated height of all preceding lines, excluding the current line.  
   readonly accumulatedHeight: number;
+  /// The width of the line so far, excluding trailing white space.
   width: number = 0.0;
+  
+  /// The width of the line so far, including trailing white space.
   widthIncludingSpace: number = 0.0;
+
+  /// The distance from the top of the line to the alphabetic baseline.
   ascent: number = 0.0;
+  
+  /// The distance from the bottom of the line to the alphabetic baseline.
   descent: number = 0.0;
+
   private _lastBreakableFragment: number = -1;
   private _breakCount: number = 0;
   private _spaceCount: number = 0;
@@ -513,20 +570,25 @@ export class LineBuilder {
       : 0;
   }
 
+
+  /// The height of the line so far.
   get height(): number {
     return this.ascent + this.descent;
   }
 
+  /// Whether this line can be legally broken into more than one line.
   get isBreakable(): boolean {
     if (this._fragments.length === 0) {
       return false;
     }
     if (this._fragments[this._fragments.length - 1].isBreak) {
+       // We need one more break other than the last one.
       return this._breakCount > 1;
     }
     return this._breakCount > 0;
   }
 
+  /// Returns true if the line can't be legally broken any further.
   get isNotBreakable(): boolean {
     return !this.isBreakable;
   }
@@ -543,18 +605,19 @@ export class LineBuilder {
     return this._fragments.length > 0 && this._fragments[this._fragments.length - 1].isHardBreak;
   }
 
+    /// The horizontal offset necessary for the line to be correctly aligned.
   get alignOffset(): number {
     const emptySpace = this.maxWidth - this.width;
     const textAlign = this.paragraph.paragraphStyle.effectiveTextAlign;
 
     switch (textAlign) {
-      case TextAlign.center:
+      case TextAlign.Center:
         return emptySpace / 2.0;
-      case TextAlign.right:
+      case TextAlign.Right:
         return emptySpace;
-      case TextAlign.start:
+      case TextAlign.Start:
         return this._paragraphDirection === TextDirection.LTR ? emptySpace : 0.0;
-      case TextAlign.end:
+      case TextAlign.End:
         return this._paragraphDirection === TextDirection.RTL ? 0.0 : emptySpace;
       default:
         return 0.0;
@@ -575,9 +638,12 @@ export class LineBuilder {
 
   get _canAppendEmptyFragments(): boolean {
     if (this.isHardBreak) {
+      // Can't append more fragments to this line if it has a hard break.
       return false;
     }
     if (this._fragmentsForNextLine && this._fragmentsForNextLine.length > 0) {
+      // If we already have fragments prepared for the next line, then we can't
+      // append more fragments to this line.
       return false;
     }
     return true;
@@ -595,6 +661,7 @@ export class LineBuilder {
     this._fragments.push(fragment);
   }
 
+  /// Updates the [LineBuilder]'s metrics to take into account the new [fragment].
   private _updateMetrics(fragment: LayoutFragment): void {
     this._spaceCount += fragment.trailingSpaces;
     if (fragment.isSpaceOnly) {
@@ -619,10 +686,15 @@ export class LineBuilder {
     let ascent: number, descent: number;
     switch (placeholder.alignment) {
       case PlaceholderAlignment.Top:
+        // The placeholder is aligned to the top of text, which means it has the
+        // same `ascent` as the remaining text. We only need to extend the
+        // `descent` enough to fit the placeholder.        
         ascent = this.ascent;
         descent = placeholder.height - this.ascent;
         break;
       case PlaceholderAlignment.Bottom:
+        // The opposite of `top`. The `descent` is the same, but we extend the
+        // `ascent`.
         ascent = placeholder.height - this.descent;
         descent = this.descent;
         break;
@@ -680,20 +752,28 @@ export class LineBuilder {
       throw new Error('Line does not exceed available width');
     }
     this._fragmentsForNextLine = this._fragmentsForNextLine || [];
+
+     // When the line has fragments other than the last one, we can always allow
+    // the last fragment to be empty (i.e. completely removed from the line).
     const hasOtherFragments = this._fragments.length > 1;
     const allowLastFragmentToBeEmpty = hasOtherFragments || allowEmptyLine;
     const lastFragment = this._fragments[this._fragments.length - 1];
+    
     if (lastFragment.isPlaceholder) {
+      // Placeholder can't be force-broken. Either keep all of it in the line or
+      // move it to the next line.    
       if (allowLastFragmentToBeEmpty) {
         this._fragmentsForNextLine.unshift(this._fragments.pop()!);
         this._recalculateMetrics();
       }
       return;
     }
+
     this.spanometer.currentSpan = lastFragment.span;
     const lineWidthWithoutLastFragment = this.widthIncludingSpace - lastFragment.widthIncludingTrailingSpaces;
     const availableWidthForFragment = availableWidth - lineWidthWithoutLastFragment;
     const forceBreakEnd = lastFragment.end - lastFragment.trailingNewlines;
+    
     const breakingPoint = this.spanometer.forceBreak(
       lastFragment.start,
       forceBreakEnd,
@@ -703,11 +783,15 @@ export class LineBuilder {
       }
     );
     if (breakingPoint === forceBreakEnd) {
+      // The entire fragment remained intact. Let's keep everything as is.
       return;
     }
+
     this._fragments.pop();
     this._recalculateMetrics();
+
     const split = lastFragment.split(breakingPoint);
+
     const first = split[0];
     if (first) {
       this.spanometer.measureFragment(first);
@@ -738,13 +822,7 @@ export class LineBuilder {
     }
     const lastFragment = this._fragments[this._fragments.length - 1];
     this.forceBreakLastFragment(availableWidth, true);
-    const ellipsisFragment = {
-      endIndex: this.endIndex,
-      span: lastFragment.span,
-      setMetrics: (spanometer: Spanometer, options: { ascent: number; descent: number; widthExcludingTrailingSpaces: number; widthIncludingTrailingSpaces: number }) => {
-        // 这里可以根据实际情况实现 setMetrics 方法
-      },
-    } as LayoutFragment;
+    const ellipsisFragment = new EllipsisFragment( this.endIndex, lastFragment.span)
     ellipsisFragment.setMetrics(this.spanometer, {
       ascent: lastFragment.ascent,
       descent: lastFragment.descent,
@@ -758,6 +836,16 @@ export class LineBuilder {
     if (!this.isBreakable) {
       throw new Error('Line is not breakable');
     }
+
+
+    // The last fragment in the line may or may not be breakable. Regardless,
+    // it needs to be removed.
+    //
+    // We need to find the latest breakable fragment in the line (other than the
+    // last fragment). Such breakable fragment is guaranteed to be found because
+    // the line `isBreakable`.
+
+    // Start from the end and skip the last fragment.    
     let i = this._fragments.length - 2;
     while (!this._fragments[i].isBreak) {
       i--;
@@ -767,6 +855,9 @@ export class LineBuilder {
     this._recalculateMetrics();
   }
 
+  /// Appends as many zero-width fragments as this line allows.
+  ///
+  /// Returns the number of fragments that were appended.
   appendZeroWidthFragments(fragments: LayoutFragment[], startFrom: number): number {
     let i = startFrom;
     while (this._canAppendEmptyFragments && i < fragments.length && fragments[i].widthExcludingTrailingSpaces === 0) {
@@ -776,37 +867,56 @@ export class LineBuilder {
     return i - startFrom;
   }
 
+  /// Builds the [ParagraphLine] instance that represents this line.
   build(): ParagraphLine {
     if (!this._fragmentsForNextLine) {
       this._fragmentsForNextLine = this._fragments.slice(this._lastBreakableFragment + 1);
       this._fragments = this._fragments.slice(0, this._lastBreakableFragment + 1);
     }
     const trailingNewlines = this._fragments.length === 0 ? 0 : this._fragments[this._fragments.length - 1].trailingNewlines;
-    const line: ParagraphLine = {
-      lineNumber: this.lineNumber,
-      startIndex: this.startIndex,
-      endIndex: this.endIndex,
+    const line: ParagraphLine = new ParagraphLine(
+      this.isHardBreak,
+      this.ascent,
+      this.descent,
+      this.height,
+      this.width,
+      this.alignOffset,
+      this.accumulatedHeight + this.ascent,
+      this.lineNumber,
+      this.startIndex,
+      this.endIndex,
       trailingNewlines,
-      trailingSpaces: this._trailingSpaces,
-      spaceCount: this._spaceCount,
-      hardBreak: this.isHardBreak,
-      width: this.width,
-      widthWithTrailingSpaces: this.widthIncludingSpace,
-      left: this.alignOffset,
-      height: this.height,
-      baseline: this.accumulatedHeight + this.ascent,
-      ascent: this.ascent,
-      descent: this.descent,
-      fragments: this._fragments,
-      textDirection: this._paragraphDirection,
-      paragraph: this.paragraph,
-    };
+      this._trailingSpaces,
+      this._spaceCount,
+      this.widthIncludingSpace,
+      this._fragments,
+      this._paragraphDirection,
+      this.paragraph,
+      // lineNumber: this.lineNumber,
+      // startIndex: this.startIndex,
+      // endIndex: this.endIndex,
+      // trailingNewlines,
+      // trailingSpaces: this._trailingSpaces,
+      // spaceCount: this._spaceCount,
+      // hardBreak: this.isHardBreak,
+      // width: this.width,
+      // widthWithTrailingSpaces: this.widthIncludingSpace,
+      // left: this.alignOffset,
+      // height: this.height,
+      // baseline: this.accumulatedHeight + this.ascent,
+      // ascent: this.ascent,
+      // descent: this.descent,
+      // fragments: this._fragments,
+      // textDirection: this._paragraphDirection,
+      // paragraph: this.paragraph,
+    );
     for (const fragment of this._fragments) {
       fragment.line = line;
     }
     return line;
   }
 
+  /// Creates a new [LineBuilder] to build the next line in the paragraph.
   nextLine(): LineBuilder {
     return new LineBuilder(
       this.paragraph,
@@ -816,96 +926,6 @@ export class LineBuilder {
       this.accumulatedHeight + this.height,
       this._fragmentsForNextLine || []
     );
-  }
-}
-
-
-// // 假设这些类型在其他地方定义
-// interface TextHeightStyle {
-//   // 这里根据实际情况补充属性
-// }
-
-// interface RulerHost {
-//   addElement(element: HTMLElement): void;
-// }
-
-class TextDimensions {
-  constructor(public _element: HTMLElement) {}
-
-  applyHeightStyle(style: TextHeightStyle) {
-      // 这里需要根据实际情况实现
-  }
-
-  updateTextToSpace() {
-      this._element.textContent = ' ';
-  }
-
-  appendToHost(host: HTMLElement) {
-      host.appendChild(this._element);
-  }
-
-  get height(): number {
-      return this._element.offsetHeight;
-  }
-}
-
-function createDomHTMLDivElement(): HTMLDivElement {
-  return document.createElement('div');
-}
-
-class TextHeightRuler {
-  textHeightStyle: TextHeightStyle;
-  rulerHost: RulerHost;
-  _probe: HTMLElement;
-  _host: HTMLElement;
-  _dimensions: TextDimensions;
-  alphabeticBaseline: number;
-  height: number;
-
-  constructor(textHeightStyle: TextHeightStyle, rulerHost: RulerHost) {
-      this.textHeightStyle = textHeightStyle;
-      this.rulerHost = rulerHost;
-      this._dimensions = new TextDimensions(document.createElement('flt-paragraph'));
-      this._host = this._createHost();
-      this._probe = this._createProbe();
-      this.alphabeticBaseline = this._probe.getBoundingClientRect().bottom;
-      this.height = this._dimensions.height;
-  }
-
-  dispose() {
-      this._host.remove();
-  }
-
-  private _createHost(): HTMLElement {
-      const host = createDomHTMLDivElement();
-      host.style.visibility = 'hidden';
-      host.style.position = 'absolute';
-      host.style.top = '0';
-      host.style.left = '0';
-      host.style.display = 'flex';
-      host.style.flexDirection = 'row';
-      host.style.alignItems = 'baseline';
-      host.style.margin = '0';
-      host.style.border = '0';
-      host.style.padding = '0';
-
-      // 模拟 assert 功能
-      if (process.env.NODE_ENV === 'development') {
-          host.setAttribute('data-ruler', 'line-height');
-      }
-
-      this._dimensions.applyHeightStyle(this.textHeightStyle);
-      this._dimensions._element.style.whiteSpace = 'pre';
-      this._dimensions.updateTextToSpace();
-      this._dimensions.appendToHost(host);
-      this.rulerHost.addElement(host);
-      return host;
-  }
-
-  private _createProbe(): HTMLElement {
-      const probe = createDomHTMLDivElement();
-      this._host.appendChild(probe);
-      return probe;
   }
 }
 

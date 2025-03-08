@@ -54,7 +54,7 @@ import {
     Rect,
     FontWeight,
 } from "../mtex/canvaskit";
-import { createDomCanvasElement } from "./dom";
+import { Affinity, createDomCanvasElement } from "./dom";
 import { TextLayoutService, } from "./layout_service";
 import { TextPaintService } from "./paint_service";
 import { ParagraphLine, RootStyleNode, StyleNode } from "./paragraph";
@@ -682,6 +682,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
     }
 
     getAlphabeticBaseline(): number {
+        throw new Error("Method not implemented.");
         return 0;
     }
 
@@ -744,6 +745,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
     }
 
     getIdeographicBaseline(): number {
+        throw new Error("Method not implemented.");
         return 0;
     }
 
@@ -753,6 +755,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
      * points to a codepoint that is logically after the last visible codepoint.
      */
     getLineNumberAt(index: number): number {
+        throw new Error("Method not implemented.");
         return this._findLine(codeUnitOffset, 0, this.lines.length);
     }
 
@@ -762,6 +765,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
      * specified max line number.
      */
     getLineMetricsAt(lineNumber: number): LineMetrics | null {
+        throw new Error("Method not implemented.");
         return lineNumber >= 0 && lineNumber < this.lines.length
             ? this.lines[lineNumber].lineMetrics
             : null;
@@ -847,7 +851,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
 
         this.isLaidOut = true;
         this._lastUsedWidth = width;
-        this._cachedDomElement = null;
+        // this._cachedDomElement = null;
     }
 
     /**
@@ -855,10 +859,11 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
      * by any of the provided fonts.
      */
     unresolvedCodepoints(): number[] {
+        throw new Error("Method not implemented.");
         return [];
     }
 
-    private _cachedDomElement: HTMLElement | null;
+    // private _cachedDomElement: HTMLElement | null;
 
     get hasArbitraryPaint(): boolean {
         return true;
@@ -927,11 +932,11 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
     //     return rootElement;
     // }
 
-    getBoxesForPlaceholders(): TextBox[] {
+    getBoxesForPlaceholders(): RectWithDirection[] /*TextBox[]*/ {
         return this._layoutService.getBoxesForPlaceholders();
     }
 
-    getPositionForOffset(offset: Offset): TextPosition {
+    getPositionForOffset(offset: Offset): RectWithDirection/*TextPosition*/ {
         return this._layoutService.getPositionForOffset(offset);
     }
 
@@ -960,22 +965,22 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         return this._layoutService.getClosestGlyphInfo(offset);
     }
 
-    getWordBoundary(offset: number /*position: ui.TextPosition*/): URange /* ui.TextRange*/ {
-        const characterPosition = position.affinity === ui.TextAffinity.upstream
-            ? offset - 1 //position.offset - 1
-            : offset; //position.offset;
+    getWordBoundary(position: PositionWithAffinity): URange /* ui.TextRange*/ {
+        const characterPosition = position.affinity === Affinity.Upstream
+            ? position.pos - 1
+            : position.pos;
 
         const start = WordBreaker.prevBreakIndex(this.plainText, characterPosition + 1);
         const end = WordBreaker.nextBreakIndex(this.plainText, characterPosition);
         return { start, end } //new ui.TextRange(start, end);
     }
 
-    getLineBoundary(position: TextPosition): URange /* ui.TextRange*/ {
+    getLineBoundary(position: PositionWithAffinity /*ui.TextPosition */): URange /* ui.TextRange*/ {
         if (!this.lines.length) {
             return { start: 0, end: 0 }
             // return TextRange.empty;
         }
-        const lineNumber = this.getLineNumberAt(position.offset);
+        const lineNumber = this.getLineNumberAt(position.pos);
         // Fallback to the last line for backward compatibility
         const line = lineNumber != null ? this.lines[lineNumber] : this.lines[this.lines.length - 1];
         // return new ui.TextRange(line.startIndex, line.endIndex - line.trailingNewlines);

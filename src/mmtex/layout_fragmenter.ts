@@ -4,7 +4,7 @@ import { Spanometer } from './layout_service';
 import { BidiFragmenter, FragmentFlow } from './text_direction';
 import { clampInt, TextDirection } from './dom';
 import { TextFragment } from './fragmenter';
-import type { GlyphInfo, TextDirection as TextDirectionType, TextStyle } from '@/mtex/canvaskit';
+import type { GlyphInfo, RectWithDirection, TextDirection as TextDirectionType, TextStyle } from '@/mtex/canvaskit';
 import { ParagraphLine } from './paragraph';
 
 class _CombinedFragment extends TextFragment {
@@ -127,7 +127,7 @@ export class LayoutFragment extends _CombinedFragment {
                 this.span,
                 secondTrailingNewlines,
                 secondTrailingSpaces,
-     
+
             ),
         ];
     }
@@ -156,9 +156,9 @@ export class LayoutFragment extends _CombinedFragment {
             : this.line.width - this.startOffset;
     }
 
-    setPosition(config: { startOffset: number; textDirection: TextDirectionType }): void {
-        this._startOffset = config.startOffset;
-        this._textDirection ??= config.textDirection;
+    setPosition(startOffset: number, textDirection: TextDirectionType): void {
+        this._startOffset = startOffset;
+        this._textDirection ??= textDirection;
     }
 
     justifyTo(paragraphWidth: number): void {
@@ -180,40 +180,46 @@ export class LayoutFragment extends _CombinedFragment {
         return this.line.baseline + this.descent;
     }
 
-    private readonly _textBoxIncludingTrailingSpaces:  TextBox =  TextBox.fromLTRBD(
-        this.line.left + this.left,
-        this.top,
-        this.line.left + this.right,
-        this.bottom,
-        this.textDirection!
-    );
+    private readonly _textBoxIncludingTrailingSpaces: RectWithDirection /*TextBox*/ = {
+        rect: Float32Array.of(
+            this.line.left + this.left,
+            this.top,
+            this.line.left + this.right,
+            this.bottom
+        ),
+        dir: this.textDirection!
+    };
 
     get _isPartOfTrailingSpacesInLine(): boolean {
         return this.end > this.line.endIndex - this.line.trailingSpaces;
     }
 
-    toPaintingTextBox():  TextBox {
+    toPaintingTextBox(): RectWithDirection /*TextBox*/ {
         if (this._isPartOfTrailingSpacesInLine) {
-            return this.textDirection ===  TextDirection.LTR
-                ?  TextBox.fromLTRBD(
-                    this.line.left + this.left,
-                    this.top,
-                    this.line.left + this.right - this.widthOfTrailingSpaces,
-                    this.bottom,
-                    this.textDirection!
-                )
-                :  TextBox.fromLTRBD(
-                    this.line.left + this.left + this.widthOfTrailingSpaces,
-                    this.top,
-                    this.line.left + this.right,
-                    this.bottom,
-                    this.textDirection!
-                );
+            return this.textDirection === TextDirection.LTR
+                ? {
+                    rect: Float32Array.of(
+                        this.line.left + this.left,
+                        this.top,
+                        this.line.left + this.right - this.widthOfTrailingSpaces,
+                        this.bottom,
+                    ),
+                    dir: this.textDirection!
+                }
+                : {
+                    rect: Float32Array.of(
+                        this.line.left + this.left + this.widthOfTrailingSpaces,
+                        this.top,
+                        this.line.left + this.right,
+                        this.bottom,
+                    ),
+                    dir: this.textDirection!
+                };
         }
         return this._textBoxIncludingTrailingSpaces;
     }
 
-    toTextBox(config: { start?: number; end?: number } = {}):  TextBox {
+    toTextBox(config: { start?: number; end?: number } = {}): RectWithDirection /*TextBox*/ {
         const start = config.start ?? this.start;
         const end = config.end ?? this.end;
 
@@ -223,7 +229,7 @@ export class LayoutFragment extends _CombinedFragment {
         return this._intersect(start, end);
     }
 
-    private _intersect(start: number, end: number):  TextBox {
+    private _intersect(start: number, end: number): RectWithDirection /*TextBox*/ {
         console.assert(start > this.start || end < this.end, '_intersect should only be called when there\'s an actual intersection');
 
         let before = 0;
@@ -239,7 +245,7 @@ export class LayoutFragment extends _CombinedFragment {
         }
 
         let left: number, right: number;
-        if (this.textDirection ===  TextDirection.LTR) {
+        if (this.textDirection === TextDirection.LTR) {
             left = this.left + before;
             right = this.right - after;
         } else {
@@ -247,13 +253,15 @@ export class LayoutFragment extends _CombinedFragment {
             right = this.right - before;
         }
 
-        return  TextBox.fromLTRBD(
-            this.line.left + left,
-            this.top,
-            this.line.left + right,
-            this.bottom,
-            this.textDirection!
-        );
+        return {
+            rect: Float32Array.of(
+                this.line.left + left,
+                this.top,
+                this.line.left + right,
+                this.bottom,
+            ),
+            dir: this.textDirection!
+        };
     }
 
     getPositionForX(x: number):  TextPosition {
@@ -264,14 +272,14 @@ export class LayoutFragment extends _CombinedFragment {
         const length = endIndex - startIndex;
 
         if (length === 0) {
-            return new  TextPosition(startIndex);
+            return new TextPosition(startIndex);
         }
         if (length === 1) {
             const distanceFromStart = x;
             const distanceFromEnd = this.widthIncludingTrailingSpaces - x;
             return distanceFromStart < distanceFromEnd
-                ? new  TextPosition(startIndex)
-                : new  TextPosition(endIndex, TextAffinity.upstream);
+                ? new TextPosition(startIndex)
+                : new TextPosition(endIndex, TextAffinity.upstream);
         }
 
         this._spanometer.currentSpan = this.span;
@@ -281,7 +289,7 @@ export class LayoutFragment extends _CombinedFragment {
     // ... existing code ...
 
     private _makeXDirectionAgnostic(x: number): number {
-        return this.textDirection ===  TextDirection.LTR
+        return this.textDirection === TextDirection.LTR
             ? this.widthIncludingTrailingSpaces - x
             : x;
     }
@@ -325,13 +333,13 @@ export class LayoutFragment extends _CombinedFragment {
             this.line.graphemeStarts[graphemeStartIndexRangeStart] !== this.start;
     }
 
-    private _getClosestCharacterInRange(x: number, startIndex: number, endIndex: number):  GlyphInfo {
+    private _getClosestCharacterInRange(x: number, startIndex: number, endIndex: number): GlyphInfo {
         const graphemeStartIndices = this.line.graphemeStarts;
-        const fullRange = new  TextRange(graphemeStartIndices[startIndex], graphemeStartIndices[endIndex]);
+        const fullRange = new TextRange(graphemeStartIndices[startIndex], graphemeStartIndices[endIndex]);
         const fullBox = this.toTextBox({ start: fullRange.start, end: fullRange.end });
 
         if (startIndex + 1 === endIndex) {
-            return new  GlyphInfo(fullBox.toRect(), fullRange, fullBox.direction);
+            return new GlyphInfo(fullBox.toRect(), fullRange, fullBox.direction);
         }
         console.assert(startIndex + 1 < endIndex);
 
@@ -352,14 +360,14 @@ export class LayoutFragment extends _CombinedFragment {
             return distanceToFirst > distanceToSecond ? firstHalf : secondHalf;
         }
 
-        const range = (fullBox.direction ===  TextDirection.LTR && x <= left) ||
-            (fullBox.direction ===  TextDirection.LTR && x > left)
-            ? new  TextRange(graphemeStartIndices[startIndex], graphemeStartIndices[startIndex + 1])
-            : new  TextRange(graphemeStartIndices[endIndex - 1], graphemeStartIndices[endIndex]);
+        const range = (fullBox.direction === TextDirection.LTR && x <= left) ||
+            (fullBox.direction === TextDirection.LTR && x > left)
+            ? new TextRange(graphemeStartIndices[startIndex], graphemeStartIndices[startIndex + 1])
+            : new TextRange(graphemeStartIndices[endIndex - 1], graphemeStartIndices[endIndex]);
 
         console.assert(!range.isCollapsed);
         const box = this.toTextBox({ start: range.start, end: range.end });
-        return new  GlyphInfo(box.toRect(), range, box.direction);
+        return new GlyphInfo(box.toRect(), range, box.direction);
     }
 
     /// Returns the GlyphInfo of the character in the fragment that is closest to
@@ -409,6 +417,7 @@ export class LayoutFragment extends _CombinedFragment {
         return this.widthIncludingTrailingSpaces - this.widthExcludingTrailingSpaces;
     }
 
+    /// Set measurement values for the fragment.
     setMetrics(spanometer: Spanometer, config: {
         ascent: number;
         descent: number;
@@ -421,10 +430,6 @@ export class LayoutFragment extends _CombinedFragment {
         this._widthExcludingTrailingSpaces = config.widthExcludingTrailingSpaces;
         this._widthIncludingTrailingSpaces = config.widthIncludingTrailingSpaces;
     }
-
-    // ... existing code ...
-    // ... existing code ...
-    // ... existing code ...
 }
 
 /**
