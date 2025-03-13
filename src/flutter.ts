@@ -43,11 +43,12 @@ export class FlutterEntrypointLoader {
     ) {
         this._onEntrypointLoaded = onEntrypointLoaded;
         console.log("Load main.dart.js")
-        if (process.env.TARO_ENV === 'weapp') {
-            await import('imports-loader?additionalCode=var%20self=window;!@/flapp/main.dart');
-        } else {
-            await import("@/flapp/main.dart");
-        }
+        // if (process.env.TARO_ENV === 'weapp') {
+        //     await import('imports-loader?additionalCode=var%20self=window;!@/flapp/main.dart');
+        // } else {
+        //     await import("@/flapp/main.dart");
+        // }
+        await import("@/flapp/main.dart");
     }
     didCreateEngineInitializer(engineInitializer) {
         if (typeof this._didCreateEngineInitializerResolve === "function") {

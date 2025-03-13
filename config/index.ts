@@ -100,9 +100,24 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
           .loader("./config/replace-loader")
           .options({
             arr: [
-              { search: '"webgl"\\s*==\\s*\\w\\s*==\\s*\\w instanceof WebGLRenderingContext' , replace: '"1"&&true', attr: 'g' },
+              { search: '"webgl"\\s*==\\s*\\w\\s*==\\s*\\w instanceof WebGLRenderingContext', replace: '"1"&&true', attr: 'g' },
             ]
           })
+        chain.module
+          .rule('imports')
+          .test(/main\.dart\.js$/)
+          .use('import')
+          .loader('imports-loader')
+          .options({
+            //// this works only when import dynamically
+            // imports: [
+            //   "named @/src/poly WebAssembly",
+            //   "named @/src/poly fetch",
+            // ],
+            additionalCode: `
+                const self = window;
+              `
+          });
         // chain.module
         //   .rule("/main\.dart\.js$/")
         //   .use("replace")

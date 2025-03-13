@@ -71,10 +71,12 @@
     "@types/webpack-env": "^1.13.6",
     "@vue/babel-plugin-jsx": "^1.2.2",
     "@vue/compiler-sfc": "^3.0.0",
+    "@yuneco/canvas-text-styled": "^0.1.11",
     "babel-preset-taro": "4.0.9",
     "blob-polyfill": "^9.0.20240710",
     "brotli": "^1.3.3",
     "buffer": "^6.0.3",
+    "canvaskit-wasm": "^0.39.1",
     "compression-webpack-plugin": "^11.1.0",
     "css-loader": "^7.1.1",
     "eslint": "^8.57.0",
@@ -88,12 +90,11 @@
     "sass": "^1.75.0",
     "style-loader": "^3.3.4",
     "stylelint": "^16.4.0",
+    "svg2canvas": "^0.0.11",
     "tsconfig-paths-webpack-plugin": "^4.1.0",
     "typescript": "^5.4.5",
     "vue-loader": "^17.4.2",
     "web-streams-polyfill": "^4.0.0",
-    "webpack": "5.91.0",
-    "@yuneco/canvas-text-styled": "^0.1.11",
-    "svg2canvas": "^0.0.11"
+    "webpack": "5.91.0"
   }
 }
