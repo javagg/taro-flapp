@@ -2,35 +2,24 @@
 // Use of this source code is governed by a Apache License Version 2.0 that can be
 // found in the LICENSE file.
 
-import { Drawer } from "./impl/drawer";
-import { drawParagraph } from "./adapter/paragraph";
-import { ParagraphBuilder } from "./adapter/paragraph_builder";
-// import { LogLevel, logger } from "./logger";
-// import {
-//   // _ParagraphBuilderFactory,
-//   //  _FontCollectionFactory,
-//   // _FontMgrFactory,
-//   //  _TypefaceFactory,
-//   // _TypefaceFontProviderFactory,
+import { drawParagraph, _ParagraphBuilder } from "./adapter/paragraph_builder";
 
-//   // _Font,
-//   // _ParagraphStyle,
-//   // _TextStyle,
-// } from "./polyfill";
 import {
   _ParagraphBuilderFactory,
   _FontCollectionFactory, _FontMgrFactory, _TypefaceFactory,
-  _TypefaceFontProviderFactory, _Font,
-  _ParagraphStyle, 
+  _TypefaceFontProviderFactory, _TypefaceFontProvider, _Font, _FontMgr,
+  _ParagraphStyle, _FontCollection, _Typeface,
   _TextStyle,
+  // _Paragraph, _ParagraphBuilder, drawParagraph,
 
 } from './mite'
 
-// import { logger } from "./logger";
+import { Drawer } from './impl/drawer';
 import {
+  // CanvasK
   type TextStyle,
   type ParagraphStyle,
-  type CanvasKit
+  CanvasKit
 } from './canvaskit'
 
 export function install(
@@ -42,11 +31,11 @@ export function install(
   // console.log(globalThis)
   // if (typeof canvasKit.ParagraphBuilder === "undefined") {
   // installPolyfill(canvasKit);
-  canvasKit.ParagraphBuilder = new _ParagraphBuilderFactory();
-  canvasKit.FontCollection = new _FontCollectionFactory();
-  canvasKit.FontMgr = new _FontMgrFactory();
-  canvasKit.Typeface = new _TypefaceFactory();
-  canvasKit.TypefaceFontProvider = new _TypefaceFontProviderFactory();
+  canvasKit.ParagraphBuilder = _ParagraphBuilder; //new _ParagraphBuilderFactory();
+  canvasKit.FontCollection = _FontCollection; // new _FontCollectionFactory();
+  canvasKit.FontMgr = _FontMgr; //new _FontMgrFactory();
+  canvasKit.Typeface = _Typeface ; //new _TypefaceFactory();
+  canvasKit.TypefaceFontProvider = _TypefaceFontProvider;//new _TypefaceFontProviderFactory();
   canvasKit.Font = _Font;
   canvasKit.ParagraphStyle = (ps: ParagraphStyle) => {
     return new _ParagraphStyle(ps);
@@ -149,21 +138,24 @@ export function install(
   // }
   // logger.profileMode = true;
   // logger.setLogLevel(LogLevel.ERROR);
-  Drawer.pixelRatio = pixelRatio;
-  const originMakeFromFontCollectionMethod =
-    canvasKit.ParagraphBuilder.MakeFromFontCollection;
-  canvasKit.ParagraphBuilder.MakeFromFontCollection = function (
-    style: any,
-    fontCollection: any
-  ) {
-    return ParagraphBuilder.MakeFromFontCollection(
-      originMakeFromFontCollectionMethod,
-      style,
-      fontCollection,
-      embeddingFonts,
-      iconFonts
-    );
-  };
+  // Drawer.pixelRatio = pixelRatio;
+  // const originMakeFromFontCollectionMethod =
+  //   canvasKit.ParagraphBuilder.MakeFromFontCollection;
+
+  // canvasKit.ParagraphBuilder.MakeFromFontCollection = function (
+  //   style: any,
+  //   fontCollection: any
+  // ) {
+  //   console.log("ParagraphBuilder")
+  //   return new ParagraphBuilder(style)
+  //   // return ParagraphBuilder.MakeFromFontCollection(
+  //   //   // originMakeFromFontCollectionMethod,
+  //   //   style,
+  //   //   fontCollection,
+  //   //   // embeddingFonts,
+  //   //   // iconFonts
+  //   // );
+  // };
 
   canvasKit.Canvas.prototype.drawParagraph = function (
     paragraph: any,
@@ -171,5 +163,38 @@ export function install(
     dy: number
   ) {
     drawParagraph(canvasKit, this, paragraph, dx, dy);
+
+    // let canvasImg = paragraph.skImageCache;
+    // if (!canvasImg) {
+    //   const drawer = new Drawer(paragraph);
+    //   const imageData = drawer.draw();
+    //   canvasImg = CanvasKit.MakeImage(
+    //     {
+    //       width: imageData.width,
+    //       height: imageData.height,
+    //       alphaType: CanvasKit.AlphaType.Unpremul,
+    //       colorType: CanvasKit.ColorType.RGBA_8888,
+    //       colorSpace: CanvasKit.ColorSpace.SRGB,
+    //     },
+    //     imageData.data,
+    //     4 * imageData.width
+    //   );
+    //   paragraph.skImageCache = canvasImg;
+    //   paragraph.skImageWidth = imageData.width;
+    //   paragraph.skImageHeight = imageData.height;
+    // }
+    // const srcRect = CanvasKit.XYWHRect(
+    //   0,
+    //   0,
+    //   paragraph.skImageWidth!,
+    //   paragraph.skImageHeight!
+    // );
+    // const dstRect = CanvasKit.XYWHRect(
+    //   Math.ceil(dx),
+    //   Math.ceil(dy),
+    //   paragraph.skImageWidth! / Drawer.pixelRatio,
+    //   paragraph.skImageHeight! / Drawer.pixelRatio
+    // );
+    // this.drawImageRect(canvasImg, srcRect, dstRect, new CanvasKit.Paint());
   };
 }

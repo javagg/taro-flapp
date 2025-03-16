@@ -10,11 +10,14 @@ import {
   createCanvas, FlutterEventConverter
 } from '@/src/utils'
 
+import { ckload } from '@/src/ck'
+
 export default function Index() {
 
   useReady(async () => {
     console.log('Page loaded.');
-    
+    await ckload()
+
     const host = $('#host').get(0)
 
     if (process.env.TARO_ENV !== 'h5') {

@@ -2,10 +2,10 @@
 // Use of this source code is governed by a Apache License Version 2.0 that can be
 // found in the LICENSE file.
 
-import { type Paragraph } from "../adapter/paragraph";
+import { type _Paragraph } from "../adapter/paragraph_builder";
 import {
-  GlyphInfo,
-  LineMetrics,
+  // GlyphInfo,
+  // LineMetrics,
   TextAlign,
   TextDirection,
   FontSlant,
@@ -129,7 +129,7 @@ export class TextLayout {
   static sharedLayoutCanvas: HTMLCanvasElement;
   static sharedLayoutContext: CanvasRenderingContext2D;
 
-  constructor(readonly paragraph: Paragraph) {}
+  constructor(readonly paragraph: _Paragraph) {}
 
   glyphInfos: GlyphInfo[] = [];
   lineMetrics: LineMetrics[] = [];

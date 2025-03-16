@@ -2,7 +2,7 @@
 // Use of this source code is governed by a Apache License Version 2.0 that can be
 // found in the LICENSE file.
 
-import { Paragraph } from "../adapter/paragraph";
+import { _Paragraph } from "../adapter/paragraph";
 import {
   LineMetrics,
   // ParagraphStyle,
@@ -36,7 +36,7 @@ export class Drawer {
   static sharedRenderCanvas: HTMLCanvasElement;
   static sharedRenderContext: CanvasRenderingContext2D;
 
-  constructor(readonly paragraph: Paragraph) {}
+  constructor(readonly paragraph: _Paragraph) {}
 
   private initCanvas() {
     if (!Drawer.sharedRenderCanvas) {

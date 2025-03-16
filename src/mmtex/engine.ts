@@ -54,13 +54,11 @@ import {
     Rect,
     FontWeight,
 } from "../mtex/canvaskit";
-import { Affinity, createDomCanvasElement } from "./dom";
+import { Affinity } from "./dom";
 import { TextLayoutService, } from "./layout_service";
 import { TextPaintService } from "./paint_service";
 import { ParagraphLine, RootStyleNode, StyleNode } from "./paragraph";
 import { WordBreaker } from "./word_breaker";
-
-import { AlphaType, ColorType } from "./dom"
 
 export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {
     _deleted = false;
@@ -111,6 +109,7 @@ export class _ParagraphBuilderFactory implements ParagraphBuilderFactory {
      * @param fontCollection
      */
     MakeFromFontCollection(style: ParagraphStyle, fontCollection: FontCollection): ParagraphBuilder {
+        console.log("MakeFromFontCollection ParagraphBuilder")
         return new _ParagraphBuilder(style)
     }
 
@@ -197,16 +196,7 @@ export class _TypefaceFontProviderFactory implements TypefaceFontProviderFactory
 export class _TypefaceFontProvider extends _FontMgr implements TypefaceFontProvider {
 
     registerFont(bytes: ArrayBuffer | Uint8Array, family: string): void {
-        // if (bytes instanceof Uint8Array) {
-        //     bytes = bytes.buffer;
-        // }
-        // // let arrayBuffer = uint8Array.buffer
-        // // console.log(bytes)
-        // const tf = new _TypefaceFactory().MakeFreeTypeFaceFromData(bytes)
-        // this.typefaces.push(tf!)
-        // const font = new FontFace(family, bytes);
-        // font.load();
-        // document.fonts.add(font);
+        throw new Error("registerFont not implemented")
     }
 }
 
@@ -682,7 +672,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
     }
 
     getAlphabeticBaseline(): number {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
         return 0;
     }
 
@@ -710,6 +700,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
      * visible codepoint.
      */
     getGlyphInfoAt(codeUnitOffset: number): GlyphInfo | null {
+        throw new Error("getGlyphInfoAt not implemented")
         const lineNumber = this._findLine(codeUnitOffset, 0, this.numberOfLines);
         if (lineNumber == null) {
             return null;
@@ -740,7 +731,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
     }
 
     getHeight(): number {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
         return this.height;
     }
 
@@ -819,6 +810,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
      * Returns the total number of visible lines in the paragraph.
      */
     getNumberOfLines(): number {
+        throw new Error("getNumberOfLines")
         return this.lines.length;
     }
 
@@ -1333,80 +1325,91 @@ export function install(
     // if (typeof canvasKit.ParagraphBuilder === "undefined") {
     // installPolyfill(canvasKit);
     canvasKit.ParagraphBuilder = new _ParagraphBuilderFactory();
-    canvasKit.FontCollection = new _FontCollectionFactory();
     canvasKit.FontMgr = new _FontMgrFactory();
+
+    canvasKit.FontCollection = new _FontCollectionFactory();
     canvasKit.Typeface = new _TypefaceFactory();
     canvasKit.TypefaceFontProvider = new _TypefaceFontProviderFactory();
+ 
     canvasKit.Font = _Font;
     canvasKit.ParagraphStyle = (ps: ParagraphStyle) => {
+        console.log("new _ParagraphStyle")
         return new _ParagraphStyle(ps);
     };
     canvasKit.TextStyle = (ts: TextStyle) => {
+        console.log("new _TextStyle")
         return new _TextStyle(ts);
     };
+    // canvasKit.ParagraphBuilder.MakeFromFontCollection = function (
+    //     style: any,
+    //     fontCollection: any
+    //   ) {
 
-    canvasKit.Canvas.prototype.drawParagraph = function (
-        paragraph: Paragraph,
-        dx: number,
-        dy: number
-    ) {
-        console.log(`drawParagraph ${paragraph} at (${dx}, ${dy})`)
+    //     return new _ParagraphBuilder(style)
+    //   };
 
-        const context = createDomCanvasElement(4096, 4096).getContext('2d')!;
+    // canvasKit.Canvas.prototype.drawParagraph = function (
+    //     paragraph: Paragraph,
+    //     dx: number,
+    //     dy: number
+    // ) {
+    //     console.log(`drawParagraph ${paragraph} at (${dx}, ${dy})`)
 
-        (paragraph as _Paragraph).draw(context, dx, dy);
+    //     const context = createDomCanvasElement(4096, 4096).getContext('2d')!;
 
-        const imageData = context.getImageData(0, 0, 4096, 4096);
-        const canvasImg = canvasKit.MakeImage(
-            {
-                width: imageData.width,
-                height: imageData.height,
-                alphaType: AlphaType.Unpremul,
-                colorType: ColorType.RGBA_8888,
-                colorSpace: new _ColorSpace()
-                // colorSpace: {
-                //     SRGB:
-                // }   canvasKit.ColorSpace.SRGB,
-            },
-            imageData.data,
-            4 * imageData.width
-        );
-        const w = imageData.width
-        const h = imageData.height
-        const pixelRatio = 1.0;
-        const srcRect = canvasKit.XYWHRect(0, 0, w, h);
-        const dstRect = canvasKit.XYWHRect(Math.ceil(dx), Math.ceil(dy), w / pixelRatio, h / pixelRatio)
-        // let canvasImg = paragraph.skImageCache;
-        // if (!canvasImg) {
-        //     const drawer = new Drawer(paragraph);
-        //     const imageData = drawer.draw(context);
-        //     canvasImg = canvasKit.MakeImage(
-        //         {
-        //             width: imageData.width,
-        //             height: imageData.height,
-        //             alphaType: AlphaTypeEnums.Unpremul,
-        //             colorType: ColorTypeEnums.RGBA_8888,
-        //             colorSpace: new _ColorSpace()
-        //             // colorSpace: {
-        //             //     SRGB:
-        //             // }   canvasKit.ColorSpace.SRGB,
-        //         },
-        //         imageData.data,
-        //         4 * imageData.width
-        //     );
-        //     paragraph.skImageCache = canvasImg;
-        //     paragraph.skImageWidth = imageData.width;
-        //     paragraph.skImageHeight = imageData.height;
-        // }
+    //     (paragraph as _Paragraph).draw(context, dx, dy);
 
-        // const dstRect = canvasKit.XYWHRect(
-        //     Math.ceil(dx),
-        //     Math.ceil(dy),
-        //     paragraph.skImageWidth! / Drawer.pixelRatio,
-        //     paragraph.skImageHeight! / Drawer.pixelRatio
-        // );
-        const skPaint = /*drawParagraphSharedPaint ??*/ new _Paint();
-        // drawParagraphSharedPaint = skPaint;
-        this.drawImageRect(canvasImg, srcRect, dstRect, skPaint);
-    };
+    //     const imageData = context.getImageData(0, 0, 4096, 4096);
+    //     const canvasImg = canvasKit.MakeImage(
+    //         {
+    //             width: imageData.width,
+    //             height: imageData.height,
+    //             alphaType: AlphaType.Unpremul,
+    //             colorType: ColorType.RGBA_8888,
+    //             colorSpace: new _ColorSpace()
+    //             // colorSpace: {
+    //             //     SRGB:
+    //             // }   canvasKit.ColorSpace.SRGB,
+    //         },
+    //         imageData.data,
+    //         4 * imageData.width
+    //     );
+    //     const w = imageData.width
+    //     const h = imageData.height
+    //     const pixelRatio = 1.0;
+    //     const srcRect = canvasKit.XYWHRect(0, 0, w, h);
+    //     const dstRect = canvasKit.XYWHRect(Math.ceil(dx), Math.ceil(dy), w / pixelRatio, h / pixelRatio)
+    //     // let canvasImg = paragraph.skImageCache;
+    //     // if (!canvasImg) {
+    //     //     const drawer = new Drawer(paragraph);
+    //     //     const imageData = drawer.draw(context);
+    //     //     canvasImg = canvasKit.MakeImage(
+    //     //         {
+    //     //             width: imageData.width,
+    //     //             height: imageData.height,
+    //     //             alphaType: AlphaTypeEnums.Unpremul,
+    //     //             colorType: ColorTypeEnums.RGBA_8888,
+    //     //             colorSpace: new _ColorSpace()
+    //     //             // colorSpace: {
+    //     //             //     SRGB:
+    //     //             // }   canvasKit.ColorSpace.SRGB,
+    //     //         },
+    //     //         imageData.data,
+    //     //         4 * imageData.width
+    //     //     );
+    //     //     paragraph.skImageCache = canvasImg;
+    //     //     paragraph.skImageWidth = imageData.width;
+    //     //     paragraph.skImageHeight = imageData.height;
+    //     // }
+
+    //     // const dstRect = canvasKit.XYWHRect(
+    //     //     Math.ceil(dx),
+    //     //     Math.ceil(dy),
+    //     //     paragraph.skImageWidth! / Drawer.pixelRatio,
+    //     //     paragraph.skImageHeight! / Drawer.pixelRatio
+    //     // );
+    //     const skPaint = /*drawParagraphSharedPaint ??*/ new _Paint();
+    //     // drawParagraphSharedPaint = skPaint;
+    //     this.drawImageRect(canvasImg, srcRect, dstRect, skPaint);
+    // };
 }

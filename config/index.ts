@@ -88,7 +88,6 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       webpackChain(chain) {
         chain.resolve.plugin('tsconfig-paths').use(TsconfigPathsPlugin)
         chain.plugin('compression-webpack-plugin').use(CompressionPlugin, [{
-          // include: "../flapp/build/web/assets",
           filename: "[path][base].br",
           algorithm: "brotliCompress",
           test: /\.(wasm|ttf|otf)$/,
@@ -103,8 +102,9 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
               { search: '"webgl"\\s*==\\s*\\w\\s*==\\s*\\w instanceof WebGLRenderingContext', replace: '"1"&&true', attr: 'g' },
             ]
           })
+          
         chain.module
-          .rule('imports')
+          .rule('main.dart')
           .test(/main\.dart\.js$/)
           .use('import')
           .loader('imports-loader')
@@ -165,6 +165,24 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
             asyncWebAssembly: true,
           },
         })
+        chain.module
+          .rule('imports')
+          .test(/canvaskit\.js$/)
+          .use('import')
+          .loader('imports-loader')
+          .options({
+            // this works only when import dynamically
+            // imports: [
+            //   // "named @/src/poly WebAssembly",
+            //   // "named @/src/poly fetch",
+            //   // "named @/src/poly URL",
+            // ],
+            additionalCode: `
+              const fetch = window.fetch;
+              const HTMLCanvasElement = window.HTMLCanvasElement;
+              const OffscreenCanvas = window.OffscreenCanvas;
+            `
+          })
       }
     },
     rn: {
