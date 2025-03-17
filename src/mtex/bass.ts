@@ -1,6 +1,183 @@
 import {
     EmbindObject,
+    TextAlignEnumValues, AffinityEnumValues,
+    DecorationStyleEnumValues,
+    FontSlantEnumValues,
+    FontWeightEnumValues, FontWidthEnumValues,
+    PlaceholderAlignmentEnumValues,
+    RectHeightStyleEnumValues,
+    RectWidthStyleEnumValues,
+    TextBaselineEnumValues,
+    TextDirectionEnumValues,
+    TextHeightBehaviorEnumValues,
 } from './canvaskit'
+
+export const mapKeys = <T extends object>(obj: T) =>
+    Object.keys(obj) as (keyof T)[];
+
+const makeEnum = <T>(values: Record<Exclude<keyof T, "values">, number>): T => {
+    const valueKeys = mapKeys(values)
+        .filter((name) => typeof values[name] === "number")
+        .map((name) => ({
+            name,
+            value: values[name],
+        }));
+    const result = Object.assign(
+        {
+            values: Object.assign(
+                {},
+                ...valueKeys.map(({ value }) => ({ [value]: { value } }))
+            ),
+        },
+        ...valueKeys.map(({ name, value }) => ({ [name]: { value } }))
+    );
+    return result;
+};
+
+// // Paragraph Enums
+// readonly Affinity: AffinityEnumValues;
+// readonly DecorationStyle: DecorationStyleEnumValues;
+// readonly FontSlant: FontSlantEnumValues;
+// readonly FontWeight: FontWeightEnumValues;
+// readonly FontWidth: FontWidthEnumValues;
+// readonly PlaceholderAlignment: PlaceholderAlignmentEnumValues;
+// readonly RectHeightStyle: RectHeightStyleEnumValues;
+// readonly RectWidthStyle: RectWidthStyleEnumValues;
+// readonly TextAlign: TextAlignEnumValues;
+// readonly TextBaseline: TextBaselineEnumValues;
+// readonly TextDirection: TextDirectionEnumValues;
+// readonly TextHeightBehavior: TextHeightBehaviorEnumValues;
+
+export enum AffinityEnum {
+    Upstream,
+    Downstream,
+}
+export const Affinity = makeEnum<AffinityEnumValues>(AffinityEnum);
+
+export enum DecorationStyleEnum {
+    Solid,
+    Double,
+    Dotted,
+    Dashed,
+    Wavy,
+}
+export const DecorationStyle = makeEnum<DecorationStyleEnumValues>(DecorationStyleEnum);
+
+export enum FontSlantEnum {
+    Upright,
+    Italic,
+    Oblique,
+}
+export const FontSlant = makeEnum<FontSlantEnumValues>(FontSlantEnum);
+
+export enum FontWidthEnum {
+    UltraCondensed,
+    ExtraCondensed,
+    Condensed,
+    SemiCondensed,
+    Normal,
+    SemiExpanded,
+    Expanded,
+    ExtraExpanded,
+    UltraExpanded,
+}
+export const FontWidth = makeEnum<FontWidthEnumValues>(FontWidthEnum);
+
+export enum FontWeightEnum {
+    Invisible,
+    Thin,
+    ExtraLight,
+    Light,
+    Normal,
+    Medium,
+    SemiBold,
+    Bold,
+    ExtraBold,
+    Black,
+    ExtraBlack,
+}
+export const FontWeight = makeEnum<FontWeightEnumValues>(FontWeightEnum);
+
+export enum PlaceholderAlignmentEnum {
+    Baseline,
+    AboveBaseline,
+    BelowBaseline,
+    Top,
+    Bottom,
+    Middle,
+}
+export const PlaceholderAlignment = makeEnum<PlaceholderAlignmentEnumValues>(PlaceholderAlignmentEnum);
+
+export enum RectHeightStyleEnum {
+    Tight,
+    Max,
+    IncludeLineSpacingMiddle,
+    IncludeLineSpacingTop,
+    IncludeLineSpacingBottom,
+    Strut,
+}
+export const RectHeightStyle = makeEnum<RectHeightStyleEnumValues>(RectHeightStyleEnum);
+
+export enum RectWidthStyleEnum {
+    Tight,
+    Max,
+}
+export const RectWidthStyle = makeEnum<RectWidthStyleEnumValues>(RectWidthStyleEnum);
+
+export enum TextAlignEnum {
+    Left,
+    Right,
+    Center,
+    Justify,
+    Start,
+    End,
+}
+export const TextAlign = makeEnum<TextAlignEnumValues>(TextAlignEnum);
+
+export enum TextBaselineEnum {
+    Alphabetic,
+    Ideographic,
+}
+export const TextBaseline = makeEnum<TextBaselineEnumValues>(TextBaselineEnum);
+
+export enum TextDirectionEnum {
+    LTR,
+    RTL,
+}
+
+export const TextDirection = makeEnum<TextDirectionEnumValues>(TextDirectionEnum);
+
+
+export enum TextHeightBehaviorEnum {
+    All,
+    DisableFirstAscent,
+    DisableLastDescent,
+    DisableAll,
+}
+export const TextHeightBehavior = makeEnum<TextHeightBehaviorEnumValues>(TextHeightBehaviorEnum);
+
+export const _ParagraphEnums = {
+    Affinity,
+    DecorationStyle,
+    FontSlant,
+    FontWeight,
+    FontWidth,
+    PlaceholderAlignment,
+    RectHeightStyle,
+    RectWidthStyle,
+    TextAlign,
+    TextBaseline,
+    TextDirection,
+    TextHeightBehavior,
+}
+
+// // Paragraph Constants
+export const _ParagraphConstants = {
+    NoDecoration: 0,
+    UnderlineDecoration: 1,
+    OverlineDecoration: 2,
+    LineThroughDecoration: 3,
+}
 
 export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {
     _deleted = false;

@@ -2,14 +2,14 @@ import { install } from './mtex/index'
 // import { install } from './mmtex/engine'
 
 export async function ckload() {
-  // let m = await (
-  //   process.env.TARO_APP_NOFONT === 'true'
-  //     ? import('@/assets/canvaskit-nofont/canvaskit')
-  //     : import('imports-loader?additionalCode=var%20fetch=window.fetch;var%20HTMLCanvasElement=window.HTMLCanvasElement;var%20OffscreenCanvas=window.OffscreenCanvas;!@/flapp/canvaskit/canvaskit')
-  // )
-  // let wasm_dir = process.env.TARO_APP_NOFONT === 'true' ? "/assets/canvaskit-nofont" : "/assets/canvaskit"
+  let m = await (
+    process.env.TARO_APP_NOFONT === 'true'
+      ? import('@/assets/canvaskit-nofont/canvaskit')
+      : import('imports-loader?additionalCode=var%20fetch=window.fetch;var%20HTMLCanvasElement=window.HTMLCanvasElement;var%20OffscreenCanvas=window.OffscreenCanvas;!@/flapp/canvaskit/canvaskit')
+  )
+  let wasm_dir = process.env.TARO_APP_NOFONT === 'true' ? "/assets/canvaskit-nofont" : "/assets/canvaskit"
 
-  let m = await (process.env.TARO_APP_CANVASKIT_JS ? import('@/src/canv-js/src/index') : import('@/assets/canvaskit-nofont/canvaskit'))
+  // let m = await (process.env.TARO_APP_CANVASKIT_JS ? import('@/src/canv-js/src/index') : import('@/assets/canvaskit-nofont/canvaskit'))
   
   const CanvasKitInit = m.default
 
@@ -28,6 +28,6 @@ export async function ckload() {
   console.log("ck loaded")
   if (process.env.TARO_APP_NOFONT === 'true') {
     // install(kit, 1)
-    // install(kit, 1, [], {})
+    install(kit, 1, [], {})
   }
 }

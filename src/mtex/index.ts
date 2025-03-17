@@ -21,6 +21,8 @@ import {
   CanvasKit
 } from './canvaskit'
 
+import { _ParagraphEnums, _ParagraphConstants } from "./bass";
+
 export function install(
   canvasKit: CanvasKit,
   pixelRatio: number,
@@ -39,96 +41,9 @@ export function install(
   canvasKit.ParagraphStyle = (ps: ParagraphStyle) =>new _ParagraphStyle(ps);
   canvasKit.TextStyle = (ts: TextStyle) => new _TextStyle(ts);
 
-  // Paragraph Enums
-  canvasKit.TextAlign = {
-    Left: { value: 0 },
-    Right: { value: 1 },
-    Center: { value: 2 },
-    Justify: { value: 3 },
-    Start: { value: 4 },
-    End: { value: 5 },
-  };
+  Object.assign(canvasKit, _ParagraphEnums);
+  Object.assign(canvasKit, _ParagraphConstants);
 
-  canvasKit.TextDirection = {
-    RTL: { value: 0 },
-    LTR: { value: 1 },
-  };
-
-  canvasKit.TextBaseline = {
-    Alphabetic: { value: 0 },
-    Ideographic: { value: 1 },
-  };
-  canvasKit.RectHeightStyle = {
-    Tight: { value: 0 },
-    Max: { value: 1 },
-    IncludeLineSpacingMiddle: { value: 2 },
-    IncludeLineSpacingTop: { value: 3 },
-    IncludeLineSpacingBottom: { value: 4 },
-    Strut: { value: 5 },
-  };
-  canvasKit.RectWidthStyle = {
-    Tight: { value: 0 },
-    Max: { value: 1 },
-  };
-  canvasKit.Affinity = {
-    Upstream: { value: 0 },
-    Downstream: { value: 1 },
-  };
-  canvasKit.FontWeight = {
-    Invisible: { value: 0 },
-    Thin: { value: 100 },
-    ExtraLight: { value: 200 },
-    Light: { value: 300 },
-    Normal: { value: 400 },
-    Medium: { value: 500 },
-    SemiBold: { value: 600 },
-    Bold: { value: 700 },
-    ExtraBold: { value: 800 },
-    Black: { value: 900 },
-    ExtraBlack: { value: 1000 },
-  };
-  canvasKit.FontWidth = {
-    UltraCondensed: { value: 0 },
-    ExtraCondensed: { value: 1 },
-    Condensed: { value: 2 },
-    SemiCondensed: { value: 3 },
-    Normal: { value: 4 },
-    SemiExpanded: { value: 5 },
-    Expanded: { value: 6 },
-    ExtraExpanded: { value: 7 },
-    UltraExpanded: { value: 8 },
-  };
-  canvasKit.FontSlant = {
-    Upright: { value: 0 },
-    Italic: { value: 1 },
-    Oblique: { value: 2 },
-  };
-  canvasKit.DecorationStyle = {
-    Solid: { value: 0 },
-    Double: { value: 1 },
-    Dotted: { value: 2 },
-    Dashed: { value: 3 },
-    Wavy: { value: 4 },
-  };
-  canvasKit.TextHeightBehavior = {
-    All: { value: 0 },
-    DisableFirstAscent: { value: 1 },
-    DisableLastDescent: { value: 2 },
-    DisableAll: { value: 3 },
-  };
-  canvasKit.PlaceholderAlignment = {
-    Baseline: { value: 0 },
-    AboveBaseline: { value: 1 },
-    BelowBaseline: { value: 2 },
-    Top: { value: 3 },
-    Bottom: { value: 4 },
-    Middle: { value: 5 },
-  };
-  // Paragraph Constants
-  canvasKit.NoDecoration = 0;
-  canvasKit.UnderlineDecoration = 1;
-  canvasKit.OverlineDecoration = 2;
-  canvasKit.LineThroughDecoration = 3;
   // ParagraphBuilder.usingPolyfill = true;
   // }
   // logger.profileMode = true;
