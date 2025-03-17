@@ -14,7 +14,6 @@ import {
 
 } from './mite'
 
-import { Drawer } from './impl/drawer';
 import {
   // CanvasK
   type TextStyle,
@@ -37,12 +36,8 @@ export function install(
   canvasKit.Typeface = _Typeface ; //new _TypefaceFactory();
   canvasKit.TypefaceFontProvider = _TypefaceFontProvider;//new _TypefaceFontProviderFactory();
   canvasKit.Font = _Font;
-  canvasKit.ParagraphStyle = (ps: ParagraphStyle) => {
-    return new _ParagraphStyle(ps);
-  };
-  canvasKit.TextStyle = (ts: TextStyle) => {
-    return new _TextStyle(ts);
-  };
+  canvasKit.ParagraphStyle = (ps: ParagraphStyle) =>new _ParagraphStyle(ps);
+  canvasKit.TextStyle = (ts: TextStyle) => new _TextStyle(ts);
 
   // Paragraph Enums
   canvasKit.TextAlign = {
@@ -139,23 +134,7 @@ export function install(
   // logger.profileMode = true;
   // logger.setLogLevel(LogLevel.ERROR);
   // Drawer.pixelRatio = pixelRatio;
-  // const originMakeFromFontCollectionMethod =
-  //   canvasKit.ParagraphBuilder.MakeFromFontCollection;
 
-  // canvasKit.ParagraphBuilder.MakeFromFontCollection = function (
-  //   style: any,
-  //   fontCollection: any
-  // ) {
-  //   console.log("ParagraphBuilder")
-  //   return new ParagraphBuilder(style)
-  //   // return ParagraphBuilder.MakeFromFontCollection(
-  //   //   // originMakeFromFontCollectionMethod,
-  //   //   style,
-  //   //   fontCollection,
-  //   //   // embeddingFonts,
-  //   //   // iconFonts
-  //   // );
-  // };
 
   canvasKit.Canvas.prototype.drawParagraph = function (
     paragraph: any,

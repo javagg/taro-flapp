@@ -35,6 +35,7 @@ import type {
   WebGPUCanvasContext,
   WebGPUCanvasOptions,
   FontConstructor,
+  Canvas,
 } from "canvaskit-wasm";
 
 import type { ColorSpaceJS } from "./Core";
@@ -83,6 +84,8 @@ export class CanvasKitJS extends CoreCanvasKit implements ICanvasKit {
 
   private contextes: Record<number, CanvasRenderingContext2D> = {};
   private _colorCtx: OffscreenCanvasRenderingContext2D | null = null;
+
+  private surface: SurfaceJS | null = null;
 
   private constructor() {
     super();
@@ -146,7 +149,9 @@ export class CanvasKitJS extends CoreCanvasKit implements ICanvasKit {
     if (!ctx) {
       return null;
     }
-    return new SurfaceJS(ctx);
+    // return new SurfaceJS(ctx);
+    this.surface = new SurfaceJS(ctx)
+    return this.surface;
   }
   MakeRasterDirectSurface(
     _ii: ImageInfo,
@@ -169,11 +174,15 @@ export class CanvasKitJS extends CoreCanvasKit implements ICanvasKit {
     if (!ctx) {
       return null;
     }
-    return new SurfaceJS(ctx);
+    this.surface = new SurfaceJS(ctx)
+    return this.surface;
+    // return new SurfaceJS(ctx);
   }
   MakeSurface(width: number, height: number): Surface | null {
     const ctx = createTexture(width, height);
-    return new SurfaceJS(ctx);
+    this.surface = new SurfaceJS(ctx)
+    return this.surface;
+    // return new SurfaceJS(ctx);
   }
   GetWebGLContext(
     canvas: HTMLCanvasElement,
@@ -243,7 +252,10 @@ export class CanvasKitJS extends CoreCanvasKit implements ICanvasKit {
       grCtx.ctx.canvas.width = args[0].width;
       grCtx.ctx.canvas.height = args[0].height;
     }
-    return new SurfaceJS(grCtx.ctx);
+    // return new SurfaceJS(grCtx.ctx);
+    this.surface = new SurfaceJS(grCtx.ctx)
+    return this.surface;
+
   }
   MakeLazyImageFromTextureSource(
     _src: TextureSource,
@@ -378,5 +390,9 @@ export class CanvasKitJS extends CoreCanvasKit implements ICanvasKit {
     const blob = new Blob([bytes], { type });
     const url = URL.createObjectURL(blob);
     return this.MakeImageFromURIAsync(url);
+  }
+
+  get Canvas(): Canvas | null {
+    return this.surface?.getCanvas()
   }
 }

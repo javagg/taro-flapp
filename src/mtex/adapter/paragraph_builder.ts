@@ -1,7 +1,3 @@
-// Copyright 2023 The MPFlutter Authors. All rights reserved.
-// Use of this source code is governed by a Apache License Version 2.0 that can be
-// found in the LICENSE file.
-
 import { ParagraphBuilder } from "../canvaskit";
 import { SkEmbindObject, _Paint } from "../bass";
 
@@ -400,61 +396,6 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
 }
 
 export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder">  implements ParagraphBuilder {
-  // export class _ParagraphBuilder  implements ParagraphBuilder { 
-  // static usingPolyfill = false;
-  // MakeFromFontCollection(
-  //   originMakeFromFontCollectionMethod: (
-  //     style: ParagraphStyle,
-  //     fontCollection: any
-  //   ) => any,
-  //   style: ParagraphStyle,
-  //   fontCollection: any,
-  //   // embeddingFonts: string[],
-  //   // iconFonts?: Record<string, string>
-  // ) {
-  //   return new ParagraphBuilder(style)
-  // }
-
-  // static MakeFromFontCollection(
-  //   // originMakeFromFontCollectionMethod: (
-  //   //   style: ParagraphStyle,
-  //   //   fontCollection: any
-  //   // ) => any,
-  //   style: ParagraphStyle,
-  //   fontCollection: any,
-  //   embeddingFonts: string[],
-  //   iconFonts?: Record<string, string>
-  // ) {
-  //   return new ParagraphBuilder(style)
-  //   // const fontFamilies = style.textStyle?.fontFamilies;
-  //   // if (fontFamilies && fontFamilies[0] === "MiniTex") {
-  //   //   // logger.info("use minitex paragraph builder.", fontFamilies);
-  //   //   return new ParagraphBuilder(style);
-  //   // } else if (fontFamilies && iconFonts && iconFonts[fontFamilies[0]]) {
-  //   //   // logger.info("use fontPaths paragraph builder.", fontFamilies);
-  //   //   return new ParagraphBuilder(style, iconFonts[fontFamilies[0]]);
-  //   //   // } else if (ParagraphBuilder.usingPolyfill) {
-  //   //   //   // logger.info(
-  //   //   //   //   "usingPolyfill, so use minitex paragraph builder.",
-  //   //   //   //   fontFamilies
-  //   //   //   // );
-  //   //   //   return new ParagraphBuilder(style);
-  //   // } else {
-  //   //   if (fontFamilies) {
-  //   //     if (
-  //   //       fontFamilies.filter((it) => {
-  //   //         return embeddingFonts.indexOf(it) >= 0;
-  //   //       }).length === 0
-  //   //     ) {
-  //   //       // logger.info("use minitex paragraph builder.", fontFamilies);
-  //   //       return new ParagraphBuilder(style);
-  //   //     }
-  //   //   }
-  //   //   // logger.info("use skia paragraph builder.", fontFamilies);
-  //   //   return originMakeFromFontCollectionMethod(style, fontCollection);
-  //   // }
-  // }
-
   static MakeFromFontProvider(style: ParagraphStyle, fontSrc: TypefaceFontProvider): ParagraphBuilder {
     throw new Error("MakeFromFontProvider not implemented.");
   }
@@ -478,9 +419,9 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder">  imple
   static RequiresClientICU(): boolean {
     return false;
   }
+
   constructor(readonly style: ParagraphStyle, readonly iconFontData?: string) {
     super("ParagraphBuilder")
-    // super("ParagraphBuilder");
   }
 
   // isMiniTex = true;
