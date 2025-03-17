@@ -3,20 +3,18 @@
 // found in the LICENSE file.
 
 import { type _Paragraph } from "../adapter/paragraph_builder";
-import {
-  // GlyphInfo,
-  // LineMetrics,
-  TextAlign,
+import {LineMetrics, GlyphInfo} from '../canvaskit'
+
+import {  TextAlign,
   TextDirection,
-  FontSlant,
-} from "../adapter/skia";
+  FontSlant,} from "../bass"
 // import { logger } from "../logger";
 import {
   createCanvas,
   isEnglishWord,
   isPunctuation,
   isSquareCharacter,
-  valueOfRectXYWH,
+  // valueOfRectXYWH,
 } from "../util";
 import { NewlineSpan, TextSpan, spanWithNewline } from "./span";
 
@@ -179,7 +177,7 @@ export class TextLayout {
       ),
       width: 0,
       justifyWidth:
-        this.paragraph.paragraphStyle.textAlign?.value === TextAlign.Justify
+        this.paragraph.paragraphStyle.textAlign === TextAlign.Justify
           ? layoutWidth
           : undefined,
       left: 0,
@@ -247,7 +245,7 @@ export class TextLayout {
           } else {
             currentLineMetrics.endIndex += span.charSequence.length;
             currentLineMetrics.width += matrics.width;
-            if (span.style.fontStyle?.slant?.value === FontSlant.Italic) {
+            if (span.style.fontStyle?.slant === FontSlant.Italic) {
               currentLineMetrics.width += 2;
             }
           }
@@ -324,14 +322,14 @@ export class TextLayout {
             })();
             const currentGlyphHeight = currentLineMetrics.height;
             const currentGlyphInfo: GlyphInfo = {
-              graphemeLayoutBounds: valueOfRectXYWH(
+              graphemeLayoutBounds: Float32Array.of(// valueOfRectXYWH(
                 currentGlyphLeft,
                 currentGlyphTop,
-                currentGlyphWidth,
-                currentGlyphHeight
+                currentGlyphLeft+currentGlyphWidth,
+                currentGlyphTop+currentGlyphHeight
               ),
               graphemeClusterTextRange: { start: index, end: index + 1 },
-              dir: { value: TextDirection.LTR },
+              dir: TextDirection.LTR,
               isEllipsis: false,
             };
             this.glyphInfos.push(currentGlyphInfo);

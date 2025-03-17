@@ -27,7 +27,6 @@ export async function ckload() {
   window.flutterCanvasKitLoaded = await Promise.resolve(kit)
   console.log("ck loaded")
   if (process.env.TARO_APP_NOFONT === 'true') {
-    // install(kit, 1)
     install(kit, 1, [], {})
   }
 }

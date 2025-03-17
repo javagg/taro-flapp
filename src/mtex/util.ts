@@ -31,23 +31,23 @@ export const colorToHex = (rgbaColor: Float32Array): string => {
   return hexColor;
 };
 
-export const valueOfRGBAInt = (
-  r: number,
-  g: number,
-  b: number,
-  a: number
-): Float32Array => {
-  return Float32Array.from([r, g, b, a]);
-};
+// export const valueOfRGBAInt = (
+//   r: number,
+//   g: number,
+//   b: number,
+//   a: number
+// ): Float32Array => {
+//   return Float32Array.from([r, g, b, a]);
+// };
 
-export const valueOfRectXYWH = (
-  x: number,
-  y: number,
-  w: number,
-  h: number
-): Float32Array => {
-  return Float32Array.from([x, y, x + w, y + h]);
-};
+// export const valueOfRectXYWH = (
+//   x: number,
+//   y: number,
+//   w: number,
+//   h: number
+// ): Float32Array => {
+//   return Float32Array.from([x, y, x + w, y + h]);
+// };
 
 export function isEnglishWord(str: string) {
   const englishRegex = /^[A-Za-z,.]+$/;

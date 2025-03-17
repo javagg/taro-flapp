@@ -2,17 +2,15 @@
 // Use of this source code is governed by a Apache License Version 2.0 that can be
 // found in the LICENSE file.
 
-import { _Paragraph } from "../adapter/paragraph";
-import {
-  LineMetrics,
-  // ParagraphStyle,
-  TextAlign,
-  TextDirection,
-  DecorationStyle,
+import { _Paragraph } from "../adapter/paragraph_builder";
+import { TextAlign, TextDirection, DecorationStyle,
   LineThroughDecoration,
   OverlineDecoration,
   UnderlineDecoration,
-} from "../adapter/skia";
+
+ } from "../bass";
+import { LineMetrics } from '../canvaskit';
+
 import { NewlineSpan, TextSpan, spanWithNewline } from "./span";
 import {
   colorToHex,
@@ -144,9 +142,9 @@ export class Drawer {
             if (
               linesDrawingRightBounds[currentDrawLine.lineNumber] === undefined
             ) {
-              const textAlign = this.paragraph.paragraphStyle.textAlign?.value;
+              const textAlign = this.paragraph.paragraphStyle.textAlign;
               const textDirection =
-                this.paragraph.paragraphStyle.textDirection?.value;
+                this.paragraph.paragraphStyle.textDirection;
               if (textAlign === TextAlign.Center) {
                 linesDrawingRightBounds[currentDrawLine.lineNumber] =
                   (this.paragraph.getMaxWidth() - currentDrawLine.width) / 2.0;
@@ -426,7 +424,7 @@ export class Drawer {
       context.lineWidth =
         (span.style.decorationThickness ?? 1) *
         Math.max(1, (span.style.fontSize ?? 12) / 14);
-      const decorationStyle = span.style.decorationStyle?.value;
+      const decorationStyle = span.style.decorationStyle;
 
       switch (decorationStyle) {
         case DecorationStyle.Dashed:

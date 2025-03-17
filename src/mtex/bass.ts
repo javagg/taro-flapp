@@ -171,12 +171,17 @@ export const _ParagraphEnums = {
     TextHeightBehavior,
 }
 
+
+export const NoDecoration=0
+export const UnderlineDecoration=1
+export const OverlineDecoration=2
+export const LineThroughDecoration=3
 // // Paragraph Constants
 export const _ParagraphConstants = {
-    NoDecoration: 0,
-    UnderlineDecoration: 1,
-    OverlineDecoration: 2,
-    LineThroughDecoration: 3,
+    NoDecoration,
+    UnderlineDecoration,
+    OverlineDecoration,
+    LineThroughDecoration,
 }
 
 export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {

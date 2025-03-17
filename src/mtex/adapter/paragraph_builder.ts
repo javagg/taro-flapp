@@ -1,10 +1,14 @@
-import { ParagraphBuilder } from "../canvaskit";
-import { SkEmbindObject, _Paint } from "../bass";
+import { ParagraphBuilder, PositionWithAffinity, GlyphInfo,
+  ParagraphStyle, Paragraph, FontCollection,InputGraphemes, TextStyle,
+  ShapedLine, URange, FontMgr, PlaceholderAlignment, InputWords, InputLineBreaks,
+  TypefaceFontProvider,FontBlock,TextBaseline,LineMetrics, RectHeightStyle,
+  RectWithDirection,RectWidthStyle,
+} from "../canvaskit";
+import { SkEmbindObject, _Paint, Affinity as AffinityEnums, TextDirection as TextDirectionEnums } from "../bass";
 
 import { Drawer } from "../impl/drawer";
 import { TextLayout } from "../impl/layout";
 import { Span, TextSpan } from "../impl/span";
-import type { Paragraph } from "../canvaskit";
 
 // let drawParagraphSharedPaint: any;
 
@@ -113,7 +117,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
       const width = glyphInfo.graphemeLayoutBounds[2] - left;
       const height = glyphInfo.graphemeLayoutBounds[3] - top;
       if (dx >= left && dx <= left + width && dy >= top && dy <= top + height) {
-        return { pos: index, affinity: { value: Affinity.Downstream } };
+        return { pos: index, affinity: AffinityEnums.Downstream};
       }
     }
     for (let index = 0; index < this._textLayout.lineMetrics.length; index++) {
@@ -127,23 +131,23 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         if (dx <= 0) {
           return {
             pos: lineMetrics.startIndex,
-            affinity: { value: Affinity.Downstream },
+            affinity:  AffinityEnums.Downstream,
           };
         } else if (dx >= width) {
           return {
             pos: lineMetrics.endIndex,
-            affinity: { value: Affinity.Downstream },
+            affinity:  AffinityEnums.Downstream,
           };
         }
       }
       if (dy >= top + height && isLastLine) {
         return {
           pos: lineMetrics.endIndex,
-          affinity: { value: Affinity.Downstream },
+          affinity:  AffinityEnums.Downstream,
         };
       }
     }
-    return { pos: 0, affinity: { value: Affinity.Upstream } };
+    return { pos: 0, affinity: AffinityEnums.Upstream };
   }
 
   /**
@@ -281,8 +285,8 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
   getRectsForRange(
     start: number,
     end: number,
-    hStyle: SkEnum<RectHeightStyle>,
-    wStyle: SkEnum<RectWidthStyle>
+    hStyle: RectHeightStyle,
+    wStyle: RectWidthStyle,
   ): RectWithDirection[] {
     this._textLayout.measureGlyphIfNeeded();
     let result: RectWithDirection[] = [];
@@ -327,7 +331,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
             currentLineLeft + currentLineWidth,
             currentLineTop + currentLineHeight,
           ]),
-          dir: { value: TextDirection.LTR },
+          dir: TextDirectionEnums.LTR ,
         });
       }
     });
@@ -348,7 +352,7 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
               0,
               lastLine.yOffset + lastLine.height,
             ]),
-            dir: { value: TextDirection.LTR },
+            dir: TextDirectionEnums.LTR ,
           },
         ];
       }

@@ -1,24 +1,17 @@
-// Copyright 2023 The MPFlutter Authors. All rights reserved.
-// Use of this source code is governed by a Apache License Version 2.0 that can be
-// found in the LICENSE file.
-
+import { TextAlign, FontSlant } from "../bass";
 import {
-  LetterRect,
-  // FontSlant,
-  // TextStyle,
-  // ParagraphStyle,
-  TextAlign,
-} from  "../adapter/skia";
-
-import {
-  // LetterRect,
-  // FontSlant,
   TextStyle,
   ParagraphStyle,
-  // TextAlign,
 } from "../canvaskit"
 
 import { colorToHex } from "../util";
+
+export interface LetterRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 export class Span {
   letterBaseline: number = 0;
@@ -47,7 +40,7 @@ export class TextSpan extends Span {
   }
 
   hasJustifySpacing(paragraphStyle: ParagraphStyle) {
-    return paragraphStyle.textAlign?.value === TextAlign.Justify;
+    return paragraphStyle.textAlign === TextAlign.Justify;
   }
 
   toBackgroundFillStyle(): string {
@@ -84,7 +77,7 @@ export class TextSpan extends Span {
         font = fontWeight.toFixed(0) + " " + font;
       }
     }
-    const slant = this.style.fontStyle?.slant?.value;
+    const slant = this.style.fontStyle?.slant;
     if (slant) {
       switch (slant) {
         case FontSlant.Italic:
