@@ -30,9 +30,9 @@ import {
 } from "./canvaskit";
 
 import { SkEmbindObject } from "./bass";
-
 import { colorToHex, convertToUpwardToPixelRatio, createCanvas, isEnglishWord, isPunctuation, isSquareCharacter } from "./util";
-
+import { create, Font as FontKitFont } from './font_util'
+import { Buffer } from "buffer";
 
 export class _ParagraphBuilderFactory extends SkEmbindObject<"ParagraphBuilderFactory"> implements ParagraphBuilderFactory {
   constructor() {
@@ -66,7 +66,6 @@ export class _ParagraphBuilderFactory extends SkEmbindObject<"ParagraphBuilderFa
 
 export class _FontCollection extends SkEmbindObject<"FontCollection"> implements FontCollection {
 
-
   static Make(): FontCollection {
     return new _FontCollection();
   }
@@ -93,21 +92,38 @@ export class _FontCollectionFactory extends SkEmbindObject<"FontCollectionFactor
   }
 }
 
-export class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr {
+export class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr, TypefaceFontProvider {
 
   static FromData(...buffers: ArrayBuffer[]): FontMgr | null {
-    throw new Error("method not implemented")
-    return null
+    // throw new Error("method not implemented")
+    const typefaces: Typeface[] = [];
+    buffers.forEach((buffer) => {
+      const typeface = _Typeface.MakeFreeTypeFaceFromData(buffer);
+      if (!typeface) {
+        throw new Error("Could not load font");
+      }
+      typefaces.push(typeface);
+    });
+    return new _FontMgr(typefaces);
   }
   /**
   * Return the number of font families loaded in this manager. Useful for debugging.
   */
-  constructor() {
-    super("FontMgr")
+  // constructor() {
+  //   super("FontMgr")
+  // }
+  constructor(readonly typefaces: Typeface[]) {
+    super("FontMgr");
+  }
+
+  registerFont(bytes: ArrayBuffer | Uint8Array, family: string): void {
+    // throw new Error("registerFont not implemented")
+    loadFont(bytes, family);
   }
 
   countFamilies(): number {
-    return 0;
+    // return 0;
+    return this.typefaces.length;
   }
 
   /**
@@ -115,8 +131,9 @@ export class _FontMgr extends SkEmbindObject<"FontMgr"> implements FontMgr {
    * @param index
    */
   getFamilyName(index: number): string {
-    throw new Error("method not implemented")
-    return "";
+    // throw new Error("method not implemented")
+    return (this.typefaces[index] as _Typeface).familyName;
+    // return "";
   }
 
   /**
@@ -153,12 +170,25 @@ export class _TypefaceFactory extends SkEmbindObject<"TypefaceFactory"> implemen
   }
 }
 
-export class _Typeface extends SkEmbindObject<"Typeface"> implements Typeface  {
-     
+export class _Typeface extends SkEmbindObject<"Typeface"> implements Typeface {
+  // cmap: ICMap | null = null;
+  inner: FontKitFont
   static MakeFreeTypeFaceFromData(fontData: ArrayBuffer): Typeface | null {
     // throw new Error("method not implemented")
-    return null;
+    // return null;
+    // const { familyName } = loadFont(fontData);
+    const { familyName } = create(Buffer.from(fontData)) as FontKitFont
+    return new _Typeface(familyName, fontData);
   }
+
+  constructor(public familyName: string, data: ArrayBuffer | null) {
+    super("Typeface");
+    if (data) {
+      this.inner = create(Buffer.from(data)) as FontKitFont
+      // this.cmap = parseFontTable(data).cmap;
+    }
+  }
+
   /**
      * Retrieves the glyph ids for each code point in the provided string. Note that glyph IDs
      * are typeface-dependent; different faces may have different ids for the same code point.
@@ -166,11 +196,38 @@ export class _Typeface extends SkEmbindObject<"Typeface"> implements Typeface  {
      * @param numCodePoints - the number of code points in the string. Defaults to str.length.
      * @param output - if provided, the results will be copied into this array.
      */
-      getGlyphIDs(str: string, numCodePoints?: number,
-        output?: GlyphIDArray): GlyphIDArray {
-          throw new Error("getGlyphIDs not implemented")
-        }
+  getGlyphIDs(str: string, numCodePoints?: number,
+    output?: GlyphIDArray): GlyphIDArray {
+    // throw new Error("getGlyphIDs not implemented")
+    const result = output ?? new Uint16Array(numCodePoints ?? str.length);
+    for (let i = 0; i < result.length; i++) {
+      const codepoint = str.codePointAt(i)!;
+      const { id, name, codePoints, path, bbox, cbox } = this.inner.glyphForCodePoint(codepoint)
+      // const index = this.cmap?.glyphIndexMap![codepoint] ?? 0;
+      result[i] = id;
+    }
+    return result;
+  }
+
+  // TODO: refactor so we don't need to create a typed array here
+  // private getStringForGlyph(glyphID: number) {
+  //   return this.glyphToText(Uint16Array.of(glyphID));
+  // }
+
+  // private glyphToText(glyphs: Uint16Array) {
+  //   let text = "";
+  //   const keys = Object.keys(this.cmap!.glyphIndexMap!);
+  //   const values = Object.values(this.cmap!.glyphIndexMap!);
+  //   for (let i = 0; i < glyphs.length; i++) {
+  //     const index = values.indexOf(glyphs[i]);
+  //     if (index !== -1) {
+  //       text += String.fromCodePoint(Number(keys[index]));
+  //     }
+  //   }
+  //   return text;
+  // }
 }
+
 export class _TypefaceFontProviderFactory extends SkEmbindObject<"TypefaceFontProviderFactory"> implements TypefaceFontProviderFactory {
   constructor() { super("TypefaceFontProviderFactory") }
 
@@ -188,6 +245,7 @@ export class _TypefaceFontProvider extends SkEmbindObject<"TypefaceFontProvider"
 
   registerFont(bytes: ArrayBuffer | Uint8Array, family: string): void {
     throw new Error("registerFont not implemented")
+    // loadFont(bytes, family);
   }
 
   /**
@@ -214,6 +272,7 @@ export class _TypefaceFontProvider extends SkEmbindObject<"TypefaceFontProvider"
 }
 
 export class _Font extends SkEmbindObject<"Font"> implements Font {
+  private typeface: _Typeface;
   // /**
   //  * Constructs Font with default values with Typeface and size in points,
   //  * horizontal scale, and horizontal skew. Horizontal scale emulates condensed
@@ -223,8 +282,9 @@ export class _Font extends SkEmbindObject<"Font"> implements Font {
   //  * @param scaleX
   //  * @param skewX
   //  */
-  constructor(face: Typeface | null, size: number, scaleX: number, skewX: number) {
+  constructor(face: Typeface | null, private size: number, scaleX: number, skewX: number) {
     super("Font");
+    this.typeface = face as _Typeface ?? new _Typeface("sans-serif", null);
   }
 
   getMetrics(): FontMetrics {
@@ -244,7 +304,8 @@ export class _Font extends SkEmbindObject<"Font"> implements Font {
   getGlyphIDs(str: string, numCodePoints?: number,
     output?: GlyphIDArray): GlyphIDArray {
     throw new Error("method not implemented")
-    return new Uint16Array([]);
+    return this.typeface.getGlyphIDs(str, numCodePoints, output);
+    // return new Uint16Array([]);
   }
 
   getGlyphWidths(glyphs: InputGlyphIDArray, paint?: Paint | null,
@@ -281,7 +342,8 @@ export class _Font extends SkEmbindObject<"Font"> implements Font {
 
   getTypeface(): Typeface | null {
     throw new Error("method not implemented")
-    return null;
+    // return this.typeface;
+    // return null;
   }
 
   setEdging(edging: FontEdging): void {
@@ -313,6 +375,10 @@ export class _Font extends SkEmbindObject<"Font"> implements Font {
   }
   setTypeface(face: Typeface | null): void {
     throw new Error("method not implemented")
+  }
+
+  private fontStyle() {
+    return `${this.size}px ${this.typeface.familyName}`;
   }
 }
 

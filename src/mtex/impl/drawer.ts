@@ -19,15 +19,6 @@ import {
   isEnglishWord,
   isSquareCharacter,
 } from "../util";
-// import { logger } from "../logger";
-
-// const sharedCanvas =  createCanvas(
-//   Math.min(4000, 1000 * Drawer.pixelRatio),
-//   Math.min(4000, 1000 * Drawer.pixelRatio)
-// )
-// const sharedContext = sharedCanvas!.getContext(
-//   "2d"
-// ) as CanvasRenderingContext2D;
 
 export class Drawer {
   static pixelRatio = 1.0;
