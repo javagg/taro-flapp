@@ -409,3 +409,6 @@ export class _Paint extends SkEmbindObject<"Paint"> {
      */
     setStyle(style: any): void { }
 }
+
+const offscreen = new OffscreenCanvas(1, 1);
+export const TextContext = offscreen.getContext("2d")!;

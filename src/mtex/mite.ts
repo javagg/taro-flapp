@@ -29,9 +29,9 @@ import {
   Paragraph,
 } from "./canvaskit";
 
-import { SkEmbindObject } from "./bass";
+import { SkEmbindObject, TextContext } from "./bass";
 import { colorToHex, convertToUpwardToPixelRatio, createCanvas, isEnglishWord, isPunctuation, isSquareCharacter } from "./util";
-import { create, Font as FontKitFont } from './font_util'
+import { create, Font as FontKitFont, loadFont } from './font_util'
 import { Buffer } from "buffer";
 
 export class _ParagraphBuilderFactory extends SkEmbindObject<"ParagraphBuilderFactory"> implements ParagraphBuilderFactory {
@@ -148,7 +148,6 @@ export class _FontMgrFactory extends SkEmbindObject<"FontMgrFactory"> implements
   constructor() { super("FontMgrFactory") }
   FromData(...buffers: ArrayBuffer[]): FontMgr | null {
     throw new Error("method not implemented")
-    return null
   }
 }
 
@@ -166,17 +165,15 @@ export class _TypefaceFactory extends SkEmbindObject<"TypefaceFactory"> implemen
 
   MakeFreeTypeFaceFromData(fontData: ArrayBuffer): Typeface | null {
     // throw new Error("method not implemented")
-    return null;
+    // return null;
+    const { familyName } = create(Buffer.from(fontData)) as FontKitFont
+    return new _Typeface(familyName, fontData);
   }
 }
 
 export class _Typeface extends SkEmbindObject<"Typeface"> implements Typeface {
-  // cmap: ICMap | null = null;
   inner: FontKitFont
   static MakeFreeTypeFaceFromData(fontData: ArrayBuffer): Typeface | null {
-    // throw new Error("method not implemented")
-    // return null;
-    // const { familyName } = loadFont(fontData);
     const { familyName } = create(Buffer.from(fontData)) as FontKitFont
     return new _Typeface(familyName, fontData);
   }
@@ -185,7 +182,6 @@ export class _Typeface extends SkEmbindObject<"Typeface"> implements Typeface {
     super("Typeface");
     if (data) {
       this.inner = create(Buffer.from(data)) as FontKitFont
-      // this.cmap = parseFontTable(data).cmap;
     }
   }
 
@@ -210,22 +206,24 @@ export class _Typeface extends SkEmbindObject<"Typeface"> implements Typeface {
   }
 
   // TODO: refactor so we don't need to create a typed array here
-  // private getStringForGlyph(glyphID: number) {
-  //   return this.glyphToText(Uint16Array.of(glyphID));
-  // }
+  getStringForGlyph(glyphID: number) {
+    return this.glyphToText(Uint16Array.of(glyphID));
+  }
 
-  // private glyphToText(glyphs: Uint16Array) {
-  //   let text = "";
-  //   const keys = Object.keys(this.cmap!.glyphIndexMap!);
-  //   const values = Object.values(this.cmap!.glyphIndexMap!);
-  //   for (let i = 0; i < glyphs.length; i++) {
-  //     const index = values.indexOf(glyphs[i]);
-  //     if (index !== -1) {
-  //       text += String.fromCodePoint(Number(keys[index]));
-  //     }
-  //   }
-  //   return text;
-  // }
+  glyphToText(glyphs: Uint16Array) {
+    let text = "";
+   
+    // const keys = Object.keys(this.inner. cmap!.glyphIndexMap!);
+    // const values = Object.values(this.cmap!.glyphIndexMap!);
+    for (let i = 0; i < glyphs.length; i++) {
+      text += this.inner.stringsForGlyph(i).join()
+      // const index = values.indexOf(glyphs[i]);
+      // if (index !== -1) {
+      //   text += String.fromCodePoint(Number(keys[index]));
+      // }
+    }
+    return text;
+  }
 }
 
 export class _TypefaceFontProviderFactory extends SkEmbindObject<"TypefaceFontProviderFactory"> implements TypefaceFontProviderFactory {
@@ -244,8 +242,8 @@ export class _TypefaceFontProvider extends SkEmbindObject<"TypefaceFontProvider"
   }
 
   registerFont(bytes: ArrayBuffer | Uint8Array, family: string): void {
-    throw new Error("registerFont not implemented")
-    // loadFont(bytes, family);
+    // throw new Error("registerFont not implemented")
+    loadFont(bytes, family);
   }
 
   /**
@@ -288,8 +286,21 @@ export class _Font extends SkEmbindObject<"Font"> implements Font {
   }
 
   getMetrics(): FontMetrics {
-    throw new Error("method not implemented")
-    return { ascent: 0, descent: 0, leading: 0 };
+    // throw new Error("method not implemented")
+    // return { ascent: 0, descent: 0, leading: 0 };
+    TextContext.font = this.fontStyle();
+    // Using a capital 'H' to approximate ascent, as it generally extends to the highest point in most fonts.
+    const ascent = TextContext.measureText("H").actualBoundingBoxAscent;
+    // Using a lowercase 'p' to approximate descent, as it generally extends to the lowest point in most fonts.
+    const descent = TextContext.measureText("p").actualBoundingBoxDescent;
+    // Approximating leading by using 1.2 times font size - font size
+    const lineHeight = this.size * 1.2;
+    const leading = lineHeight - this.size;
+    return {
+      ascent: -ascent,
+      descent: descent,
+      leading: leading,
+    };
   }
 
   getGlyphBounds(
@@ -297,13 +308,23 @@ export class _Font extends SkEmbindObject<"Font"> implements Font {
     paint?: Paint | null,
     output?: Float32Array
   ): Float32Array {
-    throw new Error("method not implemented")
-    return new Float32Array([0, 0, 0, 0]);
+    // throw new Error("method not implemented")
+    const result = output ?? new Float32Array(glyphs.length * 4);
+    for (let i = 0; i < glyphs.length; i++) {
+      const id = glyphs[i];
+      const { bbox } = this.typeface.inner.getGlyph(id)
+      result[4 * i] = bbox.minX
+      result[4 * i + 1] = bbox.minX
+      result[4 * i + 2] = bbox.width
+      result[4 * i + 3] = bbox.height
+    }
+    return result;
+    // return new Float32Array([0, 0, 0, 0]);
   }
 
   getGlyphIDs(str: string, numCodePoints?: number,
     output?: GlyphIDArray): GlyphIDArray {
-    throw new Error("method not implemented")
+    // throw new Error("method not implemented")
     return this.typeface.getGlyphIDs(str, numCodePoints, output);
     // return new Uint16Array([]);
   }
@@ -326,8 +347,9 @@ export class _Font extends SkEmbindObject<"Font"> implements Font {
   }
 
   getSize(): number {
-    throw new Error("method not implemented")
-    return 0;
+    // throw new Error("method not implemented")
+    return this.size;
+    // return 0;
   }
 
   getSkewX(): number {
@@ -362,7 +384,8 @@ export class _Font extends SkEmbindObject<"Font"> implements Font {
     throw new Error("method not implemented")
   }
   setSize(points: number): void {
-    throw new Error("method not implemented")
+    // throw new Error("method not implemented")
+    this.size = points;
   }
   setSkewX(sx: number): void {
     throw new Error("method not implemented")
@@ -400,1141 +423,6 @@ export class _ParagraphStyle extends SkEmbindObject<"ParagraphStyle"> implements
   textStyle?: TextStyle;
   applyRoundingHack?: boolean;
 }
-
-
-// export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph {
-//   iconFontMap?: Record<string, string>;
-
-//   constructor(
-//     readonly spans: Span[],
-//     readonly paragraphStyle: ParagraphStyle,
-//     readonly iconFontData?: string
-//   ) {
-//     super("Paragraph");
-//     if (this.iconFontData) {
-//       // this.iconFontMap = JSON.parse(this.iconFontData);
-//     }
-//   }
-
-//   delete(): void {
-//     if (this.skImageCache) {
-//       this.skImageCache.delete();
-//       this.skImageCache = undefined;
-//     }
-//     super.delete();
-//   }
-
-//   // public _type = "SkParagraph";
-//   public isMiniTex = true;
-//   public skImageCache?: SkEmbindObject<"Image">;
-//   public skImageWidth?: number;
-//   public skImageHeight?: number;
-//   private _textLayout = new TextLayout(this);
-
-//   didExceedMaxLines(): boolean {
-//     return this._textLayout.didExceedMaxLines;
-//   }
-
-//   getAlphabeticBaseline(): number {
-//     return 0;
-//   }
-
-//   /**
-//    * Returns the index of the glyph that corresponds to the provided coordinate,
-//    * with the top left corner as the origin, and +y direction as down.
-//    */
-//   getGlyphPositionAtCoordinate(dx: number, dy: number): PositionWithAffinity {
-//     // throw new Error("getGlyphPositionAtCoordinate not implemented")
-//     this._textLayout.measureGlyphIfNeeded();
-//     for (let index = 0; index < this._textLayout.glyphInfos.length; index++) {
-//       const glyphInfo = this._textLayout.glyphInfos[index];
-//       const left = glyphInfo.graphemeLayoutBounds[0];
-//       const top = glyphInfo.graphemeLayoutBounds[1];
-//       const width = glyphInfo.graphemeLayoutBounds[2] - left;
-//       const height = glyphInfo.graphemeLayoutBounds[3] - top;
-//       if (dx >= left && dx <= left + width && dy >= top && dy <= top + height) {
-//         return { pos: index, affinity: { value: Affinity.Downstream } };
-//       }
-//     }
-//     for (let index = 0; index < this._textLayout.lineMetrics.length; index++) {
-//       const lineMetrics = this._textLayout.lineMetrics[index];
-//       const isLastLine = index === this._textLayout.lineMetrics.length - 1;
-//       const left = 0;
-//       const top = lineMetrics.yOffset;
-//       const width = lineMetrics.width;
-//       const height = lineMetrics.height;
-//       if (dy >= top && dy <= top + height) {
-//         if (dx <= 0) {
-//           return {
-//             pos: lineMetrics.startIndex,
-//             affinity: { value: Affinity.Downstream },
-//           };
-//         } else if (dx >= width) {
-//           return {
-//             pos: lineMetrics.endIndex,
-//             affinity: { value: Affinity.Downstream },
-//           };
-//         }
-//       }
-//       if (dy >= top + height && isLastLine) {
-//         return {
-//           pos: lineMetrics.endIndex,
-//           affinity: { value: Affinity.Downstream },
-//         };
-//       }
-//     }
-//     return { pos: 0, affinity: { value: Affinity.Upstream } };
-//   }
-
-//   /**
-//    * Returns the information associated with the closest glyph at the specified
-//    * paragraph coordinate, or null if the paragraph is empty.
-//    */
-//   getClosestGlyphInfoAtCoordinate(dx: number, dy: number): GlyphInfo | null {
-//     return this.getGlyphInfoAt(this.getGlyphPositionAtCoordinate(dx, dy).pos);
-//   }
-
-//   /**
-//    * Returns the information associated with the glyph at the specified UTF-16
-//    * offset within the paragraph's visible lines, or null if the index is out
-//    * of bounds, or points to a codepoint that is logically after the last
-//    * visible codepoint.
-//    */
-//   getGlyphInfoAt(index: number): GlyphInfo | null {
-//       // throw new Error("getGlyphInfoAt not implemented")
-
-//     this._textLayout.measureGlyphIfNeeded();
-//     return this._textLayout.glyphInfos[index] ?? null;
-//   }
-
-//   getHeight(): number {
-//     const lineMetrics = this.getLineMetrics();
-//     let height = 0;
-//     for (let i = 0; i < lineMetrics.length; i++) {
-//       height += lineMetrics[i].height * lineMetrics[i].heightMultiplier;
-//       if (i > 0 && i < lineMetrics.length) {
-//         height += lineMetrics[i].height * 0.15;
-//       }
-//     }
-//     console.log("getHeight", height);
-//     return height;
-//   }
-
-//   getIdeographicBaseline(): number {
-//     return 0;
-//   }
-
-//   /**
-//    * Returns the line number of the line that contains the specified UTF-16
-//    * offset within the paragraph, or -1 if the index is out of bounds, or
-//    * points to a codepoint that is logically after the last visible codepoint.
-//    */
-//   getLineNumberAt(index: number): number {
-//     return this.getLineMetricsOfRange(index, index)[0]?.lineNumber ?? 0;
-//   }
-
-//   getLineMetrics(): LineMetrics[] {
-//     // console.log("getLineMetrics");
-//     return this._textLayout.lineMetrics;
-//   }
-
-//   /**
-//    * Returns the LineMetrics of the line at the specified line number, or null
-//    * if the line number is out of bounds, or is larger than or equal to the
-//    * specified max line number.
-//    */
-//   getLineMetricsAt(lineNumber: number): LineMetrics | null {
-//     return this._textLayout.lineMetrics[lineNumber] ?? null;
-//   }
-
-//   getLineMetricsOfRange(start: number, end: number): LineMetrics[] {
-//     let lineMetrics: LineMetrics[] = [];
-//     this._textLayout.lineMetrics.forEach((it) => {
-//       const range0 = [start, end];
-//       const range1 = [it.startIndex, it.endIndex];
-//       const hasIntersection = range0[1] >= range1[0] && range1[1] >= range0[0];
-//       if (hasIntersection) {
-//         lineMetrics.push(it);
-//       }
-//     });
-//     return lineMetrics;
-//   }
-
-//   getLongestLine(): number {
-//     return 0;
-//   }
-
-//   getMaxIntrinsicWidth(): number {
-//     const lineMetrics = this.getLineMetrics();
-//     let maxWidth = 0;
-//     for (let i = 0; i < lineMetrics.length; i++) {
-//       maxWidth = Math.max(
-//         maxWidth,
-//         lineMetrics[i].justifyWidth ?? lineMetrics[i].width
-//       );
-//     }
-//     // console.log("getMaxIntrinsicWidth", maxWidth);
-//     return maxWidth;
-//   }
-
-//   getMaxWidth(): number {
-//     const lineMetrics = this.getLineMetrics();
-//     let maxWidth = 0;
-//     for (let i = 0; i < lineMetrics.length; i++) {
-//       maxWidth = Math.max(
-//         maxWidth,
-//         lineMetrics[i].justifyWidth ?? lineMetrics[i].width
-//       );
-//     }
-//     // console.log("getMaxWidth", maxWidth);
-//     return maxWidth;
-//   }
-
-//   getMinIntrinsicWidth(): number {
-//     const lineMetrics = this.getLineMetrics();
-//     let width = 0;
-//     for (let i = 0; i < lineMetrics.length; i++) {
-//       width = Math.max(width, lineMetrics[i].width);
-//     }
-//     // console.log("getMinIntrinsicWidth", width);
-//     return width;
-//   }
-
-//   /**
-//    * Returns the total number of visible lines in the paragraph.
-//    */
-//   getNumberOfLines(): number {
-//     return this._textLayout.lineMetrics.length;
-//   }
-
-//   getRectsForPlaceholders(): RectWithDirection[] {
-//     return [];
-//   }
-
-//   /**
-//    * Returns bounding boxes that enclose all text in the range of glpyh indexes [start, end).
-//    * @param start
-//    * @param end
-//    * @param hStyle
-//    * @param wStyle
-//    */
-//   getRectsForRange(
-//     start: number,
-//     end: number,
-//     hStyle: SkEnum<RectHeightStyle>,
-//     wStyle: SkEnum<RectWidthStyle>
-//   ): RectWithDirection[] {
-//     this._textLayout.measureGlyphIfNeeded();
-//     let result: RectWithDirection[] = [];
-//     this._textLayout.lineMetrics.forEach((it) => {
-//       const range0 = [start, end];
-//       const range1 = [it.startIndex, it.endIndex];
-//       const hasIntersection = range0[1] > range1[0] && range1[1] > range0[0];
-//       if (hasIntersection) {
-//         const intersecRange = [
-//           Math.max(range0[0], range1[0]),
-//           Math.min(range0[1], range1[1]),
-//         ];
-//         let currentLineLeft = -1;
-//         let currentLineTop = -1;
-//         let currentLineWidth = 0;
-//         let currentLineHeight = 0;
-//         for (let index = intersecRange[0]; index < intersecRange[1]; index++) {
-//           const glyphInfo = this._textLayout.glyphInfos[index];
-//           if (glyphInfo) {
-//             if (currentLineLeft < 0) {
-//               currentLineLeft = glyphInfo.graphemeLayoutBounds[0];
-//             }
-//             if (currentLineTop < 0) {
-//               currentLineTop = glyphInfo.graphemeLayoutBounds[1];
-//             }
-//             currentLineTop = Math.min(
-//               currentLineTop,
-//               glyphInfo.graphemeLayoutBounds[1]
-//             );
-//             currentLineWidth =
-//               glyphInfo.graphemeLayoutBounds[2] - currentLineLeft;
-//             currentLineHeight = Math.max(
-//               currentLineHeight,
-//               glyphInfo.graphemeLayoutBounds[3] - currentLineTop
-//             );
-//           }
-//         }
-//         result.push({
-//           rect: new Float32Array([
-//             currentLineLeft,
-//             currentLineTop,
-//             currentLineLeft + currentLineWidth,
-//             currentLineTop + currentLineHeight,
-//           ]),
-//           dir: { value: TextDirection.LTR },
-//         });
-//       }
-//     });
-//     if (result.length === 0) {
-//       const lastSpan = this.spans[this.spans.length - 1];
-//       const lastLine =
-//         this._textLayout.lineMetrics[this._textLayout.lineMetrics.length - 1];
-//       if (
-//         end > lastLine.endIndex &&
-//         lastSpan instanceof TextSpan &&
-//         lastSpan.originText.endsWith("\n")
-//       ) {
-//         return [
-//           {
-//             rect: new Float32Array([
-//               0,
-//               lastLine.yOffset,
-//               0,
-//               lastLine.yOffset + lastLine.height,
-//             ]),
-//             dir: { value: TextDirection.LTR },
-//           },
-//         ];
-//       }
-//     }
-//     return result;
-//   }
-
-//   /**
-//    * Finds the first and last glyphs that define a word containing the glyph at index offset.
-//    * @param offset
-//    */
-//   getWordBoundary(offset: number): URange {
-//     throw new Error("Not implemented");
-//     return { start: offset, end: offset };
-//   }
-
-//   /**
-//    * Returns an array of ShapedLine objects, describing the paragraph.
-//    */
-//   getShapedLines(): ShapedLine[] {
-//     throw new Error("Not implemented");
-//     return [];
-//   }
-
-//   /**
-//    * Lays out the text in the paragraph so it is wrapped to the given width.
-//    * @param width
-//    */
-//   layout(width: number): void {
-//     // if (this.skImageCache) {
-//     //   this.skImageCache.delete();
-//     // }
-//     // this.skImageCache = undefined;
-//     this._textLayout.layout(width);
-//   }
-
-//   /**
-//    * When called after shaping, returns the glyph IDs which were not matched
-//    * by any of the provided fonts.
-//    */
-//   unresolvedCodepoints(): number[] {
-//     throw new Error("Not implemented");
-//     return [];
-//   }
-// }
-
-// export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder">  implements ParagraphBuilder {
-//   // export class _ParagraphBuilder  implements ParagraphBuilder { 
-//   // static usingPolyfill = false;
-//   // MakeFromFontCollection(
-//   //   originMakeFromFontCollectionMethod: (
-//   //     style: ParagraphStyle,
-//   //     fontCollection: any
-//   //   ) => any,
-//   //   style: ParagraphStyle,
-//   //   fontCollection: any,
-//   //   // embeddingFonts: string[],
-//   //   // iconFonts?: Record<string, string>
-//   // ) {
-//   //   return new ParagraphBuilder(style)
-//   // }
-
-//   // static MakeFromFontCollection(
-//   //   // originMakeFromFontCollectionMethod: (
-//   //   //   style: ParagraphStyle,
-//   //   //   fontCollection: any
-//   //   // ) => any,
-//   //   style: ParagraphStyle,
-//   //   fontCollection: any,
-//   //   embeddingFonts: string[],
-//   //   iconFonts?: Record<string, string>
-//   // ) {
-//   //   return new ParagraphBuilder(style)
-//   //   // const fontFamilies = style.textStyle?.fontFamilies;
-//   //   // if (fontFamilies && fontFamilies[0] === "MiniTex") {
-//   //   //   // logger.info("use minitex paragraph builder.", fontFamilies);
-//   //   //   return new ParagraphBuilder(style);
-//   //   // } else if (fontFamilies && iconFonts && iconFonts[fontFamilies[0]]) {
-//   //   //   // logger.info("use fontPaths paragraph builder.", fontFamilies);
-//   //   //   return new ParagraphBuilder(style, iconFonts[fontFamilies[0]]);
-//   //   //   // } else if (ParagraphBuilder.usingPolyfill) {
-//   //   //   //   // logger.info(
-//   //   //   //   //   "usingPolyfill, so use minitex paragraph builder.",
-//   //   //   //   //   fontFamilies
-//   //   //   //   // );
-//   //   //   //   return new ParagraphBuilder(style);
-//   //   // } else {
-//   //   //   if (fontFamilies) {
-//   //   //     if (
-//   //   //       fontFamilies.filter((it) => {
-//   //   //         return embeddingFonts.indexOf(it) >= 0;
-//   //   //       }).length === 0
-//   //   //     ) {
-//   //   //       // logger.info("use minitex paragraph builder.", fontFamilies);
-//   //   //       return new ParagraphBuilder(style);
-//   //   //     }
-//   //   //   }
-//   //   //   // logger.info("use skia paragraph builder.", fontFamilies);
-//   //   //   return originMakeFromFontCollectionMethod(style, fontCollection);
-//   //   // }
-//   // }
-
-//   constructor(readonly style: ParagraphStyle, readonly iconFontData?: string) {
-//     super("ParagraphBuilder")
-//     // super("ParagraphBuilder");
-//   }
-
-//   // isMiniTex = true;
-
-//   private spans: Span[] = [];
-//   private styles: TextStyle[] = [];
-
-//   /**
-//    * Pushes the information required to leave an open space.
-//    * @param width
-//    * @param height
-//    * @param alignment
-//    * @param baseline
-//    * @param offset
-//    */
-//   addPlaceholder(
-//     width?: number,
-//     height?: number,
-//     alignment?: PlaceholderAlignment,
-//     baseline?: TextBaseline,
-//     offset?: number
-//   ): void { }
-
-//   /**
-//    * Adds text to the builder. Forms the proper runs to use the upper-most style
-//    * on the style_stack.
-//    * @param str
-//    */
-//   addText(str: string): void {
-//     console.log("ParagraphBuilder.addText", str);
-//     let mergedStyle: TextStyle = {};
-//     this.styles.forEach((it) => {
-//       Object.assign(mergedStyle, it);
-//     });
-//     const span = new TextSpan(str, mergedStyle);
-//     this.spans.push(span);
-//   }
-
-//   /**
-//    * Returns a Paragraph object that can be used to be layout and paint the text to an
-//    * Canvas.
-//    */
-//   build(): _Paragraph {
-//     console.log("ParagraphBuilder.build");
-//     console.log("spans:", this.spans.length);
-//     return new _Paragraph(this.spans, this.style, this.iconFontData);
-//   }
-
-//   /**
-//    * @param words is an array of word edges (starting or ending). You can
-//    * pass 2 elements (0 as a start of the entire text and text.size as the
-//    * end). This information is only needed for a specific API method getWords.
-//    *
-//    * The indices are expected to be relative to the UTF-8 representation of
-//    * the text.
-//    */
-//   setWordsUtf8(words: InputWords): void { }
-//   /**
-//    * @param words is an array of word edges (starting or ending). You can
-//    * pass 2 elements (0 as a start of the entire text and text.size as the
-//    * end). This information is only needed for a specific API method getWords.
-//    *
-//    * The indices are expected to be relative to the UTF-16 representation of
-//    * the text.
-//    *
-//    * The `Intl.Segmenter` API can be used as a source for this data.
-//    */
-//   setWordsUtf16(words: InputWords): void { }
-
-//   /**
-//    * @param graphemes is an array of indexes in the input text that point
-//    * to the start of each grapheme.
-//    *
-//    * The indices are expected to be relative to the UTF-8 representation of
-//    * the text.
-//    */
-//   setGraphemeBreaksUtf8(graphemes: InputGraphemes): void { }
-//   /**
-//    * @param graphemes is an array of indexes in the input text that point
-//    * to the start of each grapheme.
-//    *
-//    * The indices are expected to be relative to the UTF-16 representation of
-//    * the text.
-//    *
-//    * The `Intl.Segmenter` API can be used as a source for this data.
-//    */
-//   setGraphemeBreaksUtf16(graphemes: InputGraphemes): void { }
-
-//   /**
-//    * @param lineBreaks is an array of unsigned integers that should be
-//    * treated as pairs (index, break type) that point to the places of possible
-//    * line breaking if needed. It should include 0 as the first element.
-//    * Break type == 0 means soft break, break type == 1 is a hard break.
-//    *
-//    * The indices are expected to be relative to the UTF-8 representation of
-//    * the text.
-//    */
-//   setLineBreaksUtf8(lineBreaks: InputLineBreaks): void { }
-//   /**
-//    * @param lineBreaks is an array of unsigned integers that should be
-//    * treated as pairs (index, break type) that point to the places of possible
-//    * line breaking if needed. It should include 0 as the first element.
-//    * Break type == 0 means soft break, break type == 1 is a hard break.
-//    *
-//    * The indices are expected to be relative to the UTF-16 representation of
-//    * the text.
-//    *
-//    * Chrome's `v8BreakIterator` API can be used as a source for this data.
-//    */
-//   setLineBreaksUtf16(lineBreaks: InputLineBreaks): void { }
-
-//   /**
-//    * Returns the entire Paragraph text (which is useful in case that text
-//    * was produced as a set of addText calls).
-//    */
-//   getText(): string {
-//     throw new Error("Method not implemented.");
-//     // let text = "";
-//     // this.spans.forEach((it) => {
-//     //   if (it instanceof TextSpan) {
-//     //     text += it.originText;
-//     //   }
-//     // });
-//     // if (typeof window === "object" && window.TextEncoder) {
-//     //   const encoder = new window.TextEncoder();
-//     //   const view = encoder.encode(text);
-//     //   return String.fromCharCode(...Array.from(view));
-//     // }
-//     // return text;
-//   }
-
-//   /**
-//    * Remove a style from the stack. Useful to apply different styles to chunks
-//    * of text such as bolding.
-//    */
-//   pop(): void {
-//     // logger.debug("ParagraphBuilder.pop");
-//     this.styles.pop();
-//   }
-
-//   /**
-//    * Push a style to the stack. The corresponding text added with addText will
-//    * use the top-most style.
-//    * @param textStyle
-//    */
-//   pushStyle(textStyle: TextStyle): void {
-//     // logger.debug("ParagraphBuilder.pushStyle", textStyle);
-//     this.styles.push(textStyle);
-//   }
-
-//   /**
-//    * Pushes a TextStyle using paints instead of colors for foreground and background.
-//    * @param textStyle
-//    * @param fg
-//    * @param bg
-//    */
-//   pushPaintStyle(textStyle: TextStyle, fg: _Paint, bg: _Paint): void {
-//     // logger.debug("ParagraphBuilder.pushPaintStyle", textStyle, fg, bg);
-//     this.styles.push(textStyle);
-//   }
-
-//   /**
-//    * Resets this builder to its initial state, discarding any text, styles, placeholders that have
-//    * been added, but keeping the initial ParagraphStyle.
-//    */
-//   reset(): void {
-//     // logger.debug("ParagraphBuilder.reset");
-//     throw new Error("Method not implemented.");
-//     this.spans = [];
-//     this.styles = [];
-//   }
-// }
-
-
-// export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph {
-//   iconFontMap?: Record<string, string>;
-
-//   constructor(
-//     readonly spans: Span[],
-//     readonly paragraphStyle: ParagraphStyle,
-//     readonly iconFontData?: string
-//   ) {
-//     super("Paragraph");
-//     if (this.iconFontData) {
-//       // this.iconFontMap = JSON.parse(this.iconFontData);
-//     }
-//   }
-
-//   delete(): void {
-//     if (this.skImageCache) {
-//       this.skImageCache.delete();
-//       this.skImageCache = undefined;
-//     }
-//     super.delete();
-//   }
-
-//   // public _type = "SkParagraph";
-//   public isMiniTex = true;
-//   public skImageCache?: SkEmbindObject<"Image">;
-//   public skImageWidth?: number;
-//   public skImageHeight?: number;
-//   private _textLayout = new TextLayout(this);
-
-//   didExceedMaxLines(): boolean {
-//     return this._textLayout.didExceedMaxLines;
-//   }
-
-//   getAlphabeticBaseline(): number {
-//     return 0;
-//   }
-
-//   /**
-//    * Returns the index of the glyph that corresponds to the provided coordinate,
-//    * with the top left corner as the origin, and +y direction as down.
-//    */
-//   getGlyphPositionAtCoordinate(dx: number, dy: number): PositionWithAffinity {
-//     // throw new Error("getGlyphPositionAtCoordinate not implemented")
-//     this._textLayout.measureGlyphIfNeeded();
-//     for (let index = 0; index < this._textLayout.glyphInfos.length; index++) {
-//       const glyphInfo = this._textLayout.glyphInfos[index];
-//       const left = glyphInfo.graphemeLayoutBounds[0];
-//       const top = glyphInfo.graphemeLayoutBounds[1];
-//       const width = glyphInfo.graphemeLayoutBounds[2] - left;
-//       const height = glyphInfo.graphemeLayoutBounds[3] - top;
-//       if (dx >= left && dx <= left + width && dy >= top && dy <= top + height) {
-//         return { pos: index, affinity: { value: Affinity.Downstream } };
-//       }
-//     }
-//     for (let index = 0; index < this._textLayout.lineMetrics.length; index++) {
-//       const lineMetrics = this._textLayout.lineMetrics[index];
-//       const isLastLine = index === this._textLayout.lineMetrics.length - 1;
-//       const left = 0;
-//       const top = lineMetrics.yOffset;
-//       const width = lineMetrics.width;
-//       const height = lineMetrics.height;
-//       if (dy >= top && dy <= top + height) {
-//         if (dx <= 0) {
-//           return {
-//             pos: lineMetrics.startIndex,
-//             affinity: { value: Affinity.Downstream },
-//           };
-//         } else if (dx >= width) {
-//           return {
-//             pos: lineMetrics.endIndex,
-//             affinity: { value: Affinity.Downstream },
-//           };
-//         }
-//       }
-//       if (dy >= top + height && isLastLine) {
-//         return {
-//           pos: lineMetrics.endIndex,
-//           affinity: { value: Affinity.Downstream },
-//         };
-//       }
-//     }
-//     return { pos: 0, affinity: { value: Affinity.Upstream } };
-//   }
-
-//   /**
-//    * Returns the information associated with the closest glyph at the specified
-//    * paragraph coordinate, or null if the paragraph is empty.
-//    */
-//   getClosestGlyphInfoAtCoordinate(dx: number, dy: number): GlyphInfo | null {
-//     return this.getGlyphInfoAt(this.getGlyphPositionAtCoordinate(dx, dy).pos);
-//   }
-
-//   /**
-//    * Returns the information associated with the glyph at the specified UTF-16
-//    * offset within the paragraph's visible lines, or null if the index is out
-//    * of bounds, or points to a codepoint that is logically after the last
-//    * visible codepoint.
-//    */
-//   getGlyphInfoAt(index: number): GlyphInfo | null {
-//       // throw new Error("getGlyphInfoAt not implemented")
-
-//     this._textLayout.measureGlyphIfNeeded();
-//     return this._textLayout.glyphInfos[index] ?? null;
-//   }
-
-//   getHeight(): number {
-//     const lineMetrics = this.getLineMetrics();
-//     let height = 0;
-//     for (let i = 0; i < lineMetrics.length; i++) {
-//       height += lineMetrics[i].height * lineMetrics[i].heightMultiplier;
-//       if (i > 0 && i < lineMetrics.length) {
-//         height += lineMetrics[i].height * 0.15;
-//       }
-//     }
-//     console.log("getHeight", height);
-//     return height;
-//   }
-
-//   getIdeographicBaseline(): number {
-//     return 0;
-//   }
-
-//   /**
-//    * Returns the line number of the line that contains the specified UTF-16
-//    * offset within the paragraph, or -1 if the index is out of bounds, or
-//    * points to a codepoint that is logically after the last visible codepoint.
-//    */
-//   getLineNumberAt(index: number): number {
-//     return this.getLineMetricsOfRange(index, index)[0]?.lineNumber ?? 0;
-//   }
-
-//   getLineMetrics(): LineMetrics[] {
-//     // console.log("getLineMetrics");
-//     return this._textLayout.lineMetrics;
-//   }
-
-//   /**
-//    * Returns the LineMetrics of the line at the specified line number, or null
-//    * if the line number is out of bounds, or is larger than or equal to the
-//    * specified max line number.
-//    */
-//   getLineMetricsAt(lineNumber: number): LineMetrics | null {
-//     return this._textLayout.lineMetrics[lineNumber] ?? null;
-//   }
-
-//   getLineMetricsOfRange(start: number, end: number): LineMetrics[] {
-//     let lineMetrics: LineMetrics[] = [];
-//     this._textLayout.lineMetrics.forEach((it) => {
-//       const range0 = [start, end];
-//       const range1 = [it.startIndex, it.endIndex];
-//       const hasIntersection = range0[1] >= range1[0] && range1[1] >= range0[0];
-//       if (hasIntersection) {
-//         lineMetrics.push(it);
-//       }
-//     });
-//     return lineMetrics;
-//   }
-
-//   getLongestLine(): number {
-//     return 0;
-//   }
-
-//   getMaxIntrinsicWidth(): number {
-//     const lineMetrics = this.getLineMetrics();
-//     let maxWidth = 0;
-//     for (let i = 0; i < lineMetrics.length; i++) {
-//       maxWidth = Math.max(
-//         maxWidth,
-//         lineMetrics[i].justifyWidth ?? lineMetrics[i].width
-//       );
-//     }
-//     // console.log("getMaxIntrinsicWidth", maxWidth);
-//     return maxWidth;
-//   }
-
-//   getMaxWidth(): number {
-//     const lineMetrics = this.getLineMetrics();
-//     let maxWidth = 0;
-//     for (let i = 0; i < lineMetrics.length; i++) {
-//       maxWidth = Math.max(
-//         maxWidth,
-//         lineMetrics[i].justifyWidth ?? lineMetrics[i].width
-//       );
-//     }
-//     // console.log("getMaxWidth", maxWidth);
-//     return maxWidth;
-//   }
-
-//   getMinIntrinsicWidth(): number {
-//     const lineMetrics = this.getLineMetrics();
-//     let width = 0;
-//     for (let i = 0; i < lineMetrics.length; i++) {
-//       width = Math.max(width, lineMetrics[i].width);
-//     }
-//     // console.log("getMinIntrinsicWidth", width);
-//     return width;
-//   }
-
-//   /**
-//    * Returns the total number of visible lines in the paragraph.
-//    */
-//   getNumberOfLines(): number {
-//     return this._textLayout.lineMetrics.length;
-//   }
-
-//   getRectsForPlaceholders(): RectWithDirection[] {
-//     return [];
-//   }
-
-//   /**
-//    * Returns bounding boxes that enclose all text in the range of glpyh indexes [start, end).
-//    * @param start
-//    * @param end
-//    * @param hStyle
-//    * @param wStyle
-//    */
-//   getRectsForRange(
-//     start: number,
-//     end: number,
-//     hStyle: SkEnum<RectHeightStyle>,
-//     wStyle: SkEnum<RectWidthStyle>
-//   ): RectWithDirection[] {
-//     this._textLayout.measureGlyphIfNeeded();
-//     let result: RectWithDirection[] = [];
-//     this._textLayout.lineMetrics.forEach((it) => {
-//       const range0 = [start, end];
-//       const range1 = [it.startIndex, it.endIndex];
-//       const hasIntersection = range0[1] > range1[0] && range1[1] > range0[0];
-//       if (hasIntersection) {
-//         const intersecRange = [
-//           Math.max(range0[0], range1[0]),
-//           Math.min(range0[1], range1[1]),
-//         ];
-//         let currentLineLeft = -1;
-//         let currentLineTop = -1;
-//         let currentLineWidth = 0;
-//         let currentLineHeight = 0;
-//         for (let index = intersecRange[0]; index < intersecRange[1]; index++) {
-//           const glyphInfo = this._textLayout.glyphInfos[index];
-//           if (glyphInfo) {
-//             if (currentLineLeft < 0) {
-//               currentLineLeft = glyphInfo.graphemeLayoutBounds[0];
-//             }
-//             if (currentLineTop < 0) {
-//               currentLineTop = glyphInfo.graphemeLayoutBounds[1];
-//             }
-//             currentLineTop = Math.min(
-//               currentLineTop,
-//               glyphInfo.graphemeLayoutBounds[1]
-//             );
-//             currentLineWidth =
-//               glyphInfo.graphemeLayoutBounds[2] - currentLineLeft;
-//             currentLineHeight = Math.max(
-//               currentLineHeight,
-//               glyphInfo.graphemeLayoutBounds[3] - currentLineTop
-//             );
-//           }
-//         }
-//         result.push({
-//           rect: new Float32Array([
-//             currentLineLeft,
-//             currentLineTop,
-//             currentLineLeft + currentLineWidth,
-//             currentLineTop + currentLineHeight,
-//           ]),
-//           dir: { value: TextDirection.LTR },
-//         });
-//       }
-//     });
-//     if (result.length === 0) {
-//       const lastSpan = this.spans[this.spans.length - 1];
-//       const lastLine =
-//         this._textLayout.lineMetrics[this._textLayout.lineMetrics.length - 1];
-//       if (
-//         end > lastLine.endIndex &&
-//         lastSpan instanceof TextSpan &&
-//         lastSpan.originText.endsWith("\n")
-//       ) {
-//         return [
-//           {
-//             rect: new Float32Array([
-//               0,
-//               lastLine.yOffset,
-//               0,
-//               lastLine.yOffset + lastLine.height,
-//             ]),
-//             dir: { value: TextDirection.LTR },
-//           },
-//         ];
-//       }
-//     }
-//     return result;
-//   }
-
-//   /**
-//    * Finds the first and last glyphs that define a word containing the glyph at index offset.
-//    * @param offset
-//    */
-//   getWordBoundary(offset: number): URange {
-//     throw new Error("Not implemented");
-//     return { start: offset, end: offset };
-//   }
-
-//   /**
-//    * Returns an array of ShapedLine objects, describing the paragraph.
-//    */
-//   getShapedLines(): ShapedLine[] {
-//     throw new Error("Not implemented");
-//     return [];
-//   }
-
-//   /**
-//    * Lays out the text in the paragraph so it is wrapped to the given width.
-//    * @param width
-//    */
-//   layout(width: number): void {
-//     // if (this.skImageCache) {
-//     //   this.skImageCache.delete();
-//     // }
-//     // this.skImageCache = undefined;
-//     this._textLayout.layout(width);
-//   }
-
-//   /**
-//    * When called after shaping, returns the glyph IDs which were not matched
-//    * by any of the provided fonts.
-//    */
-//   unresolvedCodepoints(): number[] {
-//     throw new Error("Not implemented");
-//     return [];
-//   }
-// }
-
-// export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder">  implements ParagraphBuilder {
-//   // export class _ParagraphBuilder  implements ParagraphBuilder { 
-//   // static usingPolyfill = false;
-//   // MakeFromFontCollection(
-//   //   originMakeFromFontCollectionMethod: (
-//   //     style: ParagraphStyle,
-//   //     fontCollection: any
-//   //   ) => any,
-//   //   style: ParagraphStyle,
-//   //   fontCollection: any,
-//   //   // embeddingFonts: string[],
-//   //   // iconFonts?: Record<string, string>
-//   // ) {
-//   //   return new ParagraphBuilder(style)
-//   // }
-
-//   // static MakeFromFontCollection(
-//   //   // originMakeFromFontCollectionMethod: (
-//   //   //   style: ParagraphStyle,
-//   //   //   fontCollection: any
-//   //   // ) => any,
-//   //   style: ParagraphStyle,
-//   //   fontCollection: any,
-//   //   embeddingFonts: string[],
-//   //   iconFonts?: Record<string, string>
-//   // ) {
-//   //   return new ParagraphBuilder(style)
-//   //   // const fontFamilies = style.textStyle?.fontFamilies;
-//   //   // if (fontFamilies && fontFamilies[0] === "MiniTex") {
-//   //   //   // logger.info("use minitex paragraph builder.", fontFamilies);
-//   //   //   return new ParagraphBuilder(style);
-//   //   // } else if (fontFamilies && iconFonts && iconFonts[fontFamilies[0]]) {
-//   //   //   // logger.info("use fontPaths paragraph builder.", fontFamilies);
-//   //   //   return new ParagraphBuilder(style, iconFonts[fontFamilies[0]]);
-//   //   //   // } else if (ParagraphBuilder.usingPolyfill) {
-//   //   //   //   // logger.info(
-//   //   //   //   //   "usingPolyfill, so use minitex paragraph builder.",
-//   //   //   //   //   fontFamilies
-//   //   //   //   // );
-//   //   //   //   return new ParagraphBuilder(style);
-//   //   // } else {
-//   //   //   if (fontFamilies) {
-//   //   //     if (
-//   //   //       fontFamilies.filter((it) => {
-//   //   //         return embeddingFonts.indexOf(it) >= 0;
-//   //   //       }).length === 0
-//   //   //     ) {
-//   //   //       // logger.info("use minitex paragraph builder.", fontFamilies);
-//   //   //       return new ParagraphBuilder(style);
-//   //   //     }
-//   //   //   }
-//   //   //   // logger.info("use skia paragraph builder.", fontFamilies);
-//   //   //   return originMakeFromFontCollectionMethod(style, fontCollection);
-//   //   // }
-//   // }
-
-//   constructor(readonly style: ParagraphStyle, readonly iconFontData?: string) {
-//     super("ParagraphBuilder")
-//     // super("ParagraphBuilder");
-//   }
-
-//   // isMiniTex = true;
-
-//   private spans: Span[] = [];
-//   private styles: TextStyle[] = [];
-
-//   /**
-//    * Pushes the information required to leave an open space.
-//    * @param width
-//    * @param height
-//    * @param alignment
-//    * @param baseline
-//    * @param offset
-//    */
-//   addPlaceholder(
-//     width?: number,
-//     height?: number,
-//     alignment?: PlaceholderAlignment,
-//     baseline?: TextBaseline,
-//     offset?: number
-//   ): void { }
-
-//   /**
-//    * Adds text to the builder. Forms the proper runs to use the upper-most style
-//    * on the style_stack.
-//    * @param str
-//    */
-//   addText(str: string): void {
-//     console.log("ParagraphBuilder.addText", str);
-//     let mergedStyle: TextStyle = {};
-//     this.styles.forEach((it) => {
-//       Object.assign(mergedStyle, it);
-//     });
-//     const span = new TextSpan(str, mergedStyle);
-//     this.spans.push(span);
-//   }
-
-//   /**
-//    * Returns a Paragraph object that can be used to be layout and paint the text to an
-//    * Canvas.
-//    */
-//   build(): _Paragraph {
-//     console.log("ParagraphBuilder.build");
-//     console.log("spans:", this.spans.length);
-//     return new _Paragraph(this.spans, this.style, this.iconFontData);
-//   }
-
-//   /**
-//    * @param words is an array of word edges (starting or ending). You can
-//    * pass 2 elements (0 as a start of the entire text and text.size as the
-//    * end). This information is only needed for a specific API method getWords.
-//    *
-//    * The indices are expected to be relative to the UTF-8 representation of
-//    * the text.
-//    */
-//   setWordsUtf8(words: InputWords): void { }
-//   /**
-//    * @param words is an array of word edges (starting or ending). You can
-//    * pass 2 elements (0 as a start of the entire text and text.size as the
-//    * end). This information is only needed for a specific API method getWords.
-//    *
-//    * The indices are expected to be relative to the UTF-16 representation of
-//    * the text.
-//    *
-//    * The `Intl.Segmenter` API can be used as a source for this data.
-//    */
-//   setWordsUtf16(words: InputWords): void { }
-
-//   /**
-//    * @param graphemes is an array of indexes in the input text that point
-//    * to the start of each grapheme.
-//    *
-//    * The indices are expected to be relative to the UTF-8 representation of
-//    * the text.
-//    */
-//   setGraphemeBreaksUtf8(graphemes: InputGraphemes): void { }
-//   /**
-//    * @param graphemes is an array of indexes in the input text that point
-//    * to the start of each grapheme.
-//    *
-//    * The indices are expected to be relative to the UTF-16 representation of
-//    * the text.
-//    *
-//    * The `Intl.Segmenter` API can be used as a source for this data.
-//    */
-//   setGraphemeBreaksUtf16(graphemes: InputGraphemes): void { }
-
-//   /**
-//    * @param lineBreaks is an array of unsigned integers that should be
-//    * treated as pairs (index, break type) that point to the places of possible
-//    * line breaking if needed. It should include 0 as the first element.
-//    * Break type == 0 means soft break, break type == 1 is a hard break.
-//    *
-//    * The indices are expected to be relative to the UTF-8 representation of
-//    * the text.
-//    */
-//   setLineBreaksUtf8(lineBreaks: InputLineBreaks): void { }
-//   /**
-//    * @param lineBreaks is an array of unsigned integers that should be
-//    * treated as pairs (index, break type) that point to the places of possible
-//    * line breaking if needed. It should include 0 as the first element.
-//    * Break type == 0 means soft break, break type == 1 is a hard break.
-//    *
-//    * The indices are expected to be relative to the UTF-16 representation of
-//    * the text.
-//    *
-//    * Chrome's `v8BreakIterator` API can be used as a source for this data.
-//    */
-//   setLineBreaksUtf16(lineBreaks: InputLineBreaks): void { }
-
-//   /**
-//    * Returns the entire Paragraph text (which is useful in case that text
-//    * was produced as a set of addText calls).
-//    */
-//   getText(): string {
-//     throw new Error("Method not implemented.");
-//     // let text = "";
-//     // this.spans.forEach((it) => {
-//     //   if (it instanceof TextSpan) {
-//     //     text += it.originText;
-//     //   }
-//     // });
-//     // if (typeof window === "object" && window.TextEncoder) {
-//     //   const encoder = new window.TextEncoder();
-//     //   const view = encoder.encode(text);
-//     //   return String.fromCharCode(...Array.from(view));
-//     // }
-//     // return text;
-//   }
-
-//   /**
-//    * Remove a style from the stack. Useful to apply different styles to chunks
-//    * of text such as bolding.
-//    */
-//   pop(): void {
-//     // logger.debug("ParagraphBuilder.pop");
-//     this.styles.pop();
-//   }
-
-//   /**
-//    * Push a style to the stack. The corresponding text added with addText will
-//    * use the top-most style.
-//    * @param textStyle
-//    */
-//   pushStyle(textStyle: TextStyle): void {
-//     // logger.debug("ParagraphBuilder.pushStyle", textStyle);
-//     this.styles.push(textStyle);
-//   }
-
-//   /**
-//    * Pushes a TextStyle using paints instead of colors for foreground and background.
-//    * @param textStyle
-//    * @param fg
-//    * @param bg
-//    */
-//   pushPaintStyle(textStyle: TextStyle, fg: _Paint, bg: _Paint): void {
-//     // logger.debug("ParagraphBuilder.pushPaintStyle", textStyle, fg, bg);
-//     this.styles.push(textStyle);
-//   }
-
-//   /**
-//    * Resets this builder to its initial state, discarding any text, styles, placeholders that have
-//    * been added, but keeping the initial ParagraphStyle.
-//    */
-//   reset(): void {
-//     // logger.debug("ParagraphBuilder.reset");
-//     throw new Error("Method not implemented.");
-//     this.spans = [];
-//     this.styles = [];
-//   }
-// }
-
-
-
 
 export class _TextStyle extends SkEmbindObject<"TextStyle"> implements TextStyle {
   constructor(ts: TextStyle) {
