@@ -1,2 +1,2 @@
 // import * from "opentype.js";
-export { create } from  'fontkit'
+export * from  'fontkit'
