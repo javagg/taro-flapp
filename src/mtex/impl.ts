@@ -7,18 +7,21 @@ import {
     isSquareCharacter,
 } from "./util";
 
-import { ParagraphBuilder, PositionWithAffinity, GlyphInfo,
-    ParagraphStyle, Paragraph, FontCollection,InputGraphemes, TextStyle,
+import {
+    CanvasKit, Canvas,
+    ParagraphBuilder, PositionWithAffinity, GlyphInfo,
+    ParagraphStyle, Paragraph, FontCollection, InputGraphemes, TextStyle,
     ShapedLine, URange, FontMgr, PlaceholderAlignment, InputWords, InputLineBreaks,
-    TypefaceFontProvider,FontBlock,TextBaseline,LineMetrics, RectHeightStyle,
-    RectWithDirection,RectWidthStyle,
-  } from "./canvaskit";
-  import { SkEmbindObject, _Paint, Affinity as AffinityEnums, TextDirection as TextDirectionEnums,
+    TypefaceFontProvider, FontBlock, TextBaseline, LineMetrics, RectHeightStyle,
+    RectWithDirection, RectWidthStyle,
+} from "./canvaskit";
+import {
+    SkEmbindObject, _Paint, Affinity as AffinityEnums, TextDirection as TextDirectionEnums,
     TextAlign, FontSlant, TextDirection
 
-   } from "./bass";
+} from "./bass";
 
-  
+
 interface LetterRect {
     x: number;
     y: number;
@@ -26,13 +29,13 @@ interface LetterRect {
     h: number;
 }
 
-export class Span {
+class Span {
     letterBaseline: number = 0;
     letterHeight: number = 0;
     lettersBounding: LetterRect[] = [];
 }
 
-export class TextSpan extends Span {
+class TextSpan extends Span {
     charSequence: string[];
     originText: string;
 
@@ -105,13 +108,13 @@ export class TextSpan extends Span {
     }
 }
 
-export class NewlineSpan extends TextSpan {
+class NewlineSpan extends TextSpan {
     constructor() {
         super("\n", {});
     }
 }
 
-export const spanWithNewline = (spans: Span[]): Span[] => {
+const spanWithNewline = (spans: Span[]): Span[] => {
     let result: Span[] = [];
     spans.forEach((span) => {
         if (span instanceof TextSpan) {
@@ -133,44 +136,19 @@ export const spanWithNewline = (spans: Span[]): Span[] => {
 };
 
 
-export class TextPaintService {
-    static pixelRatio = 1.0;
-    static sharedRenderCanvas: HTMLCanvasElement;
-    static sharedRenderContext: CanvasRenderingContext2D;
-
+class TextPaintService {
     constructor(readonly paragraph: _Paragraph) { }
 
-    private initCanvas() {
-        if (!TextPaintService.sharedRenderCanvas) {
-            TextPaintService.sharedRenderCanvas = createCanvas(
-                Math.min(4000, 1000 * TextPaintService.pixelRatio),
-                Math.min(4000, 1000 * TextPaintService.pixelRatio)
-            );
-            TextPaintService.sharedRenderContext = TextPaintService.sharedRenderCanvas!.getContext(
-                "2d"
-            ) as CanvasRenderingContext2D;
-        }
-    }
-
-    draw(): ImageData {
-        this.initCanvas();
-        const width = convertToUpwardToPixelRatio(
-            this.paragraph.getMaxWidth() * TextPaintService.pixelRatio,
-            TextPaintService.pixelRatio
-        );
-        const height = convertToUpwardToPixelRatio(
-            this.paragraph.getHeight() * TextPaintService.pixelRatio,
-            TextPaintService.pixelRatio
-        );
+    draw(context: CanvasRenderingContext2D, pixelRatio: number): ImageData {
+        const width = convertToUpwardToPixelRatio(this.paragraph.getMaxWidth() * pixelRatio, pixelRatio);
+        const height = convertToUpwardToPixelRatio(this.paragraph.getHeight() * pixelRatio, pixelRatio);
         if (width <= 0 || height <= 0) {
-            const context = TextPaintService.sharedRenderContext;
             context.clearRect(0, 0, 1, 1);
             return context.getImageData(0, 0, 1, 1);
         }
-        const context = TextPaintService.sharedRenderContext;
         context.clearRect(0, 0, width, height);
         context.save();
-        context.scale(TextPaintService.pixelRatio, TextPaintService.pixelRatio);
+        context.scale(pixelRatio, pixelRatio);
 
         let didExceedMaxLines = false;
         let spanLetterStartIndex = 0;
@@ -706,7 +684,7 @@ class LetterMeasurer {
     }
 }
 
-export class TextLayoutService {
+class TextLayoutService {
     static sharedLayoutCanvas: HTMLCanvasElement;
     static sharedLayoutContext: CanvasRenderingContext2D;
 
@@ -1004,62 +982,11 @@ export class TextLayoutService {
     }
 }
 
-export const drawParagraph = function (
-    CanvasKit: any,
-    skCanvas: any,
-    paragraph: _Paragraph,
-    dx: number,
-    dy: number
-) {
-    // let drawStartTime!: number;
-    // if (logger.profileMode) {
-    //   drawStartTime = new Date().getTime();
-    // }
-    // let canvasImg: any
-    let canvasImg = paragraph.skImageCache;
-    if (!canvasImg) {
-        const drawer = new TextPaintService(paragraph);
-        const imageData = drawer.draw();
-        canvasImg = CanvasKit.MakeImage(
-            {
-                width: imageData.width,
-                height: imageData.height,
-                alphaType: CanvasKit.AlphaType.Unpremul,
-                colorType: CanvasKit.ColorType.RGBA_8888,
-                colorSpace: CanvasKit.ColorSpace.SRGB,
-            },
-            imageData.data,
-            4 * imageData.width
-        );
-        paragraph.skImageCache = canvasImg;
-        paragraph.skImageWidth = imageData.width;
-        paragraph.skImageHeight = imageData.height;
-    }
-    const srcRect = CanvasKit.XYWHRect(
-        0,
-        0,
-        paragraph.skImageWidth!,
-        paragraph.skImageHeight!
-    );
-    const dstRect = CanvasKit.XYWHRect(
-        Math.ceil(dx),
-        Math.ceil(dy),
-        paragraph.skImageWidth! / TextPaintService.pixelRatio,
-        paragraph.skImageHeight! / TextPaintService.pixelRatio
-    );
-    // const skPaint = drawParagraphSharedPaint ?? new CanvasKit.Paint();
-    // drawParagraphSharedPaint = skPaint;
-
-    // skCanvas.drawImageRect(canvasImg, srcRect, dstRect, skPaint);
-    skCanvas.drawImageRect(canvasImg, srcRect, dstRect, new CanvasKit.Paint());
-    // if (logger.profileMode) {
-    //   const drawCostTime = new Date().getTime() - drawStartTime;
-    //   logger.profile("drawParagraph cost", drawCostTime);
-    // }
-};
-
 export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph {
     iconFontMap?: Record<string, string>;
+
+    private _textLayout = new TextLayoutService(this);
+    private _painter = new TextPaintService(this);
 
     constructor(
         readonly spans: Span[],
@@ -1072,20 +999,6 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         }
     }
 
-    delete(): void {
-        if (this.skImageCache) {
-            this.skImageCache.delete();
-            this.skImageCache = undefined;
-        }
-        super.delete();
-    }
-
-    // public _type = "SkParagraph";
-    public isMiniTex = true;
-    public skImageCache?: SkEmbindObject<"Image">;
-    public skImageWidth?: number;
-    public skImageHeight?: number;
-    private _textLayout = new TextLayoutService(this);
 
     didExceedMaxLines(): boolean {
         return this._textLayout.didExceedMaxLines;
@@ -1374,10 +1287,6 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
      * @param width
      */
     layout(width: number): void {
-        // if (this.skImageCache) {
-        //   this.skImageCache.delete();
-        // }
-        // this.skImageCache = undefined;
         this._textLayout.layout(width);
     }
 
@@ -1388,6 +1297,10 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
     unresolvedCodepoints(): number[] {
         throw new Error("Not implemented");
         return [];
+    }
+
+    draw(context: CanvasRenderingContext2D, pixelRatio: number = 1.0):ImageData  {
+        return this._painter.draw(context, pixelRatio)
     }
 }
 
@@ -1419,8 +1332,6 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
     constructor(readonly style: ParagraphStyle, readonly iconFontData?: string) {
         super("ParagraphBuilder")
     }
-
-    // isMiniTex = true;
 
     private spans: Span[] = [];
     private styles: TextStyle[] = [];

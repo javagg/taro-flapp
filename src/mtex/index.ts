@@ -1,37 +1,36 @@
-// Copyright 2023 The MPFlutter Authors. All rights reserved.
-// Use of this source code is governed by a Apache License Version 2.0 that can be
-// found in the LICENSE file.
-
-import { drawParagraph, _ParagraphBuilder } from "./impl";
-
+import { _ParagraphBuilder, _Paragraph } from "./impl";
+// import { _ParagraphBuilder, _Paragraph } from "./newimpl";
 import {
   _ParagraphBuilderFactory,
   _FontCollectionFactory, _FontMgrFactory, _TypefaceFactory,
   _TypefaceFontProviderFactory, _TypefaceFontProvider, _Font, _FontMgr,
   _ParagraphStyle, _FontCollection, _Typeface,
   _TextStyle,
-  // _Paragraph, _ParagraphBuilder, drawParagraph,
-
 } from './mite'
 
-import {
-  // CanvasK
-  type TextStyle,
-  type ParagraphStyle,
-  CanvasKit
+import type {
+   TextStyle,
+   ParagraphStyle,
+  CanvasKit, 
 } from './canvaskit'
+
+import { createCanvas} from './util'
 
 import { _ParagraphEnums, _ParagraphConstants } from "./bass";
 
+const pixelRatio = 1.0;
+const sharedRenderCanvas = createCanvas(
+    Math.min(4000, 1000 * pixelRatio),
+    Math.min(4000, 1000 * pixelRatio)
+);
+const sharedRenderContext = sharedRenderCanvas!.getContext("2d")!
+
 export function install(
   canvasKit: CanvasKit,
-  pixelRatio: number,
-  embeddingFonts: string[],
-  iconFonts?: Record<string, string>
+  // pixelRatio: number,
+  // embeddingFonts: string[],
+  // iconFonts?: Record<string, string>
 ) {
-  // console.log(globalThis)
-  // if (typeof canvasKit.ParagraphBuilder === "undefined") {
-  // installPolyfill(canvasKit);
   canvasKit.ParagraphBuilder = _ParagraphBuilder; //new _ParagraphBuilderFactory();
   canvasKit.FontCollection = _FontCollection; // new _FontCollectionFactory();
   canvasKit.FontMgr = _FontMgr; //new _FontMgrFactory();
@@ -44,51 +43,25 @@ export function install(
   Object.assign(canvasKit, _ParagraphEnums);
   Object.assign(canvasKit, _ParagraphConstants);
 
-  // ParagraphBuilder.usingPolyfill = true;
-  // }
-  // logger.profileMode = true;
-  // logger.setLogLevel(LogLevel.ERROR);
-  // Drawer.pixelRatio = pixelRatio;
-
-
   canvasKit.Canvas.prototype.drawParagraph = function (
-    paragraph: any,
+    paragraph: _Paragraph,
     dx: number,
     dy: number
   ) {
-    drawParagraph(canvasKit, this, paragraph, dx, dy);
-
-    // let canvasImg = paragraph.skImageCache;
-    // if (!canvasImg) {
-    //   const drawer = new Drawer(paragraph);
-    //   const imageData = drawer.draw();
-    //   canvasImg = CanvasKit.MakeImage(
-    //     {
-    //       width: imageData.width,
-    //       height: imageData.height,
-    //       alphaType: CanvasKit.AlphaType.Unpremul,
-    //       colorType: CanvasKit.ColorType.RGBA_8888,
-    //       colorSpace: CanvasKit.ColorSpace.SRGB,
-    //     },
-    //     imageData.data,
-    //     4 * imageData.width
-    //   );
-    //   paragraph.skImageCache = canvasImg;
-    //   paragraph.skImageWidth = imageData.width;
-    //   paragraph.skImageHeight = imageData.height;
-    // }
-    // const srcRect = CanvasKit.XYWHRect(
-    //   0,
-    //   0,
-    //   paragraph.skImageWidth!,
-    //   paragraph.skImageHeight!
-    // );
-    // const dstRect = CanvasKit.XYWHRect(
-    //   Math.ceil(dx),
-    //   Math.ceil(dy),
-    //   paragraph.skImageWidth! / Drawer.pixelRatio,
-    //   paragraph.skImageHeight! / Drawer.pixelRatio
-    // );
-    // this.drawImageRect(canvasImg, srcRect, dstRect, new CanvasKit.Paint());
+    const imageData = paragraph.draw(sharedRenderContext, pixelRatio);
+    const w = imageData.width;
+    const h = imageData.height;
+    const img = canvasKit.MakeImage({
+        width: w, height: h,
+        alphaType: canvasKit.AlphaType.Unpremul,
+        colorType: canvasKit.ColorType.RGBA_8888,
+        colorSpace: canvasKit.ColorSpace.SRGB,
+    },
+        imageData.data,
+        4 * imageData.width
+    );
+    const srcRect = canvasKit.XYWHRect(0, 0, w, h,);
+    const dstRect = canvasKit.XYWHRect(Math.ceil(dx), Math.ceil(dy), w / pixelRatio, h / pixelRatio,);
+    this.drawImageRect(img!, srcRect, dstRect, new canvasKit.Paint());
   };
 }

@@ -19,7 +19,7 @@ import {
     RectWithDirection,
     URange,
     Rect,
-    FontWeight,
+    TypefaceFontProvider, FontBlock, FontCollection, FontMgr
 } from "./canvaskit";
 import { Affinity, SkEmbindObject } from "./bass";
 import { TextLayoutService, } from "../mmtex/layout_service";
@@ -30,6 +30,30 @@ import { WordBreaker } from "../mmtex/word_breaker";
 const placeholderChar = String.fromCharCode(0xFFFC);
 
 export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implements ParagraphBuilder {
+
+    static MakeFromFontProvider(style: ParagraphStyle, fontSrc: TypefaceFontProvider): ParagraphBuilder {
+        throw new Error("MakeFromFontProvider not implemented.");
+    }
+
+    static ShapeText(text: string, runs: FontBlock[], width?: number): ShapedLine[] {
+        throw new Error("ShapeText not implemented.");
+    }
+
+    static Make(style: ParagraphStyle, fontManager: FontMgr): ParagraphBuilder {
+        return this.MakeFromFontCollection(style, null);
+    }
+
+    static MakeFromFontCollection(
+        style: ParagraphStyle,
+        fontCollection: FontCollection
+    ): ParagraphBuilder {
+        return new _ParagraphBuilder(style);
+        throw new Error("MakeFromFontCollection not implemented.");
+    }
+
+    static RequiresClientICU(): boolean {
+        return false;
+    }
 
     private _plainTextBuffer: string = ''
     private readonly _paragraphStyle: ParagraphStyle;
@@ -288,7 +312,6 @@ export class _ParagraphBuilder extends SkEmbindObject<"ParagraphBuilder"> implem
         throw new Error("reset not implemented.");
     }
 }
-
 
 export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph {
 
@@ -571,8 +594,10 @@ export class _Paragraph extends SkEmbindObject<"Paragraph"> implements Paragraph
         return true;
     }
 
-    draw(canvas: CanvasRenderingContext2D, dx: number, dy: number): void {
+    draw(canvas: CanvasRenderingContext2D, dx: number, dy: number): ImageData {
         this._paintService.paint(canvas, dx, dy);
+        return null;
+        // return canvas.getImageData(0, 0, w, 1);
     }
 
     // paint(canvas: BitmapCanvas, offset: Offset): void {
@@ -833,7 +858,7 @@ export class EngineTextStyle implements TextStyle {
 /**
  * A strut style with engine-specific features.
  */
-export class EngineStrutStyle {
+class EngineStrutStyle {
     constructor(
         readonly fontFamily?: string,
         readonly fontSize?: number,
@@ -863,7 +888,7 @@ export class EngineStrutStyle {
 /**
  * A placeholder in a paragraph.
  */
-export class ParagraphPlaceholder {
+class ParagraphPlaceholder {
     constructor(
         readonly width: number,
         readonly height: number,
@@ -873,3 +898,45 @@ export class ParagraphPlaceholder {
     ) { }
 }
 
+export const drawParagraph = function (
+    CanvasKit: any,
+    skCanvas: any,
+    paragraph: _Paragraph,
+    dx: number,
+    dy: number
+) {
+    // let canvasImg = paragraph.skImageCache;
+    // if (!canvasImg) {
+    //     const drawer = new TextPaintService(paragraph);
+    //     const imageData = drawer.draw();
+    //     canvasImg = CanvasKit.MakeImage(
+    //         {
+    //             width: imageData.width,
+    //             height: imageData.height,
+    //             alphaType: CanvasKit.AlphaType.Unpremul,
+    //             colorType: CanvasKit.ColorType.RGBA_8888,
+    //             colorSpace: CanvasKit.ColorSpace.SRGB,
+    //         },
+    //         imageData.data,
+    //         4 * imageData.width
+    //     );
+    //     paragraph.skImageCache = canvasImg;
+    //     paragraph.skImageWidth = imageData.width;
+    //     paragraph.skImageHeight = imageData.height;
+    // }
+    // const srcRect = CanvasKit.XYWHRect(
+    //     0,
+    //     0,
+    //     paragraph.skImageWidth!,
+    //     paragraph.skImageHeight!
+    // );
+    // const dstRect = CanvasKit.XYWHRect(
+    //     Math.ceil(dx),
+    //     Math.ceil(dy),
+    //     paragraph.skImageWidth! / TextPaintService.pixelRatio,
+    //     paragraph.skImageHeight! / TextPaintService.pixelRatio
+    // );
+
+    // skCanvas.drawImageRect(canvasImg, srcRect, dstRect, new CanvasKit.Paint());
+
+};
