@@ -1,9 +1,8 @@
 import { EllipsisFragment, LayoutFragment, LayoutFragmenter } from './layout_fragmenter';
 import { LineBreakType } from './line_breaker';
 import { GlyphInfo, PositionWithAffinity, Rect, RectWithDirection, TextDirection as TextDirectionType } from '@/mtex/canvaskit';
-import { TextDirection, TextAlign, PlaceholderAlignment, Affinity } from './dom';
-import { _Paragraph, ParagraphSpan, PlaceholderSpan } from './engine';
-import { createDomCanvasElement } from './dom';
+import { TextDirection, TextAlign, PlaceholderAlignment, Affinity, createDomCanvasElement } from '../mtex/bass';
+import { _Paragraph, ParagraphSpan, PlaceholderSpan } from '../mtex/newimpl';
 import { ParagraphLine } from './paragraph';
 import { FragmentFlow } from './text_direction';
 import { baselineRatioHack, measureSubstring } from './measurement';

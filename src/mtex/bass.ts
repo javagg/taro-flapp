@@ -1,5 +1,6 @@
 import {
     EmbindObject,
+    Color,
     TextAlignEnumValues, AffinityEnumValues,
     DecorationStyleEnumValues,
     FontSlantEnumValues,
@@ -10,7 +11,24 @@ import {
     TextBaselineEnumValues,
     TextDirectionEnumValues,
     TextHeightBehaviorEnumValues,
+    StrokeCap as StrokeCapType,
+    StrokeJoin as StrokeJoinType,
+    StrokeCapEnumValues,
+    StrokeJoinEnumValues,
 } from './canvaskit'
+
+export function createDomCanvasElement(width?: number, height?: number): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    if (width) canvas.width = width;
+    if (height) canvas.height = height;
+    return canvas;
+}
+
+export function clampInt(value: number, min: number, max: number): number {
+    if (min > max) throw new Error("min must be less than or equal to max");
+    return Math.min(Math.max(value, min), max);
+}
+
 
 export const mapKeys = <T extends object>(obj: T) =>
     Object.keys(obj) as (keyof T)[];
@@ -171,11 +189,29 @@ export const _ParagraphEnums = {
     TextHeightBehavior,
 }
 
+// other enums
+export enum StrokeCapEnum {
+    Butt,
+    Round,
+    Square,
+}
+export const StrokeCap = makeEnum<StrokeCapEnumValues>(StrokeCapEnum);
+
+export enum StrokeJoinEnum {
+    Bevel,
+    Miter,
+    Round,
+}
+export const StrokeJoin = makeEnum<StrokeJoinEnumValues>(StrokeJoinEnum);
+
+
+StrokeJoin
 
 export const NoDecoration=0
 export const UnderlineDecoration=1
 export const OverlineDecoration=2
 export const LineThroughDecoration=3
+
 // // Paragraph Constants
 export const _ParagraphConstants = {
     NoDecoration,
@@ -216,7 +252,7 @@ export class _Paint extends SkEmbindObject<"Paint"> {
         return newValue;
     }
 
-    private _color: Color = valueOfRGBAInt(0, 0, 0, 255);
+    private _color: Color = Float32Array.of(0, 0, 0, 255);
 
     /**
      * Retrieves the alpha and RGB unpremultiplied. RGB are extended sRGB values
@@ -231,7 +267,7 @@ export class _Paint extends SkEmbindObject<"Paint"> {
     /**
      * Returns the geometry drawn at the beginning and end of strokes.
      */
-    getStrokeCap(): StrokeCap {
+    getStrokeCap(): StrokeCapType {
         return this._strokeCap;
     }
 
@@ -240,7 +276,7 @@ export class _Paint extends SkEmbindObject<"Paint"> {
     /**
      * Returns the geometry drawn at the corners of strokes.
      */
-    getStrokeJoin(): StrokeJoin {
+    getStrokeJoin(): StrokeJoinType {
         return this._strokeJoin;
     }
 
@@ -324,7 +360,7 @@ export class _Paint extends SkEmbindObject<"Paint"> {
      * @param colorSpace - defaults to sRGB
      */
     setColorComponents(r: number, g: number, b: number, a: number): void {
-        this.setColor(valueOfRGBAInt(r, g, b, a));
+        this.setColor(Float32Array.of(r, g, b, a));
     }
 
     /**
@@ -375,7 +411,7 @@ export class _Paint extends SkEmbindObject<"Paint"> {
      * Sets the geometry drawn at the beginning and end of strokes.
      * @param cap
      */
-    setStrokeCap(cap: StrokeCap): void {
+    setStrokeCap(cap: StrokeCapType): void {
         this._strokeCap = cap;
     }
 
@@ -383,7 +419,7 @@ export class _Paint extends SkEmbindObject<"Paint"> {
      * Sets the geometry drawn at the corners of strokes.
      * @param join
      */
-    setStrokeJoin(join: StrokeJoin): void {
+    setStrokeJoin(join: StrokeJoinType): void {
         this._strokeJoin = join;
     }
 

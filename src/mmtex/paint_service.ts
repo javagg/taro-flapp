@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import { LayoutFragment } from './layout_fragmenter';
-import { _Paragraph, } from './engine';
+import { _Paragraph, } from '../mtex/newimpl';
 import { ParagraphLine } from './paragraph';
-import { TextDirection } from './dom';
+import { TextDirection } from '../mtex/bass';
 
 
  export class TextPaintService {

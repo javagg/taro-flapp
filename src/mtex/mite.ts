@@ -1,4 +1,4 @@
-import { _ParagraphBuilder } from "./adapter/paragraph_builder";
+import { _ParagraphBuilder } from "./impl";
 import {
   FontBlock, FontCollection,
   FontMgrFactory,

@@ -1,10 +1,13 @@
 import { LineBreakFragmenter, LineBreakType, } from './line_breaker';
-import { _Paragraph, ParagraphSpan, PlaceholderSpan } from './engine'
+import { _Paragraph, ParagraphSpan, PlaceholderSpan } from '../mtex/newimpl'
 import { Spanometer } from './layout_service';
 import { BidiFragmenter, FragmentFlow } from './text_direction';
-import { clampInt, TextDirection } from './dom';
+import { clampInt, TextDirection } from '../mtex/bass';
 import { TextFragment } from './fragmenter';
-import type { GlyphInfo, RectWithDirection, TextDirection as TextDirectionType, TextStyle } from '@/mtex/canvaskit';
+import type {
+    GlyphInfo, RectWithDirection, TextDirection as TextDirectionType, TextStyle,
+    // TextPosition as  TextPositionType
+} from '../mtex/canvaskit';
 import { ParagraphLine } from './paragraph';
 
 class _CombinedFragment extends TextFragment {
@@ -264,7 +267,7 @@ export class LayoutFragment extends _CombinedFragment {
         };
     }
 
-    getPositionForX(x: number):  TextPosition {
+    getPositionForX(x: number): TextPositionType {
         x = this._makeXDirectionAgnostic(x);
 
         const startIndex = this.start;
@@ -283,10 +286,7 @@ export class LayoutFragment extends _CombinedFragment {
         }
 
         this._spanometer.currentSpan = this.span;
-        // ... remaining implementation ...
     }
-
-    // ... existing code ...
 
     private _makeXDirectionAgnostic(x: number): number {
         return this.textDirection === TextDirection.LTR

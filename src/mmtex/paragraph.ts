@@ -1,12 +1,15 @@
-import { TextDirection, ParagraphStyle, TextHeightBehavior, FontWeight, FontStyle, StrutStyle, TextAlign, TextStyle, URange } from "@/mtex/canvaskit";
-import { _Paragraph, EngineLineMetrics, EngineStrutStyle } from "./engine";
+import { ParagraphStyle, TextHeightBehavior, FontWeight, FontStyle, StrutStyle,
+   TextAlign as TextAlignType, TextStyle, URange,
+   TextDirection as TextDirectionType
+  } from "../mtex/canvaskit";
+import { _Paragraph, EngineLineMetrics, EngineStrutStyle } from "../mtex/newimpl";
 import { EllipsisFragment, LayoutFragment } from "./layout_fragmenter";
-
+import { TextAlign,TextDirection } from "../mtex/bass";
 
 export class EngineParagraphStyle implements ParagraphStyle {
   constructor(
-    public textAlign?: TextAlign,
-    public textDirection?: TextDirection,
+    public textAlign?: TextAlignType,
+    public textDirection?: TextDirectionType,
     public maxLines?: number,
     public fontFamily?: string,
     public fontSize?: number,
@@ -27,12 +30,12 @@ export class EngineParagraphStyle implements ParagraphStyle {
   private _strutStyle?: EngineStrutStyle;
   public height?: number | null;
 
-  get effectiveTextAlign(): TextAlign {
-    return this.textAlign ?? TextAlign.start;
+  get effectiveTextAlign(): TextAlignType {
+    return this.textAlign ?? TextAlign.Start;
   }
 
-  get effectiveTextDirection(): TextDirection {
-    return this.textDirection ?? TextDirection.ltr;
+  get effectiveTextDirection(): TextDirectionType {
+    return this.textDirection ?? TextDirection.LTR;
   }
 
   get lineHeight(): number | undefined {
@@ -248,7 +251,7 @@ export class ParagraphLine {
     public readonly spaceCount: number,
     public readonly widthWithTrailingSpaces: number,
     public readonly fragments: LayoutFragment[],
-    public readonly textDirection: TextDirection,
+    public readonly textDirection: TextDirectionType,
     public readonly paragraph: _Paragraph,
     public readonly displayText?: string
   ) {

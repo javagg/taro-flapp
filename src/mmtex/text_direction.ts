@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import { TextDirection as TextDirectionType } from '@/mtex/canvaskit';
-import { TextDirection } from './dom';
+import { TextDirection as TextDirectionType } from '../mtex/canvaskit';
+import { TextDirection } from '../mtex/bass';
 import { TextFragmenter, TextFragment } from './fragmenter';
 import { UnicodePropertyLookup, UnicodeRange, getCodePoint } from './unicode_range';
 

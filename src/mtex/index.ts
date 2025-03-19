@@ -2,7 +2,7 @@
 // Use of this source code is governed by a Apache License Version 2.0 that can be
 // found in the LICENSE file.
 
-import { drawParagraph, _ParagraphBuilder } from "./adapter/paragraph_builder";
+import { drawParagraph, _ParagraphBuilder } from "./impl";
 
 import {
   _ParagraphBuilderFactory,
