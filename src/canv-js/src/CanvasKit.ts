@@ -76,6 +76,7 @@ import { normalizeArray } from "./Core/Values";
 import { TextBlobFactory } from "./TextBlob";
 import { PathEffectFactory } from "./PathEffect";
 import { ColorMatrixHelpers } from "./ColorFilter";
+import { CanvasJS } from "./Canvas/Canvas";
 
 let ctxId = 1;
 
@@ -361,6 +362,8 @@ export class CanvasKitJS extends CoreCanvasKit implements ICanvasKit {
   ColorMatrix = ColorMatrixHelpers;
   TextBlob = TextBlobFactory;
 
+  Canvas = CanvasJS
+  
   // The methods below are specific to canvaskit-js
   MakeImageFromURIAsync(url: string) {
     const img = new window.Image();
@@ -392,7 +395,7 @@ export class CanvasKitJS extends CoreCanvasKit implements ICanvasKit {
     return this.MakeImageFromURIAsync(url);
   }
 
-  get Canvas(): Canvas | null {
-    return this.surface?.getCanvas()
-  }
+  // get Canvas(): Canvas | null {
+  //   return this.surface?.getCanvas()
+  // }
 }

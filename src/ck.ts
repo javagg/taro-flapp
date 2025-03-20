@@ -11,8 +11,7 @@ export async function ckload() {
   
   const CanvasKitInit = m.default
   const kit = await CanvasKitInit() // used when canvaskit shipped with flutter, good for h5
-  console.log(kit)
-  console.log(kit.Canvas)
+
   if (process.env.TARO_ENV !== 'h5') {
     const oldGetWebGLContext = kit.GetWebGLContext
     kit.GetWebGLContext = function (canvas, attrs) {
