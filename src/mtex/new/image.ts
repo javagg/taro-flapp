@@ -1,19 +1,22 @@
+import { SkEmbindObject } from "../bass";
 import type {
     ColorSpace,
-    EmbindEnumEntity,
     EncodedImageFormat,
+    FilterMode,
     Image,
     ImageInfo,
     InputMatrix,
     MallocObj,
+    MipmapMode,
     PartialImageInfo,
     Shader,
-} from "canvaskit-wasm";
+    TileMode,
+} from "../canvaskit";
 
-import { ImageFormatEnum } from "./Core";
-import { HostObject } from "./HostObject";
-import { createTexture } from "./Core/Platform";
-import { ImageShader } from "./Shader/ImageShader";
+// import { ImageFormatEnum } from "./Core";
+// import { HostObject } from "./HostObject";
+// import { createTexture } from "./Core/Platform";
+// import { ImageShader } from "./Shader/ImageShader";
 
 const dataURLToByteArray = (dataUrl: string) => {
     // split the data URL at the comma to separate the metadata from the data
@@ -37,7 +40,7 @@ const dataURLToByteArray = (dataUrl: string) => {
 /**
  * See SkImage.h for more information on this class.
  */
-export class ImageJS extends HostObject<"Image"> implements Image {
+export class ImageJS extends SkEmbindObject<"Image"> implements Image {
     private image: HTMLCanvasElement;
 
     constructor(source: CanvasImageSource | ImageData) {
@@ -68,12 +71,12 @@ export class ImageJS extends HostObject<"Image"> implements Image {
     }
 
     /**
-   * Encodes this image's pixels to the specified format and returns them. Must be built with
-   * the specified codec. If the options are unspecified, sensible defaults will be
-   * chosen.
-   * @param fmt - PNG is the default value.
-   * @param quality - a value from 0 to 100; 100 is the least lossy. May be ignored.
-   */
+     * Encodes this image's pixels to the specified format and returns them. Must be built with
+     * the specified codec. If the options are unspecified, sensible defaults will be
+     * chosen.
+     * @param fmt - PNG is the default value.
+     * @param quality - a value from 0 to 100; 100 is the least lossy. May be ignored.
+     */
     encodeToBytes(fmt?: EncodedImageFormat, quality?: number): Uint8Array | null {
         // Get a data URL.
         let mime = "image/png";
@@ -87,9 +90,9 @@ export class ImageJS extends HostObject<"Image"> implements Image {
     }
 
     /**
-   * Returns the color space associated with this object.
-   * It is the user's responsibility to call delete() on this after it has been used.
-   */
+     * Returns the color space associated with this object.
+     * It is the user's responsibility to call delete() on this after it has been used.
+     */
     getColorSpace(): ColorSpace {
         throw new Error("getColorSpace not implemented.");
     }
@@ -110,7 +113,6 @@ export class ImageJS extends HostObject<"Image"> implements Image {
     /**
    * Return the height in pixels of the image.
    */
-
     height(): number {
         return this.image.height;
     }
@@ -123,66 +125,53 @@ export class ImageJS extends HostObject<"Image"> implements Image {
     }
 
     /**
-   * Returns this image as a shader with the specified tiling. It will use cubic sampling.
-   * @param tx - tile mode in the x direction.
-   * @param ty - tile mode in the y direction.
-   * @param B - See CubicResampler in SkSamplingOptions.h for more information
-   * @param C - See CubicResampler in SkSamplingOptions.h for more information
-   * @param localMatrix
-   */
-    makeShaderCubic(
-        _tx: EmbindEnumEntity,
-        _ty: EmbindEnumEntity,
-        _B: number,
-        _C: number,
-        localMatrix?: InputMatrix | undefined
-    ): Shader {
+     * Returns this image as a shader with the specified tiling. It will use cubic sampling.
+     * @param tx - tile mode in the x direction.
+     * @param ty - tile mode in the y direction.
+     * @param B - See CubicResampler in SkSamplingOptions.h for more information
+     * @param C - See CubicResampler in SkSamplingOptions.h for more information
+     * @param localMatrix
+     */
+    makeShaderCubic(tx: TileMode, ty: TileMode, B: number, C: number,
+        localMatrix?: InputMatrix): Shader {
+        throw new Error("Method not implemented.");
         return new ImageShader(this.image, localMatrix);
     }
     /**
-   * Returns this image as a shader with the specified tiling. It will use cubic sampling.
-   * @param tx - tile mode in the x direction.
-   * @param ty - tile mode in the y direction.
-   * @param fm - The filter mode.
-   * @param mm - The mipmap mode. Note: for settings other than None, the image must have mipmaps
-   *             calculated with makeCopyWithDefaultMipmaps;
-   * @param localMatrix
-   */
-    makeShaderOptions(
-        _tx: EmbindEnumEntity,
-        _ty: EmbindEnumEntity,
-        _fm: EmbindEnumEntity,
-        _mm: EmbindEnumEntity,
-        localMatrix?: InputMatrix | undefined
-    ): Shader {
+     * Returns this image as a shader with the specified tiling. It will use cubic sampling.
+     * @param tx - tile mode in the x direction.
+     * @param ty - tile mode in the y direction.
+     * @param fm - The filter mode.
+     * @param mm - The mipmap mode. Note: for settings other than None, the image must have mipmaps
+     *             calculated with makeCopyWithDefaultMipmaps;
+     * @param localMatrix
+     */
+    makeShaderOptions(tx: TileMode, ty: TileMode, fm: FilterMode, mm: MipmapMode,
+        localMatrix?: InputMatrix): Shader {
+        throw new Error("Method not implemented.");
         return new ImageShader(this.image, localMatrix);
     }
 
     /**
-   * Returns a TypedArray containing the pixels reading starting at (srcX, srcY) and does not
-   * exceed the size indicated by imageInfo. See SkImage.h for more on the caveats.
-   *
-   * If dest is not provided, we allocate memory equal to the provided height * the provided
-   * bytesPerRow to fill the data with.
-   *
-   * @param srcX
-   * @param srcY
-   * @param imageInfo - describes the destination format of the pixels.
-   * @param dest - If provided, the pixels will be copied into the allocated buffer allowing
-   *        access to the pixels without allocating a new TypedArray.
-   * @param bytesPerRow - number of bytes per row. Must be provided if dest is set. This
-   *        depends on destination ColorType. For example, it must be at least 4 * width for
-   *        the 8888 color type.
-   * @returns a TypedArray appropriate for the specified ColorType. Note that 16 bit floats are
-   *          not supported in JS, so that colorType corresponds to raw bytes Uint8Array.
-   */
-    readPixels(
-        _srcX: number,
-        _srcY: number,
-        _imageInfo: ImageInfo,
-        _dest?: MallocObj | undefined,
-        _bytesPerRow?: number | undefined
-    ): Float32Array | Uint8Array | null {
+     * Returns a TypedArray containing the pixels reading starting at (srcX, srcY) and does not
+     * exceed the size indicated by imageInfo. See SkImage.h for more on the caveats.
+     *
+     * If dest is not provided, we allocate memory equal to the provided height * the provided
+     * bytesPerRow to fill the data with.
+     *
+     * @param srcX
+     * @param srcY
+     * @param imageInfo - describes the destination format of the pixels.
+     * @param dest - If provided, the pixels will be copied into the allocated buffer allowing
+     *        access to the pixels without allocating a new TypedArray.
+     * @param bytesPerRow - number of bytes per row. Must be provided if dest is set. This
+     *        depends on destination ColorType. For example, it must be at least 4 * width for
+     *        the 8888 color type.
+     * @returns a TypedArray appropriate for the specified ColorType. Note that 16 bit floats are
+     *          not supported in JS, so that colorType corresponds to raw bytes Uint8Array.
+     */
+    readPixels(srcX: number, srcY: number, imageInfo: ImageInfo, dest?: MallocObj,
+        bytesPerRow?: number): Float32Array | Uint8Array | null {
         throw new Error("Method not implemented.");
     }
 

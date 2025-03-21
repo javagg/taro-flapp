@@ -1,74 +1,59 @@
 import type {
-    ColorIntArray,
-    CubicResampler,
-    FilterOptions,
     Image,
+    Canvas,
     ImageInfo,
-    InputFlattenedPointArray,
-    InputFlattenedRSXFormArray,
-    InputFlattenedRectangleArray,
-    InputGlyphIDArray,
     InputIRect,
-    InputMatrix,
-    InputRRect,
-    InputRect,
-    InputVector3,
-    MallocObj,
-    Paragraph,
-    Paint as CKPaint,
+    PartialImageInfo,
     Surface,
-    TextBlob,
-    Vertices,
-    Canvas as CKCanvas,
-    Path,
+    TextureSource,
+    InputRect,
     ClipOp,
-    Paint,
+    InputRRect,
+    InputMatrix,
     AngleInDegrees,
+    Paint,
+    InputFlattenedRectangleArray,
+    InputFlattenedRSXFormArray,
+    BlendMode,
+    CubicResampler,
+    ColorIntArray,
+    FilterOptions,
+    InputColor,
     ColorInt,
-    Font,
+    InputGlyphIDArray,
+    InputFlattenedPointArray,
     MipmapMode,
     FilterMode,
+    Paragraph,
+    Path,
     Color,
+    SkPicture,
     PointMode,
+    InputVector3,
+    TextBlob,
+    Vertices,
     IRect,
     Matrix4x4,
+    ImageFilter,
     SaveLayerFlag,
+    AlphaType,
     ColorType,
     ColorSpace,
-    AlphaType,
-} from "canvaskit-wasm";
+} from "../canvaskit";
 
-import {
-    Canvas as NativeCanvas,
-    Path as NativePath,
-    DrawableFill,
-    DrawableText,
-    DrawableDRRect,
-    DrawableImageRect,
-    DrawableImage,
-    ImageFilter,
-} from "../c2d";
-import { PaintJS } from "../Paint";
-import type { InputColor } from "../Core";
-import {
-    intAsColor,
-    rectToXYWH,
-    rrectToXYWH,
-    rrectToPath2D,
-    BlendMode,
-} from "../Core";
-import { HostObject } from "../HostObject";
-import { nativeMatrix } from "../Core/Matrix";
-import { PathJS } from "../Path";
-// import type { ImageJS } from "../Image";
-// import type { ImageFilterJS } from "../ImageFilter";
-// import type { FontJS } from "../Text";
-// import type { PictureJS } from "../Picture";
+//   import { IndexedHostObject } from "./HostObject";
+//   import { CanvasJS } from "./Canvas";
+//   import { ImageJS } from "./Image";
+//   import { rectToXYWH } from "./Core";
+//   import { CanvasProxyHandler } from "./Core/CanvasProxyHandler";
+import { SkEmbindObject } from "../bass";
+import { ImageJS } from "./image";
+import { intAsColor } from "./color";
 
 /**
  * See SkCanvas.h for more information on this class.
  */
-export class CanvasJS extends HostObject<"Canvas"> implements CKCanvas {
+export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
     private ctx: NativeCanvas;
     private width: number;
     private height: number;
@@ -150,7 +135,12 @@ export class CanvasJS extends HostObject<"Canvas"> implements CKCanvas {
     private _clip(path: NativePath) {
         this.ctx.clip(path);
     }
-    concat(m: InputMatrix) {
+
+    /**
+ * Replaces current matrix with m premultiplied with the existing matrix.
+ * @param m
+ */
+    concat(m: InputMatrix): void {
         const m3 = nativeMatrix(m);
         this.ctx.concat(m3);
     }
@@ -192,7 +182,7 @@ export class CanvasJS extends HostObject<"Canvas"> implements CKCanvas {
     drawAtlas(atlas: Image, srcRects: InputFlattenedRectangleArray,
         dstXforms: InputFlattenedRSXFormArray, paint: Paint,
         blendMode?: BlendMode | null, colors?: ColorIntArray | null,
-        sampling?: CubicResampler | FilterOptions): voi {
+        sampling?: CubicResampler | FilterOptions): void {
         throw new Error("Method not implemented.");
     }
 
@@ -793,5 +783,182 @@ export class CanvasJS extends HostObject<"Canvas"> implements CKCanvas {
         destX: number, destY: number, alphaType?: AlphaType, colorType?: ColorType,
         colorSpace?: ColorSpace): boolean {
         throw new Error("writePixels not implemented.");
+    }
+}
+
+export class SurfaceJS extends SkEmbindObject<"Surface"> implements Surface {
+    private canvas: Canvas;
+    private ctx: CanvasRenderingContext2D;
+    // private proxyHandler: CanvasProxyHandler | null = null;
+
+    constructor(ctx: CanvasRenderingContext2D, debug = false) {
+        super("Surface");
+        if (debug) {
+            this.proxyHandler = new CanvasProxyHandler();
+            this.ctx = new Proxy(ctx, this.proxyHandler);
+        } else {
+            this.ctx = ctx;
+        }
+        this.canvas = new CanvasJS(this.ctx);
+    }
+    /**
+     * A convenient way to draw exactly once on the canvas associated with this surface.
+     * This requires an environment where a global function called requestAnimationFrame is
+     * available (e.g. on the web, not on Node). Users do not need to flush the surface,
+     * or delete/dispose of it as that is taken care of automatically with this wrapper.
+     *
+     * Node users should call getCanvas() and work with that canvas directly.
+     */
+    drawOnce(drawFrame: (_: Canvas) => void): void {
+        this.requestAnimationFrame(drawFrame);
+    }
+
+    /**
+     * Clean up the surface and any extra memory.
+     * [Deprecated]: In the future, calls to delete() will be sufficient to clean up the memory.
+     */
+    dispose(): void {
+        // TODO: dispose of the SVG resource
+        //this.svgCtx.dispose();
+    }
+    /**
+     * Make sure any queued draws are sent to the screen or the GPU.
+     */
+    flush(): void {
+        //   if (this.proxyHandler) {
+        //     this.proxyHandler.flush();
+        //   }
+    }
+    /**
+     * Return a canvas that is backed by this surface. Any draws to the canvas will (eventually)
+     * show up on the surface. The returned canvas is owned by the surface and does NOT need to
+     * be cleaned up by the client.
+     */
+    getCanvas(): Canvas {
+        return this.canvas;
+    }
+    height(): number {
+        return this.ctx.canvas.height;
+    }
+    /**
+     * Returns the ImageInfo associated with this surface.
+     */
+    imageInfo(): ImageInfo {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Creates an Image from the provided texture and info. The Image will own the texture;
+     * when the image is deleted, the texture will be cleaned up.
+     * @param tex
+     * @param info - describes the content of the texture.
+     */
+    makeImageFromTexture(tex: WebGLTexture, info: ImageInfo): Image | null {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Returns a texture-backed image based on the content in src. It uses RGBA_8888, unpremul
+     * and SRGB - for more control, use makeImageFromTexture.
+     *
+     * The underlying texture for this image will be created immediately from src, so
+     * it can be disposed of after this call. This image will *only* be usable for this
+     * surface (because WebGL textures are not transferable to other WebGL contexts).
+     * For an image that can be used across multiple surfaces, at the cost of being lazily
+     * loaded, see MakeLazyImageFromTextureSource.
+     *
+     * Not available for software-backed surfaces.
+     * @param src
+     * @param info - If provided, will be used to determine the width/height/format of the
+     *               source image. If not, sensible defaults will be used.
+     * @param srcIsPremul - set to true if the src data has premultiplied alpha. Otherwise, it will
+     *               be assumed to be Unpremultiplied. Note: if this is true and info specifies
+     *               Unpremul, Skia will not convert the src pixels first.
+     */
+    makeImageFromTextureSource(src: TextureSource, info?: ImageInfo | PartialImageInfo,
+        srcIsPremul?: boolean): Image | null {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Returns current contents of the surface as an Image. This image will be optimized to be
+     * drawn to another surface of the same type. For example, if this surface is backed by the
+     * GPU, the returned Image will be backed by a GPU texture.
+     */
+    makeImageSnapshot(_bounds?: InputIRect): Image {
+        const bounds = _bounds
+            ? rectToXYWH(_bounds)
+            : {
+                x: 0,
+                y: 0,
+                width: this.width(),
+                height: this.height(),
+            };
+        const data = this.ctx.getImageData(
+            bounds.x,
+            bounds.y,
+            bounds.width,
+            bounds.height
+        );
+        return new ImageJS(data);
+    }
+
+    /**
+     * Returns a compatible Surface, haring the same raster or GPU properties of the original.
+     * The pixels are not shared.
+     * @param info - width, height, etc of the Surface.
+     */
+    makeSurface(info: ImageInfo): Surface {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Returns if this Surface is a GPU-backed surface or not.
+     */
+    reportBackendTypeIsGPU(): boolean {
+        return true;
+    }
+
+    /**
+     * A convenient way to draw multiple frames on the canvas associated with this surface.
+     * This requires an environment where a global function called requestAnimationFrame is
+     * available (e.g. on the web, not on Node). Users do not need to flush the surface,
+     * as that is taken care of automatically with this wrapper.
+     *
+     * Users should probably call surface.requestAnimationFrame in the callback function to
+     * draw multiple frames, e.g. of an animation.
+     *
+     * Node users should call getCanvas() and work with that canvas directly.
+     *
+     * Returns the animation id.
+     */
+    requestAnimationFrame(drawFrame: (_: Canvas) => void): number {
+        return requestAnimationFrame(() => {
+            drawFrame(this.canvas);
+        });
+    }
+    /**
+     * If this surface is GPU-backed, return the sample count of the surface.
+     */
+    sampleCnt(): number {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Updates the underlying GPU texture of the image to be the contents of the provided
+     * TextureSource. Has no effect on CPU backend or if img was not created with either
+     * makeImageFromTextureSource or makeImageFromTexture.
+     * If the provided TextureSource is of different dimensions than the Image, the contents
+     * will be deformed (e.g. squished). The ColorType, AlphaType, and ColorSpace of src should
+     * match the original settings used to create the Image or it may draw strange.
+     *
+     * @param img - A texture-backed Image.
+     * @param src - A valid texture source of any dimensions.
+     * @param srcIsPremul - set to true if the src data has premultiplied alpha. Otherwise, it will
+     *               be assumed to be Unpremultiplied. Note: if this is true and the image was
+     *               created with Unpremul, Skia will not convert.
+     */
+    updateTextureFromSource(img: Image, src: TextureSource, srcIsPremul?: boolean): void {
+        throw new Error("Method not implemented.");
+    }
+    width(): number {
+        return this.ctx.canvas.width;
     }
 }

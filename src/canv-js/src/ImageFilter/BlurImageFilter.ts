@@ -2,6 +2,7 @@ import { makeBlur } from "../c2d";
 
 import { ImageFilterJS } from "./ImageFilter";
 
+
 export class BlurImageFilter extends ImageFilterJS {
   constructor(
     readonly sigmaX: number,

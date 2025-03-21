@@ -1,40 +1,19 @@
-import type {
-    Path as SkPath,
-    EmbindEnumEntity,
-    InputCommands,
-    InputFlattenedPointArray,
-    VerbList,
-    WeightList,
-    InputRRect,
-    InputRect,
-    StrokeOpts,
-    Path, AngleInDegrees,
-    AngleInRadians,
-    Rect,
-    Point,
-    PathOp, FillType,
-} from "canvaskit-wasm";
-
-import { vec, type Path as NativePath, toRad } from "../c2d";
-import { HostObject } from "../HostObject";
-import { transformPoint, type Matrix3x3 } from "../Core/Matrix";
-import {
-    // FillType,
-    FillTypeEnum,
-    PathVerb,
-    normalizeArray,
-    rectToXYWH,
-    rrectToXYWH,
-} from "../Core";
-
-import { PathBuilder } from "./PathBuilder";
-import { parseSVG } from "./SVG";
-import { DashPathEffect, TrimPathEffect } from "./PathEffects";
-
+// import { vec } from "@/canv-js/src/c2d";
+// import { rectToXYWH, rrectToXYWH, FillType, FillTypeEnum, PathVerb } from "@/canv-js/src/Core";
+// import { PathBuilder } from "@/canv-js/src/Path/PathBuilder";
+// import { DashPathEffect, TrimPathEffect } from "@/canv-js/src/Path/PathEffects";
+// import { parseSVG } from "@/canv-js/src/Path/SVG";
+import { relative } from "path";
+import { SkEmbindObject } from "../bass";
+import { AngleInDegrees, AngleInRadians, EmbindEnumEntity,
+     FillType, InputCommands, InputFlattenedPointArray, InputRect,
+      InputRRect, Path, PathOp, Point, Rect, StrokeOpts, VerbList, WeightList } from "../canvaskit";
+import { normalizeArray, transformPoint } from "./draw";
+import { toRad } from "./math";
 /**
  * See SkPath.h for more information on this class.
  */
-export class PathJS extends HostObject<"Path"> implements SkPath {
+export class PathJS extends SkEmbindObject<"Path"> implements Path {
     private path: PathBuilder;
     private fillType: CanvasFillRule = "nonzero";
 
@@ -733,7 +712,13 @@ export class PathJS extends HostObject<"Path"> implements SkPath {
         return path;
     }
 
-    static CanInterpolate(path1: PathJS, path2: PathJS): boolean {
+     /**
+     * Returns true if the two paths contain equal verbs and equal weights.
+     * @param path1 first path to compate
+     * @param path2 second path to compare
+     * @return      true if Path can be interpolated equivalent
+     */
+     CanInterpolate(path1: Path, path2: Path): boolean {
         const p1 = path1.getPath();
         const p2 = path2.getPath();
         let result = true;
@@ -754,7 +739,12 @@ export class PathJS extends HostObject<"Path"> implements SkPath {
         return result;
     }
 
-    static MakeFromCmds(input: InputCommands): SkPath | null {
+    /**
+     * Creates a new path from the given list of path commands. If this fails, null will be
+     * returned instead.
+     * @param cmds
+     */
+    MakeFromCmds(cmds: InputCommands): Path | null {
         const cmds = normalizeArray(input);
         const path = new PathBuilder();
         let i = 0;
@@ -782,18 +772,37 @@ export class PathJS extends HostObject<"Path"> implements SkPath {
         }
         return new PathJS(path);
     }
-    static MakeFromOp(
-        _one: SkPath,
-        _two: SkPath,
-        _op: EmbindEnumEntity
-    ): SkPath | null {
+    /**
+     * Creates a new path by combining the given paths according to op. If this fails, null will
+     * be returned instead.
+     * @param one
+     * @param two
+     * @param op
+     */
+    MakeFromOp(one: Path, two: Path, op: PathOp): Path | null {
         throw new Error("Function not implemented.");
     }
-    static MakeFromPathInterpolation(
-        start: SkPath,
-        end: SkPath,
-        t: number
-    ): SkPath | null {
+    /**
+     * Interpolates between Path with point array of equal size.
+     * Copy verb array and weights to result, and set result path to a weighted
+     * average of this path array and ending path.
+     *
+     *  weight is most useful when between zero (ending path) and
+     *  one (this path); will work with values outside of this
+     *  range.
+     *
+     * interpolate() returns undefined if path is not
+     * the same size as ending path. Call isInterpolatable() to check Path
+     * compatibility prior to calling interpolate().
+     *
+     * @param start path to interpolate from
+     * @param end  path to interpolate with
+     * @param weight  contribution of this path, and
+     *                 one minus contribution of ending path
+     * @return        Path replaced by interpolated averages or null if
+     *                not interpolatable
+     */
+    MakeFromPathInterpolation(start: Path, end: Path, weight: number): Path | null {
         const cmd1 = start.toCmds();
         const cmd2 = end.toCmds();
         const cmd3 = cmd1.map((cmd, index) => {
@@ -801,22 +810,35 @@ export class PathJS extends HostObject<"Path"> implements SkPath {
             if (c === cmd) {
                 return cmd;
             }
-            return (1 - t) * c + t * cmd;
+            return (1 - weight) * c + weight * cmd;
         });
         return PathJS.MakeFromCmds(cmd3);
     }
-    static MakeFromSVGString(d: string) {
+    /**
+     * Creates a new path from the provided SVG string. If this fails, null will be
+     * returned instead.
+     * @param str
+     */
+    MakeFromSVGString(str: string): Path | null {
         try {
-            return new PathJS(parseSVG(d));
+            return new PathJS(parseSVG(str));
         } catch (e) {
             return null;
         }
     }
-    static MakeFromVerbsPointsWeights(
-        _verbs: VerbList,
-        _points: InputFlattenedPointArray,
-        _weights?: WeightList | undefined
-    ): SkPath {
+
+     /**
+     * Creates a new path using the provided verbs and associated points and weights. The process
+     * reads the first verb from verbs and then the appropriate number of points from the
+     * FlattenedPointArray (e.g. 2 points for moveTo, 4 points for quadTo, etc). If the verb is
+     * a conic, a weight will be read from the WeightList.
+     * If the data is malformed (e.g. not enough points), the resulting path will be incomplete.
+     * @param verbs - the verbs that create this path, in the order of being drawn.
+     * @param points - represents n points with 2n floats.
+     * @param weights - used if any of the verbs are conics, can be omitted otherwise.
+     */
+     MakeFromVerbsPointsWeights(verbs: VerbList, points: InputFlattenedPointArray,
+        weights?: WeightList): Path {
         throw new Error("Function not implemented.");
     }
 }

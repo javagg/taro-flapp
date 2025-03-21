@@ -1,6 +1,5 @@
 import { create, Font } from 'fontkit';
 import { Buffer } from 'buffer';
-// import * from "opentype.js";
 export * from  'fontkit'
 
 export const loadFont = (data: ArrayBuffer | Uint8Array, familynameAlias?: string) => {

@@ -8,7 +8,6 @@ import {
 } from "./util";
 
 import {
-    CanvasKit, Canvas,
     ParagraphBuilder, PositionWithAffinity, GlyphInfo,
     ParagraphStyle, Paragraph, FontCollection, InputGraphemes, TextStyle,
     ShapedLine, URange, FontMgr, PlaceholderAlignment, InputWords, InputLineBreaks,

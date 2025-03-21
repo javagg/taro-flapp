@@ -1,34 +1,52 @@
-import type { ColorMatrixHelpers as CKColorMatrixHelpers } from "canvaskit-wasm";
+import type { ColorMatrixHelpers as CKColorMatrixHelpers, ColorMatrix } from "canvaskit-wasm";
 
 export const ColorMatrixHelpers: CKColorMatrixHelpers = {
-  concat: function (_outer: Float32Array, _inner: Float32Array): Float32Array {
-    throw new Error("Function not implemented.");
-  },
-  identity: function (): Float32Array {
-    throw new Error("Function not implemented.");
-  },
-  postTranslate: function (
-    _m: Float32Array,
-    _dr: number,
-    _dg: number,
-    _db: number,
-    _da: number
-  ): Float32Array {
-    throw new Error("Function not implemented.");
-  },
-  rotated: function (
-    _axis: number,
-    _sine: number,
-    _cosine: number
-  ): Float32Array {
-    throw new Error("Function not implemented.");
-  },
-  scaled: function (
-    _redScale: number,
-    _greenScale: number,
-    _blueScale: number,
-    _alphaScale: number
-  ): Float32Array {
-    throw new Error("Function not implemented.");
-  },
+    /**
+     * Returns a new ColorMatrix that is the result of multiplying outer*inner
+     * @param outer
+     * @param inner
+     */
+    concat: function (_outer: ColorMatrix, _inner: ColorMatrix): ColorMatrix {
+        throw new Error("Function not implemented.");
+    },
+
+    /**
+     * Returns an identity ColorMatrix.
+     */
+    identity: function (): ColorMatrix {
+        throw new Error("Function not implemented.");
+    },
+    /**
+     * Sets the 4 "special" params that will translate the colors after they are multiplied
+     * by the 4x4 matrix.
+     * @param m
+     * @param dr - delta red
+     * @param dg - delta green
+     * @param db - delta blue
+     * @param da - delta alpha
+     */
+    postTranslate(m: ColorMatrix, dr: number, dg: number, db: number, da: number): ColorMatrix {
+        throw new Error("Function not implemented.");
+    },
+    /**
+     * Returns a new ColorMatrix that is rotated around a given axis.
+     * @param axis - 0 for red, 1 for green, 2 for blue
+     * @param sine - sin(angle)
+     * @param cosine - cos(angle)
+     */
+    rotated(axis: number, sine: number, cosine: number): ColorMatrix {
+        throw new Error("Function not implemented.");
+    },
+
+    /**
+     * Returns a new ColorMatrix that scales the colors as specified.
+     * @param redScale
+     * @param greenScale
+     * @param blueScale
+     * @param alphaScale
+     */
+    scaled(redScale: number, greenScale: number, blueScale: number,
+        alphaScale: number): ColorMatrix {
+        throw new Error("Function not implemented.");
+    },
 };
