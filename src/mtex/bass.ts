@@ -484,6 +484,14 @@ export const _ParagraphConstants = {
     LineThroughDecoration,
 }
 
+export enum PathVerb {
+    Move,
+    Line,
+    Quad,
+    Conic,
+    Cubic,
+    Close,
+}
 export abstract class SkEmbindObject<T extends string> implements EmbindObject<T> {
     _deleted = false;
     constructor(readonly _type: T) { }

@@ -6,13 +6,15 @@ import type {
     SkPicture,
     TileMode,
     Rect,
-  } from "../canvaskit";
+    PictureRecorder,
+    Canvas,
+} from "../canvaskit";
 import { SkEmbindObject } from "../bass";
-  
+
 //   import { HostObject } from "../HostObject";
 //   import type { CanvasRecorder } from "../Canvas/CanvasRecorder";
-  
-  export class PictureJS extends SkEmbindObject<"SkPicture"> implements SkPicture {
+
+export class PictureJS extends SkEmbindObject<"SkPicture"> implements SkPicture {
     // constructor(readonly canvas: CanvasRecorder) {
     //   super("Picture");
     // }
@@ -30,8 +32,8 @@ import { SkEmbindObject } from "../bass";
      *              bounds.
      */
     makeShader(tmx: TileMode, tmy: TileMode, mode: FilterMode,
-      localMatrix?: InputMatrix, tileRect?: InputRect): Shader {
-      throw new Error("makeShader not implemented.");
+        localMatrix?: InputMatrix, tileRect?: InputRect): Shader {
+        throw new Error("makeShader not implemented.");
     }
     /**
      * Return the bounding area for the Picture.
@@ -41,20 +43,52 @@ import { SkEmbindObject } from "../bass";
     cullRect(outputArray?: Rect): Rect {
         throw new Error("makeShader not implemented.");
     }
-  
+
     /**
      * Returns the approximate byte size. Does not include large objects.
      */
     approximateBytesUsed(): number {
         throw new Error("makeShader not implemented.");
     }
-  
+
     /**
      * Returns the serialized format of this SkPicture. The format may change at anytime and
      * no promises are made for backwards or forward compatibility.
      */
     serialize(): Uint8Array | null {
-      throw new Error("Method not implemented.");
+        throw new Error("Method not implemented.");
     }
-  }
-  
+}
+
+export class PictureRecorderJS
+    extends SkEmbindObject<"PictureRecorder">
+    implements PictureRecorder {
+
+    // private canvas: CanvasRecorder | null = null;
+
+    constructor() { super("PictureRecorder") }
+    /**
+   * Returns a canvas on which to draw. When done drawing, call finishRecordingAsPicture()
+   *
+   * @param bounds - a rect to cull the results.
+   * @param computeBounds - Optional boolean (default false) which tells the
+   *                        recorder to compute a more accurate bounds for the
+   *                        cullRect of the picture.
+   */
+    beginRecording(bounds: InputRect, computeBounds?: boolean): Canvas {
+        this.canvas = new CanvasRecorder(normalizeArray(bounds));
+        return this.canvas;
+    }
+
+    /**
+   * Returns the captured draw commands as a picture and invalidates the canvas returned earlier.
+   */
+    finishRecordingAsPicture(): SkPicture {
+        if (!this.canvas) {
+            throw new Error(
+                "CanvasRecorder not initialized. Call beginRecording first."
+            );
+        }
+        return new PictureJS(this.canvas);
+    }
+}

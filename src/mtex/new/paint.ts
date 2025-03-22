@@ -5,18 +5,19 @@ import type {
     Paint,
     PathEffect,
     InputColor,
-    StrokeJoin, StrokeCap, PaintStyle, 
+    StrokeJoin, StrokeCap, PaintStyle,
     Color,
     BlendMode,
     ColorFilter,
-    MaskFilter
+    MaskFilter,
+    Blender
 } from "../canvaskit";
 
 // import { Paint as NativePaint } from "../c2d";
 // import type { InputColor } from "../Core";
 // import { StrokeJoin, StrokeCap, PaintStyle } from "../Core";
 import type { ShaderJS } from "./shader";
-import type { ImageFilterJS,MaskFilterJS,ColorFilterJS } from "./filter";
+import type { ImageFilterJS, MaskFilterJS, ColorFilterJS } from "./filter";
 import { SkEmbindObject } from "../bass";
 // import { HostObject } from "../HostObject";
 // import type { MaskFilterJS } from "../MaskFilter/MaskFilter";
@@ -63,21 +64,21 @@ export class PaintJS extends SkEmbindObject<"Paint"> implements Paint {
     /**
      * Returns the geometry drawn at the beginning and end of strokes.
      */
-    getStrokeCap(): StrokeCap{
+    getStrokeCap(): StrokeCap {
         return lineCap(this.paint.getStrokeCap());
     }
 
     /**
      * Returns the geometry drawn at the corners of strokes.
      */
-    getStrokeJoin(): StrokeJoin{
+    getStrokeJoin(): StrokeJoin {
         return lineJoin(this.paint.getStrokeJoin());
     }
 
     /**
      *  Returns the limit at which a sharp corner is drawn beveled.
      */
-    getStrokeMiter(): number{
+    getStrokeMiter(): number {
         return this.paint.getStrokeMiter();
     }
 
@@ -92,7 +93,7 @@ export class PaintJS extends SkEmbindObject<"Paint"> implements Paint {
      * Replaces alpha, leaving RGBA unchanged. 0 means fully transparent, 1.0 means opaque.
      * @param alpha
      */
-    setAlphaf(alpha: number): void{
+    setAlphaf(alpha: number): void {
         this.color[3] = alpha;
         this.paint.setAlpha(alpha);
     }
@@ -109,10 +110,23 @@ export class PaintJS extends SkEmbindObject<"Paint"> implements Paint {
      * with destination color.
      * @param mode
      */
-    setBlendMode(mode: BlendMode): void{
+    setBlendMode(mode: BlendMode): void {
         this.paint.setBlendMode(nativeBlendMode(mode));
     }
 
+    /**
+     * Sets the current blender, increasing its refcnt, and if a blender is already
+     * present, decreasing that object's refcnt.
+     *
+     * * A nullptr blender signifies the default SrcOver behavior.
+     *
+     * * For convenience, you can call setBlendMode() if the blend effect can be expressed
+     * as one of those values.
+     * @param blender
+     */
+    setBlender(blender: Blender): void {
+        throw new Error("Method not implemented.");
+    }
     /**
      * Sets alpha and RGB used when stroking and filling. The color is four floating
      * point values, unpremultiplied. The color values are interpreted as being in
@@ -181,7 +195,7 @@ export class PaintJS extends SkEmbindObject<"Paint"> implements Paint {
      * Requests, but does not require, to distribute color error.
      * @param shouldDither
      */
-    setDither(shouldDither: boolean): void{
+    setDither(shouldDither: boolean): void {
         throw new Error("Method not implemented.");
     }
 
@@ -211,7 +225,7 @@ export class PaintJS extends SkEmbindObject<"Paint"> implements Paint {
      * Sets the current path effect, replacing the existing one if there was one.
      * @param effect
      */
-    setPathEffect(effect: PathEffect | null): void{
+    setPathEffect(effect: PathEffect | null): void {
         throw new Error("Method not implemented.");
     }
 
@@ -219,7 +233,7 @@ export class PaintJS extends SkEmbindObject<"Paint"> implements Paint {
      * Sets the current shader, replacing the existing one if there was one.
      * @param shader
      */
-    setShader(shader: Shader | null): void{
+    setShader(shader: Shader | null): void {
         this.paint.setShader(shader ? shader.getShader() : shader);
     }
 
@@ -244,7 +258,7 @@ export class PaintJS extends SkEmbindObject<"Paint"> implements Paint {
      * Sets the limit at which a sharp corner is drawn beveled.
      * @param limit
      */
-    setStrokeMiter(limit: number): void{
+    setStrokeMiter(limit: number): void {
         this.paint.setStrokeMiter(limit);
     }
 
@@ -260,7 +274,7 @@ export class PaintJS extends SkEmbindObject<"Paint"> implements Paint {
      * Sets whether the geometry is filled or stroked.
      * @param style
      */
-    setStyle(style: PaintStyle): void{
+    setStyle(style: PaintStyle): void {
         this.paint.setStrokeStyle(style === PaintStyle.Stroke);
     }
 }

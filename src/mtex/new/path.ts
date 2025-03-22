@@ -5,14 +5,15 @@
 // import { parseSVG } from "@/canv-js/src/Path/SVG";
 import { relative } from "path";
 import { SkEmbindObject } from "../bass";
-import { AngleInDegrees, AngleInRadians, EmbindEnumEntity,
-     FillType, InputCommands, InputFlattenedPointArray, InputRect,
-      InputRRect, Path, PathOp, Point, Rect, StrokeOpts, VerbList, WeightList,
-      PathEffectFactory as CKPathEffectFactory,
-      PathEffect,
-      InputMatrix,
-      Path1DEffectStyle
-    } from "../canvaskit";
+import {
+    AngleInDegrees, AngleInRadians, EmbindEnumEntity,
+    FillType, InputCommands, InputFlattenedPointArray, InputRect,
+    InputRRect, Path, PathOp, Point, Rect, StrokeOpts, VerbList, WeightList,
+    PathEffectFactory as CKPathEffectFactory,
+    PathEffect,
+    InputMatrix,
+    Path1DEffectStyle
+} from "../canvaskit";
 import { normalizeArray, transformPoint } from "./draw";
 import { toRad } from "./math";
 
@@ -20,6 +21,84 @@ import { toRad } from "./math";
  * See SkPath.h for more information on this class.
  */
 export class PathJS extends SkEmbindObject<"Path"> implements Path {
+
+    /**
+ * Returns true if the two paths contain equal verbs and equal weights.
+ * @param path1 first path to compate
+ * @param path2 second path to compare
+ * @return      true if Path can be interpolated equivalent
+ */
+    static CanInterpolate(path1: Path, path2: Path): boolean {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Creates a new path from the given list of path commands. If this fails, null will be
+     * returned instead.
+     * @param cmds
+     */
+    static MakeFromCmds(cmds: InputCommands): Path | null {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Creates a new path by combining the given paths according to op. If this fails, null will
+     * be returned instead.
+     * @param one
+     * @param two
+     * @param op
+     */
+    static MakeFromOp(one: Path, two: Path, op: PathOp): Path | null {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Interpolates between Path with point array of equal size.
+     * Copy verb array and weights to result, and set result path to a weighted
+     * average of this path array and ending path.
+     *
+     *  weight is most useful when between zero (ending path) and
+     *  one (this path); will work with values outside of this
+     *  range.
+     *
+     * interpolate() returns undefined if path is not
+     * the same size as ending path. Call isInterpolatable() to check Path
+     * compatibility prior to calling interpolate().
+     *
+     * @param start path to interpolate from
+     * @param end  path to interpolate with
+     * @param weight  contribution of this path, and
+     *                 one minus contribution of ending path
+     * @return        Path replaced by interpolated averages or null if
+     *                not interpolatable
+     */
+    static MakeFromPathInterpolation(start: Path, end: Path, weight: number): Path | null {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Creates a new path from the provided SVG string. If this fails, null will be
+     * returned instead.
+     * @param str
+     */
+    static MakeFromSVGString(str: string): Path | null {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Creates a new path using the provided verbs and associated points and weights. The process
+     * reads the first verb from verbs and then the appropriate number of points from the
+     * FlattenedPointArray (e.g. 2 points for moveTo, 4 points for quadTo, etc). If the verb is
+     * a conic, a weight will be read from the WeightList.
+     * If the data is malformed (e.g. not enough points), the resulting path will be incomplete.
+     * @param verbs - the verbs that create this path, in the order of being drawn.
+     * @param points - represents n points with 2n floats.
+     * @param weights - used if any of the verbs are conics, can be omitted otherwise.
+     */
+    static MakeFromVerbsPointsWeights(verbs: VerbList, points: InputFlattenedPointArray,
+        weights?: WeightList): Path {
+        throw new Error("Method not implemented.");
+    }
     private path: PathBuilder;
     private fillType: CanvasFillRule = "nonzero";
 
@@ -564,7 +643,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
     rMoveTo(x: number, y: number): Path {
         this.path.moveTo(vec(x, y), true);
         return this;
-       
+
     }
 
 
@@ -575,7 +654,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * @param x2
      * @param y2
      */
-    rQuadTo(x1: number, y1: number, x2: number, y2: number): Path{
+    rQuadTo(x1: number, y1: number, x2: number, y2: number): Path {
         this.path.quadraticCurveTo(vec(x1, y1), vec(x2, y2), true);
         return this;
     }
@@ -609,7 +688,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      *
      * Returns true if operation was able to produce a result.
      */
-    simplify(): boolean{
+    simplify(): boolean {
         throw new Error("Method not implemented.");
     }
 
@@ -618,7 +697,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * fails (e.g. the path is a hairline).
      * @param opts - describe how stroked path should look.
      */
-    stroke(opts?: StrokeOpts): Path | null{
+    stroke(opts?: StrokeOpts): Path | null {
         throw new Error("Method not implemented.");
     }
 
@@ -627,7 +706,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * The first item will be a verb, followed by any number of arguments needed. Then it will
      * be followed by another verb, more arguments and so on.
      */
-    toCmds(): Float32Array{
+    toCmds(): Float32Array {
         return Float32Array.of(...this.path.getPath().toCmds());
     }
 
@@ -642,7 +721,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * Takes a 3x3 matrix as either an array or as 9 individual params.
      * @param args
      */
-    transform(...args: any[]): Path{
+    transform(...args: any[]): Path {
         const m3 = args[0]
         const path = new PathBuilder();
         const cmds = this.toCmds();
@@ -684,7 +763,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * @param stopT  - a value in the range [0.0, 1.0]. 1.0 is the end of the path.
      * @param isComplement
      */
-    trim(startT: number, stopT: number, isComplement: boolean): Path | null{
+    trim(startT: number, stopT: number, isComplement: boolean): Path | null {
         const pe = new TrimPathEffect(startT, stopT, isComplement);
         return this.swap(pe.filterPath(this.path.getPath()));
     }
@@ -718,13 +797,13 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
         return path;
     }
 
-     /**
-     * Returns true if the two paths contain equal verbs and equal weights.
-     * @param path1 first path to compate
-     * @param path2 second path to compare
-     * @return      true if Path can be interpolated equivalent
-     */
-     CanInterpolate(path1: Path, path2: Path): boolean {
+    /**
+    * Returns true if the two paths contain equal verbs and equal weights.
+    * @param path1 first path to compate
+    * @param path2 second path to compare
+    * @return      true if Path can be interpolated equivalent
+    */
+    CanInterpolate(path1: Path, path2: Path): boolean {
         const p1 = path1.getPath();
         const p2 = path2.getPath();
         let result = true;
@@ -833,17 +912,17 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
         }
     }
 
-     /**
-     * Creates a new path using the provided verbs and associated points and weights. The process
-     * reads the first verb from verbs and then the appropriate number of points from the
-     * FlattenedPointArray (e.g. 2 points for moveTo, 4 points for quadTo, etc). If the verb is
-     * a conic, a weight will be read from the WeightList.
-     * If the data is malformed (e.g. not enough points), the resulting path will be incomplete.
-     * @param verbs - the verbs that create this path, in the order of being drawn.
-     * @param points - represents n points with 2n floats.
-     * @param weights - used if any of the verbs are conics, can be omitted otherwise.
-     */
-     MakeFromVerbsPointsWeights(verbs: VerbList, points: InputFlattenedPointArray,
+    /**
+    * Creates a new path using the provided verbs and associated points and weights. The process
+    * reads the first verb from verbs and then the appropriate number of points from the
+    * FlattenedPointArray (e.g. 2 points for moveTo, 4 points for quadTo, etc). If the verb is
+    * a conic, a weight will be read from the WeightList.
+    * If the data is malformed (e.g. not enough points), the resulting path will be incomplete.
+    * @param verbs - the verbs that create this path, in the order of being drawn.
+    * @param points - represents n points with 2n floats.
+    * @param weights - used if any of the verbs are conics, can be omitted otherwise.
+    */
+    MakeFromVerbsPointsWeights(verbs: VerbList, points: InputFlattenedPointArray,
         weights?: WeightList): Path {
         throw new Error("Function not implemented.");
     }
@@ -882,13 +961,13 @@ const calculateBounds = (points: DOMPoint[], outputArray: Float32Array) => {
     outputArray[3] = bottom;
 };
 
-export const PathEffectFactory: CKPathEffectFactory = {
+export const PathEffectFactoryJS: CKPathEffectFactory = {
     /**
      * Returns a PathEffect that can turn sharp corners into rounded corners.
      * @param radius - if <=0, returns null
      */
     MakeCorner(radius: number): PathEffect | null {
-      throw new Error("Function not implemented.");
+        throw new Error("Function not implemented.");
     },
     /**
      * Returns a PathEffect that add dashes to the path.
@@ -900,7 +979,7 @@ export const PathEffectFactory: CKPathEffectFactory = {
      * @param phase - offset length into the intervals array. Defaults to 0.
      */
     MakeDash(intervals: number[], phase?: number): PathEffect {
-      throw new Error("Function not implemented.");
+        throw new Error("Function not implemented.");
     },
     /**
      * Returns a PathEffect that breaks path into segments of segLength length, and randomly move
@@ -910,7 +989,7 @@ export const PathEffectFactory: CKPathEffectFactory = {
      * @param seedAssist - modifies the randomness. See SkDiscretePathEffect.h for more.
      */
     MakeDiscrete(segLength: number, dev: number, seedAssist: number): PathEffect {
-      throw new Error("Function not implemented.");
+        throw new Error("Function not implemented.");
     },
     /**
      * Returns a PathEffect that will fill the drawing path with a pattern made by applying
@@ -921,7 +1000,7 @@ export const PathEffectFactory: CKPathEffectFactory = {
      * @param matrix
      */
     MakeLine2D(width: number, matrix: InputMatrix): PathEffect | null {
-      throw new Error("Function not implemented.");
+        throw new Error("Function not implemented.");
     },
     /**
      * Returns a PathEffect which implements dashing by replicating the specified path.
@@ -933,7 +1012,7 @@ export const PathEffectFactory: CKPathEffectFactory = {
      */
     MakePath1D(path: Path, advance: number, phase: number, style: Path1DEffectStyle):
         PathEffect | null {
-      throw new Error("Function not implemented.");
+        throw new Error("Function not implemented.");
     },
     /**
      * Returns a PathEffect that will fill the drawing path with a pattern by repeating the
@@ -943,6 +1022,6 @@ export const PathEffectFactory: CKPathEffectFactory = {
      * @param path
      */
     MakePath2D(matrix: InputMatrix, path: Path): PathEffect | null {
-      throw new Error("Function not implemented.");
+        throw new Error("Function not implemented.");
     },
-  };
+};

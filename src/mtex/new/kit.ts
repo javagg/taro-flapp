@@ -1,7 +1,9 @@
 import type {
     CanvasKit,
     Image,
-    Color, ColorInt, ColorSpace, EmulatedCanvas2D, GrDirectContext, ImageInfo, InputMatrix, InputVector3, IRect, MallocObj, Path, Rect, RRect, Surface, TypedArrayConstructor, WebGLOptions,
+    Color, ColorInt, ColorSpace, EmulatedCanvas2D, 
+    GrDirectContext, ImageInfo, InputMatrix, InputVector3,
+     IRect, MallocObj, Path, Rect, RRect, Surface, TypedArrayConstructor, WebGLOptions,
     SoundMap,
     ManagedSkottieAnimation,
     Vertices,
@@ -19,7 +21,25 @@ import type {
     WebGPUDeviceContext,
     WebGPUCanvasOptions,
     WebGPUCanvasContext,
+    PathConstructorAndFactory,
+    ColorFilterFactory,
+    ImageFilterFactory,
+    MaskFilterFactory,
+    // PathEffectFactory,
+    RuntimeEffectFactory,
+    ShaderFactory,
+    TextStyleConstructor,
+    TextBlobFactory,
+    TypefaceFactory,
+    PathEffectFactory,
+    FontConstructor,
+    BlenderFactory,
+    PictureRecorder,
+    DefaultConstructor,
+    ContourMeasureIterConstructor,
+    Paint,
 } from "../canvaskit";
+
 import {
     AlphaType as AlphaTypeEnum,
     BlendMode as BlendModeEnum,
@@ -59,12 +79,35 @@ import {
     TextHeightBehavior as TextHeightBehaviorEnum,
     ResizePolicy as ResizePolicyEnum,
     VerticalTextAlign as VerticalTextAlignEnum,
+    PathVerb,
 } from '../bass'
 
 import { MallocObjJS, Matrix3, Matrix4, VectorHelpers, ColorMatrixHelpers, normalizeArray, } from "./draw";
 import { ImageJS } from "./image";
 import { EmulatedCanvas2DJS, SurfaceJS, GrDirectContextJS } from "./surface";
-import { createTexture, resolveContext } from "./utils";
+import { clampColorComp, createTexture, resolveContext } from "./utils";
+
+import {
+    _FontCollection,
+    _TypefaceFactory,
+    _Font,
+    _FontMgr,
+    _Typeface,
+    _ParagraphBuilderFactory, _ParagraphBuilder,
+    _ParagraphStyle,
+    _TextStyle,
+    _TypefaceFontProviderFactory,
+    _TypefaceFontProvider,
+} from "../mite"
+import { PathEffectFactoryJS, PathJS } from "./path";
+import { ColorFilterJS, ImageFilterJS, MaskFilterJS } from "./filter";
+import { ShaderJS } from "./shader";
+import { TextBlobJS } from "./blob";
+import { RuntimeEffectJS } from "./effects";
+import { BlenderJs } from "./blender";
+import { PictureRecorderJS } from "./picture";
+import { ContourMeasureIterJS } from "./contour";
+import { PaintJS } from "./paint";
 
 // This should contains all functions and variables that don't depend on the Web APIs
 export abstract class CoreKit implements CanvasKit {
@@ -106,7 +149,15 @@ export abstract class CoreKit implements CanvasKit {
      * @param a - alpha value, from 0 to 1.0. By default is 1.0 (opaque).
      */
     ColorAsInt(r: number, g: number, b: number, a?: number): ColorInt {
-        return colorAsInt(r, g, b, a);
+        const alpha = a === undefined ? 255 : a;
+        // 合并颜色通道为一个 32 位无符号整数
+        return (
+            (clampColorComp(alpha) << 24 |
+                clampColorComp(r) << 16 |
+                clampColorComp(g) << 8 |
+                clampColorComp(b)) >>> 0
+        );
+        // return colorAsInt(r, g, b, a);
     }
 
     /**
@@ -642,36 +693,36 @@ export abstract class CoreKit implements CanvasKit {
     }
 
     // Constructors, i.e. things made with `new CanvasKit.Foo()`;
-    // ImageData = ImageDataConstructor;
-    // readonly ParagraphStyle: ParagraphStyleConstructor;
-    // readonly ContourMeasureIter: ContourMeasureIterConstructor;
-    // readonly Font: FontConstructor;
-    // readonly Paint: DefaultConstructor<Paint>;
-    // readonly Path: PathConstructorAndFactory;
-    // readonly PictureRecorder: DefaultConstructor<PictureRecorder>;
-    // readonly TextStyle: TextStyleConstructor;
+    //readonly ImageData = ImageDataConstructor;
+    readonly ParagraphStyle =  _ParagraphStyle;
+    readonly ContourMeasureIter: ContourMeasureIterConstructor = ContourMeasureIterJS
+    readonly Font: FontConstructor = _Font;
+    readonly Paint: DefaultConstructor<Paint> = PaintJS
+    readonly Path: PathConstructorAndFactory = PathJS
+    readonly PictureRecorder: DefaultConstructor<PictureRecorder> = PictureRecorderJS
+    readonly TextStyle: TextStyleConstructor = _TextStyle
     // readonly SlottableTextProperty: SlottableTextPropertyConstructor;
 
     // Factories, i.e. things made with CanvasKit.Foo.MakeTurboEncabulator()
-    // readonly ParagraphBuilder: ParagraphBuilderFactory;
-    // readonly Blender: BlenderFactory;
-    // readonly ColorFilter: ColorFilterFactory;
-    // readonly FontCollection: FontCollectionFactory;
-    // readonly FontMgr: FontMgrFactory;
-    // readonly ImageFilter: ImageFilterFactory;
-    // readonly MaskFilter: MaskFilterFactory;
-    // readonly PathEffect: PathEffectFactory;
-    // readonly RuntimeEffect: RuntimeEffectFactory;
-    // readonly Shader: ShaderFactory;
-    // readonly TextBlob: TextBlobFactory;
-    // readonly Typeface: TypefaceFactory;
-    // readonly TypefaceFontProvider: TypefaceFontProviderFactory;
+    readonly ParagraphBuilder = _ParagraphBuilder; //new _ParagraphBuilderFactory();
+    readonly Blender: BlenderFactory = BlenderJs;
+    readonly ColorFilter: ColorFilterFactory = ColorFilterJS
+    readonly FontCollection = _FontCollection; // new _FontCollectionFactory();
+    readonly FontMgr = _FontMgr; //new _FontMgrFactory();
+    readonly ImageFilter: ImageFilterFactory = ImageFilterJS;
+    readonly MaskFilter: MaskFilterFactory = MaskFilterJS
+    readonly PathEffect: PathEffectFactory = PathEffectFactoryJS
+    readonly RuntimeEffect: RuntimeEffectFactory = RuntimeEffectJS
+    readonly Shader: ShaderFactory = ShaderJS
+    readonly TextBlob: TextBlobFactory = TextBlobJS
+    readonly Typeface: TypefaceFactory = _Typeface ; //new _TypefaceFactory();
+    readonly TypefaceFontProvider = _TypefaceFontProvider; //new _TypefaceFontProviderFactory();
 
     // Misc
-    ColorMatrix = ColorMatrixHelpers;
-    Matrix = Matrix3;
-    M44 = Matrix4;
-    Vector = VectorHelpers;
+    readonly ColorMatrix = ColorMatrixHelpers;
+    readonly Matrix = Matrix3;
+    readonly  M44 = Matrix4;
+    readonly Vector = VectorHelpers;
 
     // Core Enums
     AlphaType = AlphaTypeEnum;
@@ -684,7 +735,7 @@ export abstract class CoreKit implements CanvasKit {
     FilterMode = FilterModeEnum;
     FontEdging = FontEdgingEnum;
     FontHinting = FontHintingEnum;
-    //  GlyphRunFlags =GlyphRunFlag;
+    // GlyphRunFlags = GlyphRunFlag;
     ImageFormat = ImageFormatEnum;
     MipmapMode = MipmapModeEnum;
     PaintStyle = PaintStyleEnum;
@@ -710,12 +761,12 @@ export abstract class CoreKit implements CanvasKit {
     CYAN: Color = Float32Array.of(0, 1, 1, 1);
     MAGENTA: Color = Float32Array.of(1, 0, 1, 1);
 
-    // MOVE_VERB = PathVerb.Move;
-    // LINE_VERB = PathVerb.Line;
-    // QUAD_VERB = PathVerb.Quad;
-    // CONIC_VERB = PathVerb.Conic;
-    // CUBIC_VERB = PathVerb.Cubic;
-    // CLOSE_VERB = PathVerb.Close;
+    MOVE_VERB = PathVerb.Move;
+    LINE_VERB = PathVerb.Line;
+    QUAD_VERB = PathVerb.Quad;
+    CONIC_VERB = PathVerb.Conic;
+    CUBIC_VERB = PathVerb.Cubic;
+    CLOSE_VERB = PathVerb.Close;
 
     SaveLayerInitWithPrevious: SaveLayerFlag = 1 << 2;
     SaveLayerF16ColorType: SaveLayerFlag = 1 << 4;
@@ -724,16 +775,16 @@ export abstract class CoreKit implements CanvasKit {
      * Use this shadow flag to indicate the occluding object is not opaque. Knowing that the
      * occluder is opaque allows us to cull shadow geometry behind it and improve performance.
      */
-    readonly ShadowTransparentOccluder: number;
+    ShadowTransparentOccluder: number = 1;
     /**
      * Use this shadow flag to not use analytic shadows.
      */
-    readonly ShadowGeometricOnly: number;
+    readonly ShadowGeometricOnly: number = 2;
     /**
      * Use this shadow flag to indicate the light position represents a direction and light radius
      * is blur radius at elevation 1.
      */
-    readonly ShadowDirectionalLight: number;
+    readonly ShadowDirectionalLight: number = 4;
 
     gpu = false // true if GPU code was compiled in
     managed_skottie = false  // true if advanced (managed) Skottie code was compiled in
