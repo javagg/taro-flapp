@@ -15,6 +15,31 @@ import {
     StrokeJoin as StrokeJoinType,
     StrokeCapEnumValues,
     StrokeJoinEnumValues,
+    AlphaTypeEnumValues,
+    BlendModeEnumValues,
+    BlurStyleEnumValues,
+    ClipOpEnumValues,
+    ColorChannelEnumValues,
+    ColorTypeEnumValues,
+    FillTypeEnumValues,
+    FilterModeEnumValues,
+    FontEdgingEnumValues,
+    FontHintingEnumValues,
+    GlyphRunFlagValues,
+    ImageFormatEnumValues,
+    MipmapModeEnumValues,
+    PaintStyleEnumValues,
+    Path1DEffectStyleEnumValues,
+    PathOpEnumValues,
+    PointModeEnumValues,
+    ColorSpaceEnumValues,
+    TileModeEnumValues,
+    ColorSpace as  ColorSpaceType,
+    VertexModeEnumValues,
+    InputStateEnumValues,
+    ModifierKeyEnumValues,
+    ResizePolicyEnumValues,
+    VerticalTextAlignEnumValues,
 } from './canvaskit'
 
 export function createDomCanvasElement(width?: number, height?: number): HTMLCanvasElement {
@@ -28,7 +53,6 @@ export function clampInt(value: number, min: number, max: number): number {
     if (min > max) throw new Error("min must be less than or equal to max");
     return Math.min(Math.max(value, min), max);
 }
-
 
 export const mapKeys = <T extends object>(obj: T) =>
     Object.keys(obj) as (keyof T)[];
@@ -51,6 +75,224 @@ const makeEnum = <T>(values: Record<Exclude<keyof T, "values">, number>): T => {
     );
     return result;
 };
+
+   // Core Enums
+//    readonly AlphaType: AlphaTypeEnumValues;
+//    readonly BlendMode: BlendModeEnumValues;
+//    readonly BlurStyle: BlurStyleEnumValues;
+//    readonly ClipOp: ClipOpEnumValues;
+//    readonly ColorChannel: ColorChannelEnumValues;
+//    readonly ColorType: ColorTypeEnumValues;
+//    readonly FillType: FillTypeEnumValues;
+//    readonly FilterMode: FilterModeEnumValues;
+//    readonly FontEdging: FontEdgingEnumValues;
+//    readonly FontHinting: FontHintingEnumValues;
+//    readonly GlyphRunFlags: GlyphRunFlagValues;
+//    readonly ImageFormat: ImageFormatEnumValues;
+//    readonly MipmapMode: MipmapModeEnumValues;
+//    readonly PaintStyle: PaintStyleEnumValues;
+//    readonly Path1DEffect: Path1DEffectStyleEnumValues;
+//    readonly PathOp: PathOpEnumValues;
+//    readonly PointMode: PointModeEnumValues;
+//    readonly ColorSpace: ColorSpaceEnumValues;
+//    readonly StrokeCap: StrokeCapEnumValues;
+//    readonly StrokeJoin: StrokeJoinEnumValues;
+//    readonly TileMode: TileModeEnumValues;
+//    readonly VertexMode: VertexModeEnumValues;
+//    readonly InputState: InputStateEnumValues;
+//    readonly ModifierKey: ModifierKeyEnumValues
+
+export enum AlphaTypeEnum {
+    Opaque,
+    Premul,
+    Unpremul,
+}
+export const AlphaType = makeEnum<AlphaTypeEnumValues>(AlphaTypeEnum);
+
+export enum  BlendModeEnum {
+    Clear,
+    Src,
+    Dst,
+    SrcOver,
+    DstOver,
+    SrcIn,
+    DstIn,
+    SrcOut,
+    DstOut,
+    SrcATop,
+    DstATop,
+    Xor,
+    Plus,
+    Modulate,
+    Screen,
+    Overlay,
+    Darken,
+    Lighten,
+    ColorDodge,
+    ColorBurn,
+    HardLight,
+    SoftLight,
+    Difference,
+    Exclusion,
+    Multiply,
+    Hue,
+    Saturation,
+    Color,
+    Luminosity, 
+}
+export const BlendMode = makeEnum<BlendModeEnumValues>(BlendModeEnum); 
+export enum  BlurStyleEnum {
+    Normal,
+    Solid,
+    Outer,
+    Inner,
+}
+export const BlurStyle = makeEnum<BlurStyleEnumValues>(BlurStyleEnum);
+
+export enum  ClipOpEnum {
+    Difference,
+    Intersect,
+}
+export const ClipOp = makeEnum<ClipOpEnumValues>(ClipOpEnum);
+
+ export enum  ColorChannelEnum {
+    Red,
+    Green,
+    Blue,
+    Alpha,
+ }
+ export const ColorChannel = makeEnum<ColorChannelEnumValues>(ColorChannelEnum);
+  
+
+ export enum   ColorTypeEnum {
+    Alpha_8,
+    RGB_565,
+    RGBA_8888,
+    BGRA_8888,
+    RGBA_1010102,
+    RGB_101010x,
+    Gray_8,
+    RGBA_F16,
+    RGBA_F32,
+ }
+ export const ColorType = makeEnum<ColorTypeEnumValues>(ColorTypeEnum);
+
+export enum  FillTypeEnum {
+    Winding,
+    EvenOdd,
+}
+export const FillType = makeEnum<FillTypeEnumValues>(FillTypeEnum);
+
+export enum  FilterModeEnum {
+    Nearest,
+    Linear,
+}
+export const FilterMode = makeEnum<FilterModeEnumValues>(FilterModeEnum);
+ 
+export enum  FontEdgingEnum {
+    Alias,
+    AntiAlias,
+    SubpixelAntiAlias,
+}
+export const FontEdging = makeEnum<FontEdgingEnumValues>(FontEdgingEnum);
+
+export enum  FontHintingEnum {
+    None,
+    Slight,
+    Normal,
+    Full,
+}
+export const FontHinting = makeEnum<FontHintingEnumValues>(FontHintingEnum);
+
+export enum ImageFormatEnum {
+    PNG,
+    JPEG,
+    WEBP,
+}
+export const ImageFormat = makeEnum<ImageFormatEnumValues>(ImageFormatEnum);
+
+export enum MipmapModeEnum {
+    None,
+    Nearest,
+    Linear,
+}
+export const MipmapMode = makeEnum<MipmapModeEnumValues>(MipmapModeEnum);
+
+export enum PaintStyleEnum {
+    Fill,
+    Stroke,
+}
+export const PaintStyle = makeEnum<PaintStyleEnumValues>(PaintStyleEnum);
+
+export enum Path1DEffectStyleEnum {
+    // Translate the shape to each position
+    Translate,
+    // Rotate the shape about its center
+    Rotate,
+    // Transform each point and turn lines into curves
+    Morph,
+}
+export const Path1DEffectStyle = makeEnum<Path1DEffectStyleEnumValues>(Path1DEffectStyleEnum);
+
+export enum PathOpEnum {
+    Difference,
+    Intersect,
+    Union,
+    XOR,    
+    ReverseDifference,
+
+}
+export const PathOp = makeEnum<PathOpEnumValues>(PathOpEnum);
+
+export enum PointModeEnum {
+    Points,
+    Lines,
+    Polygon,
+}
+export const PointMode = makeEnum<PointModeEnumValues>(PointModeEnum);
+
+export enum ColorSpaceEnum {
+    // These are all singleton values - don't call delete on them.
+    SRGB,
+   DISPLAY_P3,
+    ADOBE_RGB,
+    // Equals(a: ColorSpaceType, b: ColorSpaceType): boolean {}
+}
+export const ColorSpace = makeEnum<ColorSpaceEnumValues>(ColorSpaceEnum);
+
+export enum TileModeEnum {
+    Clamp,
+    Repeat,
+    Mirror,
+    Decal,
+}
+export const TileMode = makeEnum<TileModeEnumValues>(TileModeEnum);
+
+export enum  VertexModeEnum {
+    Triangles,
+    TrianglesStrip,
+    TriangleFan,
+}
+export const VertexMode = makeEnum<VertexModeEnumValues>(VertexModeEnum);
+
+export enum  InputStateEnum {
+    Down,
+    Up,
+    Move,
+    Right, // fling only
+    Left,  // fling only
+}
+export const InputState = makeEnum<InputStateEnumValues>(InputStateEnum);
+
+export enum ModifierKeyEnum {
+    None,
+    Shift,
+    Control,
+    Option,
+    Command,
+    FirstPress,
+}
+export const ModifierKey = makeEnum<ModifierKeyEnumValues>(ModifierKeyEnum);
 
 // // Paragraph Enums
 // readonly Affinity: AffinityEnumValues;
@@ -204,9 +446,31 @@ export enum StrokeJoinEnum {
 }
 export const StrokeJoin = makeEnum<StrokeJoinEnumValues>(StrokeJoinEnum);
 
+export enum  ResizePolicyEnum {
+    // Use the specified text size.
+    None,
+    // Resize the text such that the extent box fits (snuggly) in the text box,
+    // both horizontally and vertically.
+    ScaleToFit,
+    // Same kScaleToFit if the text doesn't fit at the specified font size.
+    // Otherwise, same as kNone.
+    DownscaleToFit,
+}
+export const ResizePolicy = makeEnum<ResizePolicyEnumValues>(ResizePolicyEnum);
+ 
+export enum VerticalTextAlignEnum {
+    Top,
+    TopBaseline,
 
-StrokeJoin
+    // Skottie vertical alignment extensions
+    // Visual alignement modes -- these are using tight visual bounds for the paragraph.
+    VisualTop,     // visual top    -> text box top
+    VisualCenter,  // visual center -> text box center
+    VisualBottom,  // visual bottom -> text box bottom
+}
+export const VerticalTextAlign = makeEnum<VerticalTextAlignEnumValues>(VerticalTextAlignEnum);
 
+ 
 export const NoDecoration=0
 export const UnderlineDecoration=1
 export const OverlineDecoration=2

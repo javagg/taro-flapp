@@ -39,6 +39,10 @@ import type {
     AlphaType,
     ColorType,
     ColorSpace,
+    EmulatedCanvas2D,
+    EmulatedCanvas2DContext,
+    EmulatedPath2D,
+    GrDirectContext,
 } from "../canvaskit";
 
 //   import { IndexedHostObject } from "./HostObject";
@@ -49,6 +53,52 @@ import type {
 import { SkEmbindObject } from "../bass";
 import { ImageJS } from "./image";
 import { intAsColor } from "./color";
+
+
+export class EmulatedCanvas2DJS implements EmulatedCanvas2D {
+    constructor(private readonly canvas: HTMLCanvasElement) { }
+    /**
+     * Cleans up all resources associated with this emulated canvas.
+     */
+    dispose(): void { }
+    /**
+     * Decodes an image with the given bytes.
+     * @param bytes
+     */
+    decodeImage(bytes: ArrayBuffer | Uint8Array): Image {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Returns an emulated canvas2d context if type == '2d', null otherwise.
+     * @param type
+     */
+    getContext(type: string): EmulatedCanvas2DContext | null {
+        return this.canvas.getContext("2d");
+    }
+    /**
+     * Loads the given font with the given descriptors. Emulates new FontFace().
+     * @param bytes
+     * @param descriptors
+     */
+    loadFont(bytes: ArrayBuffer | Uint8Array, descriptors: Record<string, string>): void {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Returns an new emulated Path2D object.
+     * @param str - an SVG string representing a path.
+     */
+    makePath2D(str?: string): EmulatedPath2D {
+        return new Path2D(str);
+    }
+    /**
+     * Returns the current canvas as a base64 encoded image string.
+     * @param codec - image/png by default; image/jpeg also supported.
+     * @param quality
+     */
+    toDataURL(codec?: string, quality?: number): string {
+        return this.canvas.toDataURL(codec, quality);
+    }
+}
 
 /**
  * See SkCanvas.h for more information on this class.
@@ -960,5 +1010,45 @@ export class SurfaceJS extends SkEmbindObject<"Surface"> implements Surface {
     }
     width(): number {
         return this.ctx.canvas.width;
+    }
+}
+
+/**
+ * See GrDirectContext.h for more on this class.
+ */
+
+export class GrDirectContextJS extends SkEmbindObject<"GrDirectContext"> implements GrDirectContext {
+    private limit = 5 * 3840 * 2160 * 4;
+    private cache: Map<string, ImageBitmap> = new Map();
+
+    constructor(public readonly ctx: CanvasRenderingContext2D) {
+        super("GrDirectContext");
+    }
+
+    getResourceCacheLimitBytes() {
+        return this.limit;
+    }
+
+    getResourceCacheUsageBytes() {
+        return Array.from(this.cache.values()).reduce(
+            (acc, bitmap) => acc + bitmap.width * bitmap.height * 4,
+            0
+        );
+    }
+
+    releaseResourcesAndAbandonContext() {
+        this.cache.clear();
+    }
+
+    setResourceCacheLimitBytes(limit: number) {
+        this.limit = limit;
+    }
+
+    get(id: string) {
+        return this.cache.get(id);
+    }
+
+    set(id: string, bitmap: ImageBitmap) {
+        this.cache.set(id, bitmap);
     }
 }

@@ -7,9 +7,15 @@ import { relative } from "path";
 import { SkEmbindObject } from "../bass";
 import { AngleInDegrees, AngleInRadians, EmbindEnumEntity,
      FillType, InputCommands, InputFlattenedPointArray, InputRect,
-      InputRRect, Path, PathOp, Point, Rect, StrokeOpts, VerbList, WeightList } from "../canvaskit";
+      InputRRect, Path, PathOp, Point, Rect, StrokeOpts, VerbList, WeightList,
+      PathEffectFactory as CKPathEffectFactory,
+      PathEffect,
+      InputMatrix,
+      Path1DEffectStyle
+    } from "../canvaskit";
 import { normalizeArray, transformPoint } from "./draw";
 import { toRad } from "./math";
+
 /**
  * See SkPath.h for more information on this class.
  */
@@ -812,7 +818,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
             }
             return (1 - weight) * c + weight * cmd;
         });
-        return PathJS.MakeFromCmds(cmd3);
+        return this.MakeFromCmds(cmd3);
     }
     /**
      * Creates a new path from the provided SVG string. If this fails, null will be
@@ -875,3 +881,68 @@ const calculateBounds = (points: DOMPoint[], outputArray: Float32Array) => {
     outputArray[2] = right;
     outputArray[3] = bottom;
 };
+
+export const PathEffectFactory: CKPathEffectFactory = {
+    /**
+     * Returns a PathEffect that can turn sharp corners into rounded corners.
+     * @param radius - if <=0, returns null
+     */
+    MakeCorner(radius: number): PathEffect | null {
+      throw new Error("Function not implemented.");
+    },
+    /**
+     * Returns a PathEffect that add dashes to the path.
+     *
+     * See SkDashPathEffect.h for more details.
+     *
+     * @param intervals - even number of entries with even indicies specifying the length of
+     *                    the "on" intervals, and the odd indices specifying the length of "off".
+     * @param phase - offset length into the intervals array. Defaults to 0.
+     */
+    MakeDash(intervals: number[], phase?: number): PathEffect {
+      throw new Error("Function not implemented.");
+    },
+    /**
+     * Returns a PathEffect that breaks path into segments of segLength length, and randomly move
+     * the endpoints away from the original path by a maximum of deviation.
+     * @param segLength - length of the subsegments.
+     * @param dev - limit of the movement of the endpoints.
+     * @param seedAssist - modifies the randomness. See SkDiscretePathEffect.h for more.
+     */
+    MakeDiscrete(segLength: number, dev: number, seedAssist: number): PathEffect {
+      throw new Error("Function not implemented.");
+    },
+    /**
+     * Returns a PathEffect that will fill the drawing path with a pattern made by applying
+     * the given matrix to a repeating set of infinitely long lines of the given width.
+     * For example, the scale of the provided matrix will determine how far apart the lines
+     * should be drawn its rotation affects the lines' orientation.
+     * @param width - must be >= 0
+     * @param matrix
+     */
+    MakeLine2D(width: number, matrix: InputMatrix): PathEffect | null {
+      throw new Error("Function not implemented.");
+    },
+    /**
+     * Returns a PathEffect which implements dashing by replicating the specified path.
+     *   @param path The path to replicate (dash)
+     *   @param advance The space between instances of path
+     *   @param phase distance (mod advance) along path for its initial position
+     *   @param style how to transform path at each point (based on the current
+     *                position and tangent)
+     */
+    MakePath1D(path: Path, advance: number, phase: number, style: Path1DEffectStyle):
+        PathEffect | null {
+      throw new Error("Function not implemented.");
+    },
+    /**
+     * Returns a PathEffect that will fill the drawing path with a pattern by repeating the
+     * given path according to the provided matrix. For example, the scale of the matrix
+     * determines how far apart the path instances should be drawn.
+     * @param matrix
+     * @param path
+     */
+    MakePath2D(matrix: InputMatrix, path: Path): PathEffect | null {
+      throw new Error("Function not implemented.");
+    },
+  };

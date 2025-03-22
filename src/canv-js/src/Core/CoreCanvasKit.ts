@@ -129,6 +129,7 @@ export abstract class CoreCanvasKit {
   Matrix = Matrix3;
   M44 = Matrix4;
   Affinity = Affinity;
+  
   TRANSPARENT = Float32Array.of(0, 0, 0, 0);
   BLACK = Float32Array.of(0, 0, 0, 1);
   WHITE = Float32Array.of(1, 1, 1, 1);

@@ -1,3 +1,4 @@
+import { SkEmbindObject } from "../bass";
 import { ColorFilter, ColorFilterFactory as CKColorFilterFactory,
     Color,
     InputFlexibleColorArray,
@@ -158,3 +159,21 @@ export const ColorFilterFactory: CKColorFilterFactory = {
         throw new Error("Function not implemented.");
     },
 };
+
+export class ColorSpaceJS extends SkEmbindObject<"ColorSpace">  implements ColorSpace {
+ 
+    constructor(public readonly value: "srgb" | "display-p3" | "adobe-rgb") {
+        super("ColorSpace");
+    }
+
+    getNativeValue() {
+        if (this.value === "adobe-rgb") {
+            console.warn(
+                "adobe_rgb is not supported on the web, falling back to srgb"
+            );
+            return "srgb";
+        } else {
+            return this.value;
+        }
+    }
+}
