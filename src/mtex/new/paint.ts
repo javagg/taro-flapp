@@ -10,20 +10,21 @@ import type {
     BlendMode,
     ColorFilter,
     MaskFilter,
-    Blender
+    Blender,
+    ColorInt,
+    ImageFilter,
+    Shader
 } from "../canvaskit";
 
-// import { Paint as NativePaint } from "../c2d";
-// import type { InputColor } from "../Core";
-// import { StrokeJoin, StrokeCap, PaintStyle } from "../Core";
 import type { ShaderJS } from "./shader";
 import type { ImageFilterJS, MaskFilterJS, ColorFilterJS } from "./filter";
-import { SkEmbindObject } from "../bass";
-// import { HostObject } from "../HostObject";
-// import type { MaskFilterJS } from "../MaskFilter/MaskFilter";
-// import type { ColorFilterJS } from "../ColorFilter/ColorFilter";
+import {
+    PaintStyle as PaintStyleEnums, SkEmbindObject,
+    StrokeCap as StrokeCapEnums,
+    StrokeJoin as StrokeJoinEnums,
+} from "../bass";
 
-// import { nativeBlendMode } from "./BlendMode";
+import { Paint as NativePaint } from "./c2d";
 
 /**
  * See SkPaint.h for more information on this class.
@@ -134,9 +135,8 @@ export class PaintJS extends SkEmbindObject<"Paint"> implements Paint {
      * @param color
      * @param colorSpace - defaults to sRGB
      */
-    setColor(color: InputColor, colorSpace?: ColorSpace): void {
-        this.color =
-            color instanceof Float32Array ? color : Float32Array.from(color);
+    setColor(_color: InputColor, colorSpace?: ColorSpace): void {
+        this.color =   _color instanceof Float32Array ? _color : Float32Array.from(_color);
         this.paint.setAlpha(this.color[3]);
         this.paint.setColor(
             `rgb(${Math.round(this.color[0] * 255)}, ${Math.round(
@@ -275,18 +275,18 @@ export class PaintJS extends SkEmbindObject<"Paint"> implements Paint {
      * @param style
      */
     setStyle(style: PaintStyle): void {
-        this.paint.setStrokeStyle(style === PaintStyle.Stroke);
+        this.paint.setStrokeStyle(style === PaintStyleEnums.Stroke);
     }
 }
 
 const lineCap = (cap: CanvasLineCap) => {
     switch (cap) {
         case "butt":
-            return StrokeCap.Butt;
+            return StrokeCapEnums.Butt;
         case "round":
-            return StrokeCap.Round;
+            return StrokeCapEnums.Round;
         case "square":
-            return StrokeCap.Square;
+            return StrokeCapEnums.Square;
         default:
             throw new Error(`Unknown line cap: ${cap}`);
     }
@@ -308,11 +308,11 @@ const nativeLineCap = (cap: EmbindEnumEntity) => {
 const lineJoin = (join: string) => {
     switch (join) {
         case "miter":
-            return StrokeJoin.Miter;
+            return StrokeJoinEnums.Miter;
         case "round":
-            return StrokeJoin.Round;
+            return StrokeJoinEnums.Round;
         case "bevel":
-            return StrokeJoin.Bevel;
+            return StrokeJoinEnums.Bevel;
         default:
             throw new Error(`Unknown line cap: ${join}`);
     }

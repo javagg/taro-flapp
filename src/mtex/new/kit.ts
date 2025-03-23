@@ -1,9 +1,9 @@
 import type {
     CanvasKit,
     Image,
-    Color, ColorInt, ColorSpace, EmulatedCanvas2D, 
+    Color, ColorInt, ColorSpace, EmulatedCanvas2D,
     GrDirectContext, ImageInfo, InputMatrix, InputVector3,
-     IRect, MallocObj, Path, Rect, RRect, Surface, TypedArrayConstructor, WebGLOptions,
+    IRect, MallocObj, Path, Rect, RRect, Surface, TypedArrayConstructor, WebGLOptions,
     SoundMap,
     ManagedSkottieAnimation,
     Vertices,
@@ -25,10 +25,8 @@ import type {
     ColorFilterFactory,
     ImageFilterFactory,
     MaskFilterFactory,
-    // PathEffectFactory,
     RuntimeEffectFactory,
     ShaderFactory,
-    TextStyleConstructor,
     TextBlobFactory,
     TypefaceFactory,
     PathEffectFactory,
@@ -38,6 +36,9 @@ import type {
     DefaultConstructor,
     ContourMeasureIterConstructor,
     Paint,
+    ParagraphStyle,
+    TextStyle,
+    TypefaceFontProviderFactory,
 } from "../canvaskit";
 
 import {
@@ -87,18 +88,21 @@ import { ImageJS } from "./image";
 import { EmulatedCanvas2DJS, SurfaceJS, GrDirectContextJS } from "./surface";
 import { clampColorComp, createTexture, resolveContext } from "./utils";
 
+import { _ParagraphBuilder, _Paragraph } from "../impl";
+
 import {
     _FontCollection,
     _TypefaceFactory,
     _Font,
     _FontMgr,
     _Typeface,
-    _ParagraphBuilderFactory, _ParagraphBuilder,
-    _ParagraphStyle,
-    _TextStyle,
+    // _ParagraphBuilderFactory, _ParagraphBuilder,
     _TypefaceFontProviderFactory,
     _TypefaceFontProvider,
-} from "../mite"
+    _ParagraphStyle,
+    _TextStyle,
+} from "./text" //"../mite"
+
 import { PathEffectFactoryJS, PathJS } from "./path";
 import { ColorFilterJS, ImageFilterJS, MaskFilterJS } from "./filter";
 import { ShaderJS } from "./shader";
@@ -109,8 +113,14 @@ import { PictureRecorderJS } from "./picture";
 import { ContourMeasureIterJS } from "./contour";
 import { PaintJS } from "./paint";
 
+
+let ctxHandle: WebGLContextHandle = 1
+
 // This should contains all functions and variables that don't depend on the Web APIs
-export abstract class CoreKit implements CanvasKit {
+export class CanvasKitJS implements CanvasKit {
+    private contextes: Record<number, CanvasRenderingContext2D> = {};
+
+    private contextes2: Record<number, HTMLCanvasElement> = {};
     /**
      * Constructs a Color with the same API as CSS's rgba(), that is
      * Internally, Colors are four unpremultiplied 32-bit floats: r, g, b, a.
@@ -389,13 +399,15 @@ export abstract class CoreKit implements CanvasKit {
      * @param opts
      */
     GetWebGLContext(canvas: HTMLCanvasElement, opts?: WebGLOptions): WebGLContextHandle {
+        // FIXME:
+        // getContext called with 2d, from now on can't be called with webgl or webgl2
         const ctx = canvas.getContext("2d");
         if (!ctx) {
             throw new Error("Unable to get 2d context from canvas");
         }
-        const id = ctxId++;
-        this.contextes[id] = ctx;
-        return id;
+        const handle = ctxHandle++;
+        this.contextes[handle] = ctx;
+        return handle;
     }
 
     /**
@@ -404,8 +416,7 @@ export abstract class CoreKit implements CanvasKit {
      * @deprecated Use MakeWebGLContext instead.
      */
     MakeGrContext(ctx: WebGLContextHandle): GrDirectContext | null {
-        throw new Error("Method not implemented.");
-        return new GrDirectContextJS(this.contextes[ctx]);
+        return this.MakeWebGLContext(ctx)
     }
 
     /**
@@ -413,8 +424,8 @@ export abstract class CoreKit implements CanvasKit {
      * @param ctx
      */
     MakeWebGLContext(ctx: WebGLContextHandle): GrDirectContext | null {
-        throw new Error("Method not implemented.");
-        return new GrDirectContextJS(this.contextes[ctx]);
+        const handle = ctx;
+        return new GrDirectContextJS(this.contextes[handle]);
     }
 
     /**
@@ -449,7 +460,7 @@ export abstract class CoreKit implements CanvasKit {
      * @param height - Height of the visible region in pixels.
      * @param colorSpace
      */
-    MakeGPUTextureSurface(ctx: WebGPUDeviceContext, texture: GPUTexture, width: number, height: number 
+    MakeGPUTextureSurface(ctx: WebGPUDeviceContext, texture: GPUTexture, width: number, height: number,
         colorSpace: ColorSpace): Surface | null {
         throw new Error("Method not implemented.");
     }
@@ -694,13 +705,13 @@ export abstract class CoreKit implements CanvasKit {
 
     // Constructors, i.e. things made with `new CanvasKit.Foo()`;
     //readonly ImageData = ImageDataConstructor;
-    readonly ParagraphStyle =  _ParagraphStyle;
+    readonly ParagraphStyle /*: ParagraphStyleConstructor*/ = (ps: ParagraphStyle) => new _ParagraphStyle(ps);
     readonly ContourMeasureIter: ContourMeasureIterConstructor = ContourMeasureIterJS
     readonly Font: FontConstructor = _Font;
     readonly Paint: DefaultConstructor<Paint> = PaintJS
     readonly Path: PathConstructorAndFactory = PathJS
     readonly PictureRecorder: DefaultConstructor<PictureRecorder> = PictureRecorderJS
-    readonly TextStyle: TextStyleConstructor = _TextStyle
+    readonly TextStyle/*: TextStyleConstructor*/ = (ts: TextStyle) => new _TextStyle(ts);
     // readonly SlottableTextProperty: SlottableTextPropertyConstructor;
 
     // Factories, i.e. things made with CanvasKit.Foo.MakeTurboEncabulator()
@@ -715,13 +726,13 @@ export abstract class CoreKit implements CanvasKit {
     readonly RuntimeEffect: RuntimeEffectFactory = RuntimeEffectJS
     readonly Shader: ShaderFactory = ShaderJS
     readonly TextBlob: TextBlobFactory = TextBlobJS
-    readonly Typeface: TypefaceFactory = _Typeface ; //new _TypefaceFactory();
-    readonly TypefaceFontProvider = _TypefaceFontProvider; //new _TypefaceFontProviderFactory();
+    readonly Typeface: TypefaceFactory = _Typeface; //new _TypefaceFactory();
+    readonly TypefaceFontProvider: TypefaceFontProviderFactory = _TypefaceFontProvider; //new _TypefaceFontProviderFactory();
 
     // Misc
     readonly ColorMatrix = ColorMatrixHelpers;
     readonly Matrix = Matrix3;
-    readonly  M44 = Matrix4;
+    readonly M44 = Matrix4;
     readonly Vector = VectorHelpers;
 
     // Core Enums
@@ -814,4 +825,10 @@ export abstract class CoreKit implements CanvasKit {
     UnderlineDecoration: number;
     OverlineDecoration: number;
     LineThroughDecoration: number;
+
+    // no op if this is a cpu-only build.
+    setCurrentContext = () => { };
+
+    // No GrDirectContexts without a GPU backend.
+    getCurrentGrDirectContext = () => null;
 }

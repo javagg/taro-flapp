@@ -35,6 +35,7 @@ import { create, Font as FontKitFont, loadFont } from './font_util'
 import { Buffer } from "buffer";
 
 export { _ParagraphBuilder } from "./impl";
+
 export class _ParagraphBuilderFactory extends SkEmbindObject<"ParagraphBuilderFactory"> implements ParagraphBuilderFactory {
     constructor() {
         super("ParagraphBuilderFactory")

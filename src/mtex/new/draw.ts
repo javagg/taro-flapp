@@ -16,7 +16,10 @@ import type {
     InputPoint,
     ColorMatrixHelpers as CKColorMatrixHelpers,
     ColorMatrix,
+    InputIRect,
+    InputRRect,
 } from "../canvaskit";
+import { vec } from "./utils";
 
 /**
  * This object is a wrapper around a pointer to some memory on the WASM heap. The type of the
@@ -72,7 +75,6 @@ export const normalizeArray = <T>(
     }
     return arr;
 };
-
 
 const toDOMMatrix3x2 = (m3: Float32Array) => {
     const m = new DOMMatrix();
@@ -145,6 +147,50 @@ export const transformPoint = (matrix: Matrix3x3, ...point: number[]) => {
     return new DOMPoint(x / w, y / w);
 };
 
+export const rectToXYWH = (r: InputRect | InputIRect) => {
+    const rect = normalizeArray(r);
+    return {
+        x: rect[0],
+        y: rect[1],
+        width: rect[2] - rect[0],
+        height: rect[3] - rect[1],
+    };
+};
+
+export interface Radii {
+    topLeft: DOMPoint;
+    topRight: DOMPoint;
+    bottomRight: DOMPoint;
+    bottomLeft: DOMPoint;
+}
+
+export const rrectToXYWH = (r: InputRRect) => {
+    const rect = normalizeArray(r);
+    return {
+        x: rect[0],
+        y: rect[1],
+        width: rect[2] - rect[0],
+        height: rect[3] - rect[1],
+        radii: {
+            topLeft: vec(rect[4], rect[5]),
+            topRight: vec(rect[6], rect[7]),
+            bottomRight: vec(rect[8], rect[9]),
+            bottomLeft: vec(rect[10], rect[11]),
+        },
+    };
+};
+
+export const rrectToPath2D = (r: InputRRect) => {
+    const rect = normalizeArray(r);
+    const path = new Path2D();
+    path.roundRect(rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1], [
+        { x: rect[4], y: rect[5] },
+        { x: rect[6], y: rect[7] },
+        { x: rect[8], y: rect[9] },
+        { x: rect[10], y: rect[11] },
+    ]);
+    return path;
+};
 
 export const Matrix3: Matrix3x3Helpers = {
 

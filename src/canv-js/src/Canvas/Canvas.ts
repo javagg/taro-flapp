@@ -150,6 +150,11 @@ export class CanvasJS extends HostObject<"Canvas"> implements CKCanvas {
     private _clip(path: NativePath) {
         this.ctx.clip(path);
     }
+
+    /**
+     * Replaces current matrix with m premultiplied with the existing matrix.
+     * @param m
+     */
     concat(m: InputMatrix) {
         const m3 = nativeMatrix(m);
         this.ctx.concat(m3);
@@ -165,8 +170,7 @@ export class CanvasJS extends HostObject<"Canvas"> implements CKCanvas {
      * @param useCenter - if true, include the center of the oval
      * @param paint
      */
-    drawArc(oval: InputRect, startAngle: AngleInDegrees, sweepAngle: AngleInDegrees,
-        useCenter: boolean, paint: Paint): void {
+    drawArc(oval: InputRect, startAngle: AngleInDegrees, sweepAngle: AngleInDegrees, useCenter: boolean, paint: Paint): void {
         const path = new PathJS();
         const rct = rectToXYWH(oval);
         path.arc(
@@ -192,7 +196,7 @@ export class CanvasJS extends HostObject<"Canvas"> implements CKCanvas {
     drawAtlas(atlas: Image, srcRects: InputFlattenedRectangleArray,
         dstXforms: InputFlattenedRSXFormArray, paint: Paint,
         blendMode?: BlendMode | null, colors?: ColorIntArray | null,
-        sampling?: CubicResampler | FilterOptions): voi {
+        sampling?: CubicResampler | FilterOptions): void {
         throw new Error("Method not implemented.");
     }
 

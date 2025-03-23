@@ -1,12 +1,7 @@
-// import { vec } from "@/canv-js/src/c2d";
-// import { rectToXYWH, rrectToXYWH, FillType, FillTypeEnum, PathVerb } from "@/canv-js/src/Core";
-// import { PathBuilder } from "@/canv-js/src/Path/PathBuilder";
-// import { DashPathEffect, TrimPathEffect } from "@/canv-js/src/Path/PathEffects";
-// import { parseSVG } from "@/canv-js/src/Path/SVG";
 import { relative } from "path";
 import { SkEmbindObject } from "../bass";
 import {
-    AngleInDegrees, AngleInRadians, EmbindEnumEntity,
+    AngleInDegrees, AngleInRadians,
     FillType, InputCommands, InputFlattenedPointArray, InputRect,
     InputRRect, Path, PathOp, Point, Rect, StrokeOpts, VerbList, WeightList,
     PathEffectFactory as CKPathEffectFactory,
@@ -16,6 +11,7 @@ import {
 } from "../canvaskit";
 import { normalizeArray, transformPoint } from "./draw";
 import { toRad } from "./math";
+import { vec } from "./c2d";
 
 /**
  * See SkPath.h for more information on this class.
@@ -29,6 +25,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
  * @return      true if Path can be interpolated equivalent
  */
     static CanInterpolate(path1: Path, path2: Path): boolean {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -49,6 +46,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * @param op
      */
     static MakeFromOp(one: Path, two: Path, op: PathOp): Path | null {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -73,6 +71,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      *                not interpolatable
      */
     static MakeFromPathInterpolation(start: Path, end: Path, weight: number): Path | null {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -82,6 +81,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * @param str
      */
     static MakeFromSVGString(str: string): Path | null {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -97,6 +97,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      */
     static MakeFromVerbsPointsWeights(verbs: VerbList, points: InputFlattenedPointArray,
         weights?: WeightList): Path {
+        // no flutter
         throw new Error("Method not implemented.");
     }
     private path: PathBuilder;
@@ -190,9 +191,9 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * @param close - if true, will add a line connecting last point to the first point.
      */
     addPoly(points: InputFlattenedPointArray, close: boolean): Path {
-        const points = normalizeArray(input);
-        points.forEach((x, index) => {
-            const y = points[index + 1];
+        const _points = normalizeArray(points);
+        _points.forEach((x, index) => {
+            const y = _points[index + 1];
             if (index === 0) {
                 // TODO: only inject move if needed
                 this.path.moveTo(vec(x, y));
@@ -228,8 +229,8 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * @param isCCW
      */
     addRRect(rrect: InputRRect, isCCW?: boolean): Path {
-        const rrect = rrectToXYWH(input);
-        this.path.addRoundedRect(rrect, rrect.radii);
+        const _rrect = rrectToXYWH(rrect);
+        this.path.addRoundedRect(_rrect, _rrect.radii);
         return this;
     }
 
@@ -245,6 +246,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      */
     addVerbsPointsWeights(verbs: VerbList, points: InputFlattenedPointArray,
         weights?: WeightList): Path {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -312,6 +314,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * @param radius
      */
     arcToTangent(x1: number, y1: number, x2: number, y2: number, radius: number): Path {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -339,6 +342,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      *                      allocating a new one.
      */
     computeTightBounds(outputArray?: Rect): Rect {
+        // no flutter
         const result = outputArray ?? new Float32Array(4);
         this.path.getPath().computeTightBounds(result);
         return result;
@@ -389,6 +393,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * Returns the number of points in this path. Initially zero.
      */
     countPoints(): number {
+        // no flutter
         return this.path.getPath().getPoints().length;
     }
     /**
@@ -420,6 +425,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * @param phase
      */
     dash(on: number, off: number, phase: number): boolean {
+        // no flutter
         const pe = new DashPathEffect(on, off, phase);
         this.swap(pe.filterPath(this.path.getPath()));
         return true;
@@ -829,7 +835,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * returned instead.
      * @param cmds
      */
-    MakeFromCmds(cmds: InputCommands): Path | null {
+    MakeFromCmds(input: InputCommands): Path | null {
         const cmds = normalizeArray(input);
         const path = new PathBuilder();
         let i = 0;
@@ -967,6 +973,7 @@ export const PathEffectFactoryJS: CKPathEffectFactory = {
      * @param radius - if <=0, returns null
      */
     MakeCorner(radius: number): PathEffect | null {
+        // no flutter 
         throw new Error("Function not implemented.");
     },
     /**
@@ -979,6 +986,7 @@ export const PathEffectFactoryJS: CKPathEffectFactory = {
      * @param phase - offset length into the intervals array. Defaults to 0.
      */
     MakeDash(intervals: number[], phase?: number): PathEffect {
+        // no flutter 
         throw new Error("Function not implemented.");
     },
     /**
@@ -989,6 +997,7 @@ export const PathEffectFactoryJS: CKPathEffectFactory = {
      * @param seedAssist - modifies the randomness. See SkDiscretePathEffect.h for more.
      */
     MakeDiscrete(segLength: number, dev: number, seedAssist: number): PathEffect {
+        // no flutter 
         throw new Error("Function not implemented.");
     },
     /**
@@ -1000,6 +1009,7 @@ export const PathEffectFactoryJS: CKPathEffectFactory = {
      * @param matrix
      */
     MakeLine2D(width: number, matrix: InputMatrix): PathEffect | null {
+        // no flutter 
         throw new Error("Function not implemented.");
     },
     /**
@@ -1010,8 +1020,8 @@ export const PathEffectFactoryJS: CKPathEffectFactory = {
      *   @param style how to transform path at each point (based on the current
      *                position and tangent)
      */
-    MakePath1D(path: Path, advance: number, phase: number, style: Path1DEffectStyle):
-        PathEffect | null {
+    MakePath1D(path: Path, advance: number, phase: number, style: Path1DEffectStyle): PathEffect | null {
+        // no flutter 
         throw new Error("Function not implemented.");
     },
     /**
@@ -1022,6 +1032,7 @@ export const PathEffectFactoryJS: CKPathEffectFactory = {
      * @param path
      */
     MakePath2D(matrix: InputMatrix, path: Path): PathEffect | null {
+        // no flutter 
         throw new Error("Function not implemented.");
     },
 };

@@ -1,4 +1,4 @@
-import { SkEmbindObject } from "../bass";
+import { AlphaType, ColorType, ImageFormat, SkEmbindObject } from "../bass";
 import type {
     ColorSpace,
     EncodedImageFormat,
@@ -12,11 +12,7 @@ import type {
     Shader,
     TileMode,
 } from "../canvaskit";
-
-// import { ImageFormatEnum } from "./Core";
-// import { HostObject } from "./HostObject";
-// import { createTexture } from "./Core/Platform";
-// import { ImageShader } from "./Shader/ImageShader";
+import { ImageShader } from "./shader";
 
 const dataURLToByteArray = (dataUrl: string) => {
     // split the data URL at the comma to separate the metadata from the data
@@ -80,9 +76,9 @@ export class ImageJS extends SkEmbindObject<"Image"> implements Image {
     encodeToBytes(fmt?: EncodedImageFormat, quality?: number): Uint8Array | null {
         // Get a data URL.
         let mime = "image/png";
-        if (fmt?.value === ImageFormatEnum.JPEG) {
+        if (fmt === ImageFormat.JPEG) {
             mime = "image/jpeg";
-        } else if (fmt?.value === ImageFormatEnum.WEBP) {
+        } else if (fmt === ImageFormat.WEBP) {
             mime = "image/webp";
         }
         const dataUrl = this.image.toDataURL(mime, quality);
@@ -94,32 +90,39 @@ export class ImageJS extends SkEmbindObject<"Image"> implements Image {
      * It is the user's responsibility to call delete() on this after it has been used.
      */
     getColorSpace(): ColorSpace {
+        // no flutter
         throw new Error("getColorSpace not implemented.");
     }
 
     /**
-   * Returns the width, height, colorType and alphaType associated with this image.
-   * Colorspace is separate so as to not accidentally leak that memory.
-   */
+     * Returns the width, height, colorType and alphaType associated with this image.
+     * Colorspace is separate so as to not accidentally leak that memory.
+     */
     getImageInfo(): PartialImageInfo {
         return {
-            alphaType: { value: 2 },
-            colorType: { value: 2 },
+            alphaType: AlphaType.Premul,
+            colorType: ColorType.RGBA_8888, //{ value: 2 },
             height: this.image.height,
             width: this.image.width,
         };
     }
 
     /**
-   * Return the height in pixels of the image.
-   */
+     * Return the width in pixels of the image.
+     */
+    width(): number {
+        return this.image.width;
+    }
+    /**
+     * Return the height in pixels of the image.
+     */
     height(): number {
         return this.image.height;
     }
     /**
-   * Returns an Image with the same "base" pixels as the this image, but with mipmap levels
-   * automatically generated and attached.
-   */
+     * Returns an Image with the same "base" pixels as the this image, but with mipmap levels
+     * automatically generated and attached.
+     */
     makeCopyWithDefaultMipmaps(): Image {
         return new ImageJS(this.image);
     }
@@ -132,9 +135,7 @@ export class ImageJS extends SkEmbindObject<"Image"> implements Image {
      * @param C - See CubicResampler in SkSamplingOptions.h for more information
      * @param localMatrix
      */
-    makeShaderCubic(tx: TileMode, ty: TileMode, B: number, C: number,
-        localMatrix?: InputMatrix): Shader {
-        throw new Error("Method not implemented.");
+    makeShaderCubic(tx: TileMode, ty: TileMode, B: number, C: number, localMatrix?: InputMatrix): Shader {
         return new ImageShader(this.image, localMatrix);
     }
     /**
@@ -148,7 +149,6 @@ export class ImageJS extends SkEmbindObject<"Image"> implements Image {
      */
     makeShaderOptions(tx: TileMode, ty: TileMode, fm: FilterMode, mm: MipmapMode,
         localMatrix?: InputMatrix): Shader {
-        throw new Error("Method not implemented.");
         return new ImageShader(this.image, localMatrix);
     }
 
@@ -173,12 +173,5 @@ export class ImageJS extends SkEmbindObject<"Image"> implements Image {
     readPixels(srcX: number, srcY: number, imageInfo: ImageInfo, dest?: MallocObj,
         bytesPerRow?: number): Float32Array | Uint8Array | null {
         throw new Error("Method not implemented.");
-    }
-
-    /**
-   * Return the width in pixels of the image.
-   */
-    width(): number {
-        return this.image.width;
     }
 }

@@ -17,7 +17,6 @@ import {
 import {
     SkEmbindObject, _Paint, Affinity as AffinityEnums, TextDirection as TextDirectionEnums,
     TextAlign, FontSlant, TextDirection
-
 } from "./bass";
 
 

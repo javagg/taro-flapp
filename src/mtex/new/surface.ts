@@ -43,17 +43,22 @@ import type {
     EmulatedCanvas2DContext,
     EmulatedPath2D,
     GrDirectContext,
+    Font,
+    MallocObj,
 } from "../canvaskit";
 
-//   import { IndexedHostObject } from "./HostObject";
-//   import { CanvasJS } from "./Canvas";
-//   import { ImageJS } from "./Image";
-//   import { rectToXYWH } from "./Core";
-//   import { CanvasProxyHandler } from "./Core/CanvasProxyHandler";
-import { SkEmbindObject } from "../bass";
+import { BlendMode as BlendModeEnums, SkEmbindObject } from "../bass";
 import { ImageJS } from "./image";
 import { intAsColor } from "./color";
+import { PaintJS } from "./paint";
+import { PathJS } from "./path";
+import { nativeMatrix, rectToXYWH, rrectToPath2D, rrectToXYWH } from "./draw";
 
+import {
+    DrawableDRRect, DrawableFill, DrawableImage, DrawableImageRect, DrawableText, Canvas as NativeCanvas,
+    Path as NativePath,
+
+} from "./c2d";
 
 export class EmulatedCanvas2DJS implements EmulatedCanvas2D {
     constructor(private readonly canvas: HTMLCanvasElement) { }
@@ -124,7 +129,7 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
     clear(color: InputColor): void {
         const paint = new PaintJS();
         paint.setColor(color);
-        paint.setBlendMode(BlendMode.Clear);
+        paint.setBlendMode(BlendModeEnums.Clear);
         this.drawPaint(paint);
     }
 
@@ -187,9 +192,9 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
     }
 
     /**
- * Replaces current matrix with m premultiplied with the existing matrix.
- * @param m
- */
+     * Replaces current matrix with m premultiplied with the existing matrix.
+     * @param m
+     */
     concat(m: InputMatrix): void {
         const m3 = nativeMatrix(m);
         this.ctx.concat(m3);
@@ -293,7 +298,7 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
      */
     drawDRRect(outer: InputRRect, inner: InputRRect, paint: Paint): void {
         this.ctx.draw(
-            new DrawableDRRect(rrectToPath2D(outerInput), rrectToPath2D(innerInput)),
+            new DrawableDRRect(rrectToPath2D(outer), rrectToPath2D(inner)),
             paint.getPaint()
         );
     }
@@ -307,10 +312,7 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
      * @param font the font that contains the glyphs
      * @param paint
      */
-    drawGlyphs(glyphs: InputGlyphIDArray,
-        positions: InputFlattenedPointArray,
-        x: number, y: number,
-        font: Font, paint: Paint): void {
+    drawGlyphs(glyphs: InputGlyphIDArray, positions: InputFlattenedPointArray, x: number, y: number, font: Font, paint: Paint): void {
         throw new Error("drawGlyphs not implemented.");
     }
 
@@ -323,8 +325,8 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
      * @param paint
      */
     drawImage(img: Image, left: number, top: number, paint?: Paint | null): void {
-        const paint = _paint || new PaintJS();
-        this.ctx.draw(new DrawableImage(img.getImage(), x, y), paint.getPaint());
+        const _paint = paint || new PaintJS();
+        this.ctx.draw(new DrawableImage(img.getImage(), x, y), _paint.getPaint());
     }
 
 
@@ -338,8 +340,7 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
      * @param C - See CubicResampler in SkSamplingOptions.h for more information
      * @param paint
      */
-    drawImageCubic(img: Image, left: number, top: number, B: number, C: number,
-        paint?: Paint | null): void {
+    drawImageCubic(img: Image, left: number, top: number, B: number, C: number, paint?: Paint | null): void {
         throw new Error("drawImageCubic not implemented.");
     }
 
@@ -354,8 +355,7 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
      *             calculated with makeCopyWithDefaultMipmaps;
      * @param paint
      */
-    drawImageOptions(img: Image, left: number, top: number, fm: FilterMode,
-        mm: MipmapMode, paint?: Paint | null): void {
+    drawImageOptions(img: Image, left: number, top: number, fm: FilterMode, mm: MipmapMode, paint?: Paint | null): void {
         throw new Error("drawImageOptions not implemented.");
     }
 
@@ -370,8 +370,7 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
      * @param filter - what technique to use when sampling the image
      * @param paint
      */
-    drawImageNine(img: Image, center: InputIRect, dest: InputRect, filter: FilterMode,
-        paint?: Paint | null): void {
+    drawImageNine(img: Image, center: InputIRect, dest: InputRect, filter: FilterMode, paint?: Paint | null): void {
         throw new Error("Method not implemented.");
     }
 
@@ -384,7 +383,7 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
      * @param paint
      * @param fastSample - if false, will filter strictly within src.
      */
-    drawImageRect(img: Image, src: InputRect, dest: InputRect, paint: Paint,
+    drawImageRect(img: Image, _src: InputRect, _dest: InputRect, paint: Paint,
         fastSample?: boolean): void {
         const src = rectToXYWH(_src);
         const dest = rectToXYWH(_dest);
@@ -638,28 +637,23 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
     }
 
     /**
- * Returns the current transform from local coordinates to the 'device', which for most
- * purposes means pixels.
- */
+     * Returns true if the given rect, transformed by the current canvas
+     * transform, can be quickly determined to fall entirely outside the clip.
+     */
+    quickReject(rect: InputRect): boolean {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Returns the current transform from local coordinates to the 'device', which for most
+     * purposes means pixels.
+     */
     getLocalToDevice(): Matrix4x4 {
         const m = this.ctx.getMatrix();
         return Float32Array.of(
-            m.m11,
-            m.m21,
-            m.m31,
-            m.m41,
-            m.m12,
-            m.m22,
-            m.m32,
-            m.m42,
-            m.m13,
-            m.m23,
-            m.m33,
-            m.m43,
-            m.m14,
-            m.m24,
-            m.m34,
-            m.m44
+            m.m11, m.m21, m.m31, m.m41,
+            m.m12, m.m22, m.m32, m.m42,
+            m.m13, m.m23, m.m33, m.m43,
+            m.m14, m.m24, m.m34, m.m44
         );
     }
 
@@ -677,20 +671,13 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
      * just returns a 3x3 version.
      */
     getTotalMatrix(): number[] {
-        const matrix = this.ctx.getMatrix();
+        const m = this.ctx.getMatrix();
         return [
-            matrix.m11,
-            matrix.m21,
-            matrix.m41,
-            matrix.m12,
-            matrix.m22,
-            matrix.m42,
-            matrix.m14,
-            matrix.m24,
-            matrix.m44,
+            m.m11, m.m21, m.m41,
+            m.m12, m.m22, m.m42,
+            m.m14, m.m24, m.m44,
         ];
     }
-
 
     /**
      * Creates Surface matching info and props, and associates it with Canvas.
@@ -746,7 +733,6 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
         }
     }
 
-
     /**
      * Rotates the current matrix by the number of degrees.
      * @param rot - angle of rotation in degrees.
@@ -777,8 +763,7 @@ export class CanvasJS extends SkEmbindObject<"Canvas"> implements Canvas {
      * @param backdrop
      * @param flags
      */
-    saveLayer(paint?: Paint, bounds?: InputRect | null, backdrop?: ImageFilter | null,
-        flags?: SaveLayerFlag): number {
+    saveLayer(paint?: Paint, bounds?: InputRect | null, backdrop?: ImageFilter | null,  flags?: SaveLayerFlag): number {
         this.ctx.save(
             imageFilter ? new ImageFilter(imageFilter.filters) : undefined
         );
@@ -843,12 +828,13 @@ export class SurfaceJS extends SkEmbindObject<"Surface"> implements Surface {
 
     constructor(ctx: CanvasRenderingContext2D, debug = false) {
         super("Surface");
-        if (debug) {
-            this.proxyHandler = new CanvasProxyHandler();
-            this.ctx = new Proxy(ctx, this.proxyHandler);
-        } else {
-            this.ctx = ctx;
-        }
+        // if (debug) {
+        //     this.proxyHandler = new CanvasProxyHandler();
+        //     this.ctx = new Proxy(ctx, this.proxyHandler);
+        // } else {
+        //     this.ctx = ctx;
+        // }
+        this.ctx = ctx;
         this.canvas = new CanvasJS(this.ctx);
     }
     /**
@@ -875,6 +861,8 @@ export class SurfaceJS extends SkEmbindObject<"Surface"> implements Surface {
      * Make sure any queued draws are sent to the screen or the GPU.
      */
     flush(): void {
+        // For GPU builds, simply proxies to native code flush.  For CPU builds,
+        // also updates the underlying HTML canvas, optionally with dirtyRect.
         //   if (this.proxyHandler) {
         //     this.proxyHandler.flush();
         //   }
@@ -923,8 +911,7 @@ export class SurfaceJS extends SkEmbindObject<"Surface"> implements Surface {
      *               be assumed to be Unpremultiplied. Note: if this is true and info specifies
      *               Unpremul, Skia will not convert the src pixels first.
      */
-    makeImageFromTextureSource(src: TextureSource, info?: ImageInfo | PartialImageInfo,
-        srcIsPremul?: boolean): Image | null {
+    makeImageFromTextureSource(src: TextureSource, info?: ImageInfo | PartialImageInfo, srcIsPremul?: boolean): Image | null {
         throw new Error("Method not implemented.");
     }
 
@@ -933,21 +920,9 @@ export class SurfaceJS extends SkEmbindObject<"Surface"> implements Surface {
      * drawn to another surface of the same type. For example, if this surface is backed by the
      * GPU, the returned Image will be backed by a GPU texture.
      */
-    makeImageSnapshot(_bounds?: InputIRect): Image {
-        const bounds = _bounds
-            ? rectToXYWH(_bounds)
-            : {
-                x: 0,
-                y: 0,
-                width: this.width(),
-                height: this.height(),
-            };
-        const data = this.ctx.getImageData(
-            bounds.x,
-            bounds.y,
-            bounds.width,
-            bounds.height
-        );
+    makeImageSnapshot(bounds?: InputIRect): Image {
+        const { x, y, width, height } = bounds ? rectToXYWH(bounds) : { x: 0, y: 0, width: this.width(), height: this.height() };
+        const data = this.ctx.getImageData(x, y, width, height);
         return new ImageJS(data);
     }
 
@@ -1016,7 +991,6 @@ export class SurfaceJS extends SkEmbindObject<"Surface"> implements Surface {
 /**
  * See GrDirectContext.h for more on this class.
  */
-
 export class GrDirectContextJS extends SkEmbindObject<"GrDirectContext"> implements GrDirectContext {
     private limit = 5 * 3840 * 2160 * 4;
     private cache: Map<string, ImageBitmap> = new Map();

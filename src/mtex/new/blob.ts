@@ -1,18 +1,19 @@
 import { SkEmbindObject } from "../bass";
-import { TextBlob } from "../canvaskit";
+import { Font, InputFlattenedRSXFormArray, InputGlyphIDArray, Path, TextBlob } from "../canvaskit";
 
 export class TextBlobJS extends SkEmbindObject<"TextBlob"> implements TextBlob {
 
     /**
- * Return a TextBlob with a single run of text.
- *
- * It does not perform typeface fallback for characters not found in the Typeface.
- * It does not perform kerning or other complex shaping; glyphs are positioned based on their
- * default advances.
- * @param glyphs - if using Malloc'd array, be sure to use CanvasKit.MallocGlyphIDs().
- * @param font
- */
+     * Return a TextBlob with a single run of text.
+     *
+     * It does not perform typeface fallback for characters not found in the Typeface.
+     * It does not perform kerning or other complex shaping; glyphs are positioned based on their
+     * default advances.
+     * @param glyphs - if using Malloc'd array, be sure to use CanvasKit.MallocGlyphIDs().
+     * @param font
+     */
     static MakeFromGlyphs(glyphs: InputGlyphIDArray, font: Font): TextBlob {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -25,6 +26,7 @@ export class TextBlobJS extends SkEmbindObject<"TextBlob"> implements TextBlob {
      * @param font
      */
     static MakeFromRSXform(str: string, rsxforms: InputFlattenedRSXFormArray, font: Font): TextBlob {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -37,6 +39,7 @@ export class TextBlobJS extends SkEmbindObject<"TextBlob"> implements TextBlob {
      */
     static MakeFromRSXformGlyphs(glyphs: InputGlyphIDArray, rsxforms: InputFlattenedRSXFormArray,
         font: Font): TextBlob {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -51,6 +54,7 @@ export class TextBlobJS extends SkEmbindObject<"TextBlob"> implements TextBlob {
      * @param font
      */
     static MakeFromText(str: string, font: Font): TextBlob {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -64,6 +68,7 @@ export class TextBlobJS extends SkEmbindObject<"TextBlob"> implements TextBlob {
      * @param initialOffset - the length in pixels to start along the path.
      */
     static MakeOnPath(str: string, path: Path, font: Font, initialOffset?: number): TextBlob {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 

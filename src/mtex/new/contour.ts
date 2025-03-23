@@ -1,10 +1,7 @@
 import { SkEmbindObject } from "../bass";
 import type { ContourMeasure, ContourMeasureIter, Path, PosTan } from "../canvaskit";
-
-// import { HostObject } from "../HostObject";
-
-// import { PathJS } from "./PathJS";
-// import type { Contour } from "./Contour";
+import { Contour } from "./c2d";
+import { PathJS } from "./path";
 
 export class ContourMeasureJS
     extends SkEmbindObject<"ContourMeasure">
@@ -61,9 +58,8 @@ export class ContourMeasureJS
     }
 }
 
-export class ContourMeasureIterJS
-    extends SkEmbindObject<"ContourMeasureIter">
-    implements ContourMeasureIter {
+export class ContourMeasureIterJS extends SkEmbindObject<"ContourMeasureIter"> implements ContourMeasureIter {
+
     private index = 0;
 
     constructor(

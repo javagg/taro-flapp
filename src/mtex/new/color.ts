@@ -166,14 +166,14 @@ export class ColorSpaceJS extends SkEmbindObject<"ColorSpace">  implements Color
         super("ColorSpace");
     }
 
-    getNativeValue() {
-        if (this.value === "adobe-rgb") {
-            console.warn(
-                "adobe_rgb is not supported on the web, falling back to srgb"
-            );
-            return "srgb";
-        } else {
-            return this.value;
-        }
-    }
+    // getNativeValue() {
+    //     if (this.value === "adobe-rgb") {
+    //         console.warn(
+    //             "adobe_rgb is not supported on the web, falling back to srgb"
+    //         );
+    //         return "srgb";
+    //     } else {
+    //         return this.value;
+    //     }
+    // }
 }

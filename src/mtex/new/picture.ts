@@ -11,9 +11,6 @@ import type {
 } from "../canvaskit";
 import { SkEmbindObject } from "../bass";
 
-//   import { HostObject } from "../HostObject";
-//   import type { CanvasRecorder } from "../Canvas/CanvasRecorder";
-
 export class PictureJS extends SkEmbindObject<"SkPicture"> implements SkPicture {
     // constructor(readonly canvas: CanvasRecorder) {
     //   super("Picture");
@@ -31,8 +28,8 @@ export class PictureJS extends SkEmbindObject<"SkPicture"> implements SkPicture 
      *              and cropping). If null, the tile rect is considered equal to the picture
      *              bounds.
      */
-    makeShader(tmx: TileMode, tmy: TileMode, mode: FilterMode,
-        localMatrix?: InputMatrix, tileRect?: InputRect): Shader {
+    makeShader(tmx: TileMode, tmy: TileMode, mode: FilterMode, localMatrix?: InputMatrix, tileRect?: InputRect): Shader {
+        // no flutter
         throw new Error("makeShader not implemented.");
     }
     /**
@@ -56,13 +53,12 @@ export class PictureJS extends SkEmbindObject<"SkPicture"> implements SkPicture 
      * no promises are made for backwards or forward compatibility.
      */
     serialize(): Uint8Array | null {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 }
 
-export class PictureRecorderJS
-    extends SkEmbindObject<"PictureRecorder">
-    implements PictureRecorder {
+export class PictureRecorderJS extends SkEmbindObject<"PictureRecorder"> implements PictureRecorder {
 
     // private canvas: CanvasRecorder | null = null;
 
@@ -76,8 +72,9 @@ export class PictureRecorderJS
    *                        cullRect of the picture.
    */
     beginRecording(bounds: InputRect, computeBounds?: boolean): Canvas {
-        this.canvas = new CanvasRecorder(normalizeArray(bounds));
-        return this.canvas;
+        throw new Error("beginRecording not implemented.");
+        // this.canvas = new CanvasRecorder(normalizeArray(bounds));
+        // return this.canvas;
     }
 
     /**

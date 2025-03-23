@@ -1,8 +1,9 @@
 import { SkEmbindObject } from "../bass";
 import type {
-    ImageFilter, InputMatrix, IRect, Rect, BlendMode,
-    ImageFilterFactory as CKImageFilterFactory,
-    MaskFilterFactory as CKMaskFilterFactory,
+    ImageFilter, ColorFilter, MaskFilter,
+    InputMatrix, IRect, Rect, BlendMode,
+    // ImageFilterFactory as CKImageFilterFactory,
+    // MaskFilterFactory as CKMaskFilterFactory,
     Color,
     ColorChannel,
     CubicResampler,
@@ -13,27 +14,24 @@ import type {
     BlurStyle,
     InputColor,
     ColorSpace,
+    InputRect,
+    InputColorMatrix,
 } from "../canvaskit";
-import { ColorFilter, MaskFilter } from "../canvaskit";
-import { makeBlur } from "./svg";
+import { makeBlur } from "./c2d";
 
-export class ImageFilterJS
-    extends SkEmbindObject<"ImageFilter">
-    //   extends NativeFilter<"ImageFilter">
-    implements ImageFilter {
+export class ImageFilterJS extends SkEmbindObject<"ImageFilter"> implements ImageFilter {
 
     /**
-* Create a filter that takes a BlendMode and uses it to composite the two filters together.
-*
-*  At least one of background and foreground should be non-null in nearly all circumstances.
-*
-*  @param blend       The blend mode that defines the compositing operation
-*  @param background The Dst pixels used in blending; if null, use the dynamic source image
-*                    (e.g. a saved layer).
-*  @param foreground The Src pixels used in blending; if null, use the dynamic source image.
-*/
-    static MakeBlend(blend: BlendMode, background: ImageFilter | null,
-        foreground: ImageFilter | null): ImageFilter {
+    * Create a filter that takes a BlendMode and uses it to composite the two filters together.
+    *
+    *  At least one of background and foreground should be non-null in nearly all circumstances.
+    *
+    *  @param blend       The blend mode that defines the compositing operation
+    *  @param background The Dst pixels used in blending; if null, use the dynamic source image
+    *                    (e.g. a saved layer).
+    *  @param foreground The Src pixels used in blending; if null, use the dynamic source image.
+    */
+    static MakeBlend(blend: BlendMode, background: ImageFilter | null, foreground: ImageFilter | null): ImageFilter {
         throw new Error("Method not implemented.");
     }
 
@@ -100,6 +98,7 @@ export class ImageFilterJS
     */
     static MakeDisplacementMap(xChannel: ColorChannel, yChannel: ColorChannel, scale: number,
         displacement: ImageFilter | null, color: ImageFilter | null): ImageFilter {
+        // no flutter
         throw new Error("Method not implemented.");
     }
     /**
@@ -114,6 +113,7 @@ export class ImageFilterJS
     */
     static MakeDropShadow(dx: number, dy: number, sigmaX: number, sigmaY: number, color: Color,
         input: ImageFilter | null): ImageFilter {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -128,6 +128,7 @@ export class ImageFilterJS
     */
     static MakeDropShadowOnly(dx: number, dy: number, sigmaX: number, sigmaY: number, color: Color,
         input: ImageFilter | null): ImageFilter {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -149,6 +150,7 @@ export class ImageFilterJS
     *  @param sampling The sampling to use when drawing the image.
     */
     static MakeImage(img: Image, sampling: FilterOptions | CubicResampler): ImageFilter | null {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -163,6 +165,7 @@ export class ImageFilterJS
     */
     static MakeImage(img: Image, sampling: FilterOptions | CubicResampler,
         srcRect: InputRect, dstRect: InputRect): ImageFilter | null {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -186,6 +189,7 @@ export class ImageFilterJS
     *  @param input    The input that will be moved, if null, will use the dynamic source image.
     */
     static MakeOffset(dx: number, dy: number, input: ImageFilter | null): ImageFilter {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
@@ -195,12 +199,14 @@ export class ImageFilterJS
     * @param shader - The Shader to be transformed
     */
     static MakeShader(shader: Shader): ImageFilter {
+        // no flutter
         throw new Error("Method not implemented.");
     }
 
     constructor() {
         super("ImageFilter");
     }
+
     /**
      * Returns an IRect that is the updated bounds of inputRect after this
      * filter has been applied.
@@ -237,27 +243,23 @@ export class BlurImageFilter extends ImageFilterJS {
     }
 }
 
-//   export class ComposeImageFilter extends ImageFilterJS {
-//     constructor(
-//       outer: NativeFilter<string> | null,
-//       inner: NativeFilter<string> | null
-//     ) {
-//       super();
-//       if (inner) {
-//         // The input here is SourceGraphic but it should be result
-//         this._filters.push(...inner.filters);
-//       }
-//       if (outer) {
-//         this._filters.push(...outer.filters);
-//       }
-//     }
-//   }
+export class ComposeImageFilter extends ImageFilterJS {
+    //     constructor(
+    //       outer: NativeFilter<string> | null,
+    //       inner: NativeFilter<string> | null
+    //     ) {
+    //       super();
+    //       if (inner) {
+    //         // The input here is SourceGraphic but it should be result
+    //         this._filters.push(...inner.filters);
+    //       }
+    //       if (outer) {
+    //         this._filters.push(...outer.filters);
+    //       }
+    //     }
+}
 
-
-export class ColorFilterJS extends SkEmbindObject<"ColorFilter">
-//   extends NativeFilter<"ColorFilter">
-//   implements ColorFilter
-{
+export class ColorFilterJS extends SkEmbindObject<"ColorFilter"> implements ColorFilter {
     /**
      * Makes a color filter with the given color, blend mode, and colorSpace.
      * @param color
@@ -276,7 +278,6 @@ export class ColorFilterJS extends SkEmbindObject<"ColorFilter">
         throw new Error("Function not implemented.");
     }
 
-
     /**
      * Makes a color filter that is linearly interpolated between two other color filters.
      * @param t - a float in the range of 0.0 to 1.0.
@@ -287,11 +288,12 @@ export class ColorFilterJS extends SkEmbindObject<"ColorFilter">
         throw new Error("Function not implemented.");
     }
 
-
     /**
      * Makes a color filter that converts between linear colors and sRGB colors.
      */
-    static MakeLinearToSRGBGamma(): ColorFilter;
+    static MakeLinearToSRGBGamma(): ColorFilter {
+        throw new Error("Function not implemented.");
+    }
 
     /**
      * Creates a color filter using the provided color matrix.
@@ -301,14 +303,12 @@ export class ColorFilterJS extends SkEmbindObject<"ColorFilter">
         throw new Error("Function not implemented.");
     }
 
-
     /**
      * Makes a color filter that converts between sRGB colors and linear colors.
      */
     static MakeSRGBToLinearGamma(): ColorFilter {
         throw new Error("Function not implemented.");
     }
-
 
     /**
      * Makes a color filter that multiplies the luma of its input into the alpha channel,
@@ -323,69 +323,6 @@ export class ColorFilterJS extends SkEmbindObject<"ColorFilter">
     }
 }
 
-export const ImageFilterFactory: CKImageFilterFactory = {
-    /**
-     * Create a filter that takes a BlendMode and uses it to composite the two filters together.
-     *
-     *  At least one of background and foreground should be non-null in nearly all circumstances.
-     *
-     *  @param blend       The blend mode that defines the compositing operation
-     *  @param background The Dst pixels used in blending; if null, use the dynamic source image
-     *                    (e.g. a saved layer).
-     *  @param foreground The Src pixels used in blending; if null, use the dynamic source image.
-     */
-    MakeBlend(blend: BlendMode, background: ImageFilter | null,
-        foreground: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    /**
-     * Create a filter that blurs its input by the separate X and Y sigmas. The provided tile mode
-     * is used when the blur kernel goes outside the input image.
-     *
-     * @param sigmaX - The Gaussian sigma value for blurring along the X axis.
-     * @param sigmaY - The Gaussian sigma value for blurring along the Y axis.
-     * @param mode
-     * @param input - if null, it will use the dynamic source image (e.g. a saved layer)
-     */
-    MakeBlur: function (sigmaX: number, sigmaY: number, mode: TileMode, input: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    MakeColorFilter: function (cf: ColorFilter, input: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    MakeCompose: function (outer: ImageFilter | null, inner: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    MakeDilate: function (radiusX: number, radiusY: number, input: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    MakeDisplacementMap: function (xChannel: ColorChannel, yChannel: ColorChannel, scale: number, displacement: ImageFilter | null, color: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    MakeDropShadow: function (dx: number, dy: number, sigmaX: number, sigmaY: number, color: Color, input: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    MakeDropShadowOnly: function (dx: number, dy: number, sigmaX: number, sigmaY: number, color: Color, input: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    MakeErode: function (radiusX: number, radiusY: number, input: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    MakeImage: function (img: Image, sampling: FilterOptions | CubicResampler): ImageFilter | null {
-        throw new Error("Function not implemented.");
-    },
-    MakeMatrixTransform: function (matr: InputMatrix, sampling: FilterOptions | CubicResampler, input: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    MakeOffset: function (dx: number, dy: number, input: ImageFilter | null): ImageFilter {
-        throw new Error("Function not implemented.");
-    },
-    MakeShader: function (shader: Shader): ImageFilter {
-        throw new Error("Function not implemented.");
-    }
-}
-
-
 export class MaskFilterJS extends SkEmbindObject<"MaskFilter"> implements MaskFilter {
 
     /**
@@ -395,16 +332,17 @@ export class MaskFilterJS extends SkEmbindObject<"MaskFilter"> implements MaskFi
      * @param respectCTM - if true the blur's sigma is modified by the CTM.
      */
     static MakeBlur(style: BlurStyle, sigma: number, respectCTM: boolean): MaskFilter {
-        throw new Error("Function not implemented.");
+        return new BlurMaskFilter(style, sigma);
     }
 
     constructor() {
         super("MaskFilter");
     }
 }
+
 export class BlurMaskFilter extends MaskFilterJS {
     constructor(readonly style: BlurStyle, readonly sigma: number) {
-        super("MaskFilter");
+        super()
         const blur = makeBlur(sigma, sigma);
         //   this._filters.push(blur);
         //   if (this.style === BlurStyleEnum.Solid) {
@@ -416,15 +354,3 @@ export class BlurMaskFilter extends MaskFilterJS {
         //   }
     }
 }
-
-export const MaskFilterFactory: CKMaskFilterFactory = {
-    /**
-     * Create a blur maskfilter
-     * @param style
-     * @param sigma - Standard deviation of the Gaussian blur to apply. Must be > 0.
-     * @param respectCTM - if true the blur's sigma is modified by the CTM.
-     */
-    MakeBlur(style: BlurStyle, sigma: number, respectCTM: boolean): MaskFilter {
-        return new BlurMaskFilter(style, sigma);
-    },
-};
