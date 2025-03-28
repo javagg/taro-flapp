@@ -10,11 +10,14 @@ import type {
     Canvas,
 } from "../canvaskit";
 import { SkEmbindObject } from "../bass";
+import { CanvasRecorder } from "./recorder";
+import { normalizeArray } from "./draw";
 
 export class PictureJS extends SkEmbindObject<"SkPicture"> implements SkPicture {
-    // constructor(readonly canvas: CanvasRecorder) {
-    //   super("Picture");
-    // }
+    constructor(readonly canvas: CanvasRecorder) {
+      super("SkPicture");
+    }
+
     /**
      *  Returns a new shader that will draw with this picture.
      *
@@ -38,14 +41,15 @@ export class PictureJS extends SkEmbindObject<"SkPicture"> implements SkPicture 
      *                      allocating a new one.
      */
     cullRect(outputArray?: Rect): Rect {
-        throw new Error("makeShader not implemented.");
+        return Float32Array.of(0,0,0,0);
+        throw new Error("cullRect not implemented.");
     }
 
     /**
      * Returns the approximate byte size. Does not include large objects.
      */
     approximateBytesUsed(): number {
-        throw new Error("makeShader not implemented.");
+        throw new Error("approximateBytesUsed not implemented.");
     }
 
     /**
@@ -54,13 +58,13 @@ export class PictureJS extends SkEmbindObject<"SkPicture"> implements SkPicture 
      */
     serialize(): Uint8Array | null {
         // no flutter
-        throw new Error("Method not implemented.");
+        throw new Error("serialize not implemented.");
     }
 }
 
 export class PictureRecorderJS extends SkEmbindObject<"PictureRecorder"> implements PictureRecorder {
 
-    // private canvas: CanvasRecorder | null = null;
+    private recorder: CanvasRecorder | null = null;
 
     constructor() { super("PictureRecorder") }
     /**
@@ -72,20 +76,20 @@ export class PictureRecorderJS extends SkEmbindObject<"PictureRecorder"> impleme
    *                        cullRect of the picture.
    */
     beginRecording(bounds: InputRect, computeBounds?: boolean): Canvas {
-        throw new Error("beginRecording not implemented.");
-        // this.canvas = new CanvasRecorder(normalizeArray(bounds));
-        // return this.canvas;
+        // throw new Error("beginRecording not implemented.");
+        this.recorder = new CanvasRecorder(normalizeArray(bounds));
+        return this.recorder;
     }
 
     /**
    * Returns the captured draw commands as a picture and invalidates the canvas returned earlier.
    */
     finishRecordingAsPicture(): SkPicture {
-        if (!this.canvas) {
+        if (!this.recorder) {
             throw new Error(
                 "CanvasRecorder not initialized. Call beginRecording first."
             );
         }
-        return new PictureJS(this.canvas);
+        return new PictureJS(this.recorder);
     }
 }

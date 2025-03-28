@@ -25,6 +25,7 @@ import {
 } from "../bass";
 
 import { Paint as NativePaint } from "./c2d";
+import { nativeBlendMode } from "./draw";
 
 /**
  * See SkPaint.h for more information on this class.

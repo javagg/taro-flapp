@@ -9,9 +9,12 @@ import {
     InputMatrix,
     Path1DEffectStyle
 } from "../canvaskit";
-import { normalizeArray, transformPoint } from "./draw";
+import { normalizeArray, rectToXYWH, rrectToXYWH, transformPoint } from "./draw";
 import { toRad } from "./math";
-import { vec } from "./c2d";
+import { vec,
+    Path as NativePath,
+    PathBuilder
+ } from "./c2d";
 
 /**
  * See SkPath.h for more information on this class.
@@ -19,11 +22,11 @@ import { vec } from "./c2d";
 export class PathJS extends SkEmbindObject<"Path"> implements Path {
 
     /**
- * Returns true if the two paths contain equal verbs and equal weights.
- * @param path1 first path to compate
- * @param path2 second path to compare
- * @return      true if Path can be interpolated equivalent
- */
+     * Returns true if the two paths contain equal verbs and equal weights.
+     * @param path1 first path to compate
+     * @param path2 second path to compare
+     * @return      true if Path can be interpolated equivalent
+     */
     static CanInterpolate(path1: Path, path2: Path): boolean {
         // no flutter
         throw new Error("Method not implemented.");
@@ -100,6 +103,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
         // no flutter
         throw new Error("Method not implemented.");
     }
+
     private path: PathBuilder;
     private fillType: CanvasFillRule = "nonzero";
 
@@ -129,7 +133,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      */
     addArc(oval: InputRect, startAngle: AngleInDegrees, sweepAngle: AngleInDegrees): Path {
         this.path.addArc(
-            rectToXYWH(inputBounds),
+            rectToXYWH(oval),
             toRad(startAngle),
             toRad(sweepAngle),
             false
@@ -218,7 +222,7 @@ export class PathJS extends SkEmbindObject<"Path"> implements Path {
      * @param isCCW
      */
     addRect(rect: InputRect, isCCW?: boolean): Path {
-        this.path.addRect(rectToXYWH(input));
+        this.path.addRect(rectToXYWH(rect));
         return this;
     }
 

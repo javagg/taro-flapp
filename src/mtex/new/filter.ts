@@ -2,8 +2,6 @@ import { SkEmbindObject } from "../bass";
 import type {
     ImageFilter, ColorFilter, MaskFilter,
     InputMatrix, IRect, Rect, BlendMode,
-    // ImageFilterFactory as CKImageFilterFactory,
-    // MaskFilterFactory as CKMaskFilterFactory,
     Color,
     ColorChannel,
     CubicResampler,
@@ -32,7 +30,7 @@ export class ImageFilterJS extends SkEmbindObject<"ImageFilter"> implements Imag
     *  @param foreground The Src pixels used in blending; if null, use the dynamic source image.
     */
     static MakeBlend(blend: BlendMode, background: ImageFilter | null, foreground: ImageFilter | null): ImageFilter {
-        throw new Error("Method not implemented.");
+        throw new Error("MakeBlend not implemented.");
     }
 
     /**
@@ -46,7 +44,8 @@ export class ImageFilterJS extends SkEmbindObject<"ImageFilter"> implements Imag
     */
     static MakeBlur(sigmaX: number, sigmaY: number, mode: TileMode,
         input: ImageFilter | null): ImageFilter {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
+        return new BlurImageFilter(sigmaX, sigmaY, input as ImageFilterJS);
     }
 
     /**
@@ -55,7 +54,8 @@ export class ImageFilterJS extends SkEmbindObject<"ImageFilter"> implements Imag
     * @param input - if null, it will use the dynamic source image (e.g. a saved layer)
     */
     static MakeColorFilter(cf: ColorFilter, input: ImageFilter | null): ImageFilter {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
+        return new ComposeImageFilter(cf, input);
     }
 
     /**
@@ -66,7 +66,8 @@ export class ImageFilterJS extends SkEmbindObject<"ImageFilter"> implements Imag
     * @param inner - if null, it will use the dynamic source image (e.g. a saved layer)
     */
     static MakeCompose(outer: ImageFilter | null, inner: ImageFilter | null): ImageFilter {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
+        return new ComposeImageFilter(outer, inner);
     }
 
     /**
@@ -228,7 +229,7 @@ export class ImageFilterJS extends SkEmbindObject<"ImageFilter"> implements Imag
     }
 }
 
-export class BlurImageFilter extends ImageFilterJS {
+class BlurImageFilter extends ImageFilterJS {
     constructor(
         readonly sigmaX: number,
         readonly sigmaY: number,
@@ -244,11 +245,11 @@ export class BlurImageFilter extends ImageFilterJS {
 }
 
 export class ComposeImageFilter extends ImageFilterJS {
-    //     constructor(
-    //       outer: NativeFilter<string> | null,
-    //       inner: NativeFilter<string> | null
-    //     ) {
-    //       super();
+        constructor(
+          outer: NativeFilter<string> | null,
+          inner: NativeFilter<string> | null
+        ) {
+          super();
     //       if (inner) {
     //         // The input here is SourceGraphic but it should be result
     //         this._filters.push(...inner.filters);
@@ -256,7 +257,7 @@ export class ComposeImageFilter extends ImageFilterJS {
     //       if (outer) {
     //         this._filters.push(...outer.filters);
     //       }
-    //     }
+        }
 }
 
 export class ColorFilterJS extends SkEmbindObject<"ColorFilter"> implements ColorFilter {

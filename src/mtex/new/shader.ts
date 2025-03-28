@@ -12,17 +12,18 @@ import {
     SweepGradient as NativeSweepGradient,
     TwoPointConicalGradient as NativeTwoPointConicalGradient,
     ImageShader as NativeImageShader,
+    Shader as NativeShader,
 } from "./c2d"
-import { nativePoint } from "./draw";
+import { nativeBlendMode, nativeMatrix, nativePoint } from "./draw";
 
 export class ShaderJS extends SkEmbindObject<"Shader"> implements Shader {
 
     /**
-  * Returns a shader that combines the given shaders with a BlendMode.
-  * @param mode
-  * @param one
-  * @param two
-  */
+     * Returns a shader that combines the given shaders with a BlendMode.
+     * @param mode
+     * @param one
+     * @param two
+     */
     static MakeBlend(mode: BlendMode, one: Shader, two: Shader): Shader {
         // no flutter 
         return new BlendShader(mode, one, two);
@@ -170,22 +171,22 @@ export class ShaderJS extends SkEmbindObject<"Shader"> implements Shader {
         );
     }
 
-    constructor() {
+    constructor(private _shader: NativeShader) {
         super("Shader");
     }
 
-    //   getShader() {
-    //     return this._shader;
-    //   }
+    native() {
+        return this._shader;
+    }
 }
 
 class BlendShader extends ShaderJS {
-    constructor(blendMode: BlendMode, one: Shader, two: Shader) {
+    constructor(blendMode: BlendMode, one: ShaderJS, two: ShaderJS) {
         super(
             new NativeBlendShader(
                 nativeBlendMode(blendMode),
-                child1.getShader(),
-                child2.getShader()
+                one.native(),
+                two.native()
             )
         );
     }
@@ -254,7 +255,6 @@ class TwoPointConicalGradient extends ShaderJS {
         );
     }
 }
-
 export class ImageShader extends ShaderJS {
     constructor(image: HTMLCanvasElement, localMatrix?: InputMatrix) {
         super(
